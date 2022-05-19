@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		    
+		<H1><title>EHRBase Access Tool</title></H1>
+		<link rel="stylesheet" href="basic.css">
+	</head>
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/basic.css') }}">
+	<body>
+    <div id="mySidenav" class="sidenav">
+      <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+      <a href="about.html">About</a>
+      <a href="ehrbase.html">Settings</a>
+      <a href="gtemp.html">Get Template</a>            
+      <a href="ptemp.html">Post Template</a>
+      <a href="gehr.html">Get EHR</a>
+      <a href="pehr.html">Post EHR</a>
+      <a href="gcomp.html">Get Composition</a>            
+      <a href="pcomp.html">Post Composition</a>
+      <a href="paql.html">GET AQL</a>
+      <a href="paql.html">POST AQL</a>
+      <a href="paql.html">RUN AQL</a>
+      <a href="pbcompo.html">POST BATCH Compositions</a>
+    </div>
+          
+    <style>
+      .flex-parent {
+  display: flex;
+}
+.flex-child {
+  flex: 1;
+}
+    </style>
+
+
+
+
+
+
+          <!-- Use any element to open the sidenav -->
+          <span onclick="openNav()">Menu</span>
+          
+          <!-- Add all page content inside this div if you want the side nav to push page content to the right (not used if you only want the sidenav to sit on top of the page -->
+          <div id="main">
+            <h1>Post a EHR</h1>
+
+            <div id=forms style = "position:relative; left:80px; top:2px;">
+              <div class='parent flex-parent'>
+                <div id="forform1" class='child flex-child'>
+                <h2>Create a EHR with specified EHRID<br> (blank for unspecified)</h2>  
+                <form id="form1">
+                  <label for="ehrid">EHRID</label><br>
+                  <input type="text" id="ehrtext" name="ehrtext"><br><br><br>
+                  <input id="sform1" name="sform1" type="submit" value="Submit">
+                </form>                 
+                  
+                </div>
+                <div id="forform2" class='child flex-child'>
+                  <h2>Create a EHR given<br>SubjectID and SubjectNamespace <br>(and optionally EHRID)</h2>  
+                  <form id="form2">
+                    <label for="jk">EHRID</label><br>
+                    <input type="text" id="eid" name="eid"><br><br>
+                    <label for="ehrs">SubjectID</label><br>
+                    <input type="text" id="sid" name="sid"><br><br>
+                    <label for="ehrs">SubjectNamespace</label><br>
+                    <input type="text" id="sna" name="sna"><br><br><br>
+                    <input id="sform2" name="sform2" type="submit" value="Submit">
+                  </form>                       
+                  </div>
+              </div>
+              
+
+
+
+
+
+
+              <h2>Results</h2>
+              {{yourresults}}
+              <pre id="json">{{ehr}}</pre>
+            </div>
+          </div>
+
+
+
+          </div> 
+
+	</body>
+  <script src="{{url_for('static', filename='javascript/mynav.js')}}"></script>
+</html>
