@@ -17,14 +17,14 @@
             <a href="pehr.html">Post EHR</a>
             <a href="gcomp.html">Get Composition</a>            
             <a href="pcomp.html">Post Composition</a>
-            <a href="paql.html">GET AQL</a>
-            <a href="paql.html">POST AQL</a>
-            <a href="paql.html">RUN AQL</a>
+            <a href="gaql.html">GET AQL Query</a>
+            <a href="paql.html">POST AQL Query</a>
+            <a href="raql.html">RUN AQL Query</a>
             <a href="pbcompo.html">POST BATCH Compositions</a>
           </div>
           
           <!-- Use any element to open the sidenav -->
-          <span onclick="openNav()">Menu</span>
+          <span onclick="openNav()"><h2>-Menu</h2></span>
           
           <!-- Add all page content inside this div if you want the side nav to push page content to the right (not used if you only want the sidenav to sit on top of the page -->
           <div id="main">
@@ -47,18 +47,25 @@
 
               <div id="pluto" style = "position:relative; left:20px; top:2px;">
               <form id="form1">
-              <h3>Format</h3>
-              <input type="radio" name="filetype" value="XML">XML</input>
-              <input type="radio" name="filetype" value="JSON">JSON</input>
-              <input type="radio" name="filetype" value="FLAT" checked>FLAT JSON</input>
-             
-              <br><br>
-
-              <h4>EHRID</h4>
-                  <input type="text" id="ename" name="ename" value={{last}} > <br><br><br>
+                  <h4>Format</h4>
+                  <input type="radio" name="filetype" value="XML">XML</input>
+                  <input type="radio" name="filetype" value="JSON">JSON</input>
+                  <input type="radio" name="filetype" value="FLAT" checked>FLAT JSON</input>
               
-                <h4>TemplateID</h4>
-                <input type="text" id="tname" name="tname"> <br><br><br>
+                  <br><br>
+
+                  <h4>EHRID</h4>
+                    <input type="text" id="ename" name="ename" value={{last}} > <br><br><br>
+                
+                  <h4>TemplateID</h4>
+                  <input type="text" id="tname" name="tname"> <br><br><br>
+
+                  <h4>Check Against original Composition</h4>
+                  <input type="radio" name="check" value="Yes">Yes</input>
+                  <input type="radio" name="check" value="No" checked>No</input>
+                  <br><br><br><br>
+
+
                   <input id="fform1" name="fform1" type="submit" value="POST THE COMPOSITION">
                 </form> 
 
@@ -78,8 +85,12 @@
               {{ the_string }}
               {% endif %}
               {%- endmacro %}
-              {{ linebreaks_for_string( yourresults ) }} 
 
+              {{ linebreaks_for_string( yourresults ) }}
+              <br><br> 
+              {{checkresults}}
+              <br><br> 
+              {{checkinfo}}
             </div>
           </div>
 

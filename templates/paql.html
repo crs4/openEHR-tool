@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		    
+		<H1><title>EHRBase Access Tool</title></H1>
+		<link rel="stylesheet" href="basic.css">
+	</head>
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/basic.css') }}">
+	<body>
+    <div id="mySidenav" class="sidenav">
+      <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+      <a href="about.html">About</a>
+      <a href="ehrbase.html">Settings</a>
+      <a href="gtemp.html">Get Template</a>            
+      <a href="ptemp.html">Post Template</a>
+      <a href="gehr.html">Get EHR</a>
+      <a href="pehr.html">Post EHR</a>
+      <a href="gcomp.html">Get Composition</a>            
+      <a href="pcomp.html">Post Composition</a>
+      <a href="gaql.html">GET AQL Query</a>
+      <a href="paql.html">POST AQL Query</a>
+      <a href="raql.html">RUN AQL Query</a>
+      <a href="pbcompo.html">POST BATCH Compositions</a>
+    </div>
+    <style type="text/css">
+      textarea {
+       width: 800px;
+       height: 300px;
+       /* background-color: yellow; */
+       font-size: 1.2em;
+       font-family: Verdana, Arial, Helvetica, sans-serif;
+       border: 1px solid black;
+       white-space: pre;
+      }
+input {
+  /* background-color: yellow; */
+  border: 1px solid black;
+}
+
+input[type="submit"] {
+  /* background-color: rgb(161, 153, 41); */
+  font-size: 1.2em;
+ /* font-weight: bold; */
+}
+
+.flex-parent {
+  display: flex;
+}
+.flex-child {
+  float:left; 
+  padding:10px; 
+}
+.centered {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  /* bring your own prefixes */
+  transform: translate(-50%, -50%);
+}
+      </style>
+
+
+          <!-- Use any element to open the sidenav -->
+          <span onclick="openNav()"><h2>-Menu</h2></span>
+          
+          <!-- Add all page content inside this div if you want the side nav to push page content to the right (not used if you only want the sidenav to sit on top of the page -->
+          <div id="main">
+            <h1>Post AQL query</h1>
+
+            <div id='forms' style = "position:relative; left:80px; top:2px;">
+              <h3>Paste below your AQL query</h3>
+              <textarea id='aqltext' form='form1' name="aqltext" cols="60" rows="30"></textarea><br><br>
+
+              <div class='parent flex-parent'>
+
+                <div id="forform1" class='child flex-child'>
+                <h3>Query name</h3>  
+                <form id="form1">
+                  <input type="text" id="nquery" name="nquery"><br><br><br>       
+                </div>
+                
+                <div id="forform2" class='child flex-child'>
+                  <h3>Optional parameters</h3>  
+                    <label for="jk">Version</label><br>
+                    <input type="text" id="version" name="version"><br><br>
+                    <label for="ehrs">Type</label><br>
+                    <input type="text" id="qtype" name="qtype"><br><br>                   
+                  </div>
+
+              
+                
+              </div>
+              <div id="mycommit" class="centered">
+                <p><input name="pippo" type="submit" value="Store query"></p>
+                </div>
+              </form>
+              {% macro linebreaks_for_string( the_string ) -%}
+              {% if the_string %}
+              {% for line in the_string.split('\n') %}
+              <br />
+              {{ line }}
+              {% endfor %}
+              {% else %}
+              {{ the_string }}
+              {% endif %}
+              {%- endmacro %}
+              <h2>Results</h2>
+              <pre id="result">{{ linebreaks_for_string( yourresults ) }}</pre> 
+
+              <pre id="json">Query: {{aqltext}}</pre>
+            </div>
+          </div>
+
+
+
+          </div> 
+
+	</body>
+  <script src="{{url_for('static', filename='javascript/mynav.js')}}"></script>
+</html>

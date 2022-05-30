@@ -7,6 +7,7 @@ default_hostname="localhost"
 default_port="8080"
 default_username="ehrbase-user"
 default_password="SuperSecretPassword"
+default_nodename="local.ehrbase.org"
 hostname=""
 
 app = Flask(__name__)
@@ -18,19 +19,21 @@ def about():
 
 @app.route("/ehrbase.html",methods=["GET"])
 def ehrbase():
-    global hostname,port,username,password,lastehrid,lastcompositionid
+    global hostname,port,username,password,nodename,lastehrid,lastcompositionid
     hostname=""
     port=""
     username=""
     password=""
     lastehrid=""
     lastcompositionid=""
+    nodename=""
     #print(request.args.keys())
     if request.args.get("pippo")=="Submit":
         hostname=request.args.get("hname","")
         port=request.args.get("port","")
         username=request.args.get("uname","")
         password=request.args.get("pword","")
+        nodename=request.args.get("nodename","")
         if(hostname==""):
             hostname=default_hostname
         if(port==""):
@@ -39,17 +42,20 @@ def ehrbase():
             username=default_username 
         if(password==""):
             password=default_password   
-        print(f'hostname={hostname} port={port} username={username} password={password}')            
+        if(nodename==""):
+            nodename=default_nodename
+        print(f'hostname={hostname} port={port} username={username} password={password} nodename={nodename}')            
         global auth
         auth = ehrbase_routines.init_session(username,password)
-        return render_template('ehrbase.html',ho=hostname,po=port,us=username,pas=password)
+        return render_template('ehrbase.html',ho=hostname,po=port,us=username,pas=password,no=nodename)
 
     
     return render_template('ehrbase.html')
 
 @app.route("/gtemp.html",methods=["GET"])
 def gtemp():
-    if(hostname=="" or port=="" or username=="" or password==""):
+    global hostname,port,username,password,auth,nodename
+    if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
         return redirect(url_for("ehrbase"))
     template_name=request.args.get("tname","")
     print(f'template={template_name}')
@@ -59,7 +65,8 @@ def gtemp():
 
 @app.route("/ptemp.html",methods=['GET', 'POST'])
 def pupload():
-    if(hostname=="" or port=="" or username=="" or password==""):
+    global hostname,port,username,password,auth,nodename
+    if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
         return redirect(url_for("ehrbase"))    
     yourresults=""
     if request.method == 'POST':
@@ -83,7 +90,8 @@ def pupload():
 
 @app.route("/pehr.html",methods=["GET"])
 def pehr():
-    if(hostname=="" or port=="" or username=="" or password==""):
+    global hostname,port,username,password,auth,nodename
+    if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
         return redirect(url_for("ehrbase"))  
     yourresults=""  
     global lastehrid
@@ -123,7 +131,8 @@ def pehr():
 
 @app.route("/gehr.html",methods=["GET"])
 def gehr():
-    if(hostname=="" or port=="" or username=="" or password==""):       
+    global hostname,port,username,password,auth,nodename
+    if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
         return redirect(url_for("ehrbase"))
     global lastehrid
     if request.args.get("fform1")=="Submit": 
@@ -161,7 +170,8 @@ def gehr():
 
 @app.route("/pcomp.html",methods=["GET","POST"])
 def pcomp():
-    if(hostname=="" or port=="" or username=="" or password==""):
+    global hostname,port,username,password,auth,nodename
+    if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
         return redirect(url_for("ehrbase"))  
     yourresults=""  
     global lastehrid,lastcompositionid,filename,uploaded_file,comp
@@ -183,17 +193,21 @@ def pcomp():
             filetype=request.args.get("filetype","")
             eid=request.args.get("ename","")
             tid=request.args.get("tname","")
+            check=request.args.get("check","")
+            checkresults=""
+            checkinfo=""
             if(eid=="" or tid==""):
                 return render_template('pcomp.html',yourfile=f"you have chosen {filename}",last=lastehrid)
-
-            msg=ehrbase_routines.postcomp(auth,hostname,port,username,password,comp,eid,tid,filetype)
-            print(msg)
+            msg=ehrbase_routines.postcomp(auth,hostname,port,username,password,comp,eid,tid,filetype,check)
             if(msg['status']=="success"):
                 yourresults=f"Composition inserted successfully.\n status_code={msg['status_code']} VersionUID={msg['compositionid']}\n text={msg['text']}\n headers={msg['headers']}"
                 lastcompositionid=msg['compositionid']
+                if(check=="Yes"):
+                    checkresults=msg['check']
+                    checkinfo=msg['checkinfo']
             else:
                 yourresults=f"Composition insertion failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"        
-            return render_template('pcomp.html',yourfile=f"you have chosen {filename}",yourresults=yourresults,last=lastcompositionid)        
+            return render_template('pcomp.html',yourfile=f"you have chosen {filename}",yourresults=yourresults,last=lastcompositionid,checkresults=checkresults,checkinfo=checkinfo)        
         else:
             if("filename" not in vars()):
                 filename=""
@@ -204,16 +218,18 @@ def pcomp():
 
 @app.route("/gcomp.html",methods=["GET"])
 def gcomp():
-    if(hostname=="" or port=="" or username=="" or password==""):       
+    global hostname,port,username,password,auth,nodename
+    compflat="{}"
+    if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
         return redirect(url_for("ehrbase"))
     global lastcompositionid,lastehrid
-    if request.args.get("fform1")=="submit":
+    if request.args.get("fform1")=="Submit":
         filetype=request.args.get("filetype","") 
         compid=request.args.get("cname","") 
         eid=request.args.get("ename","") 
         print(filetype,compid,eid)
         if(compid=="" or eid==""):
-            return render_template('gcomp.html',last=lastcompositionid,lastehr=lastehrid)
+            return render_template('gcomp.html',last=lastcompositionid,lastehr=lastehrid,compflat=compflat)
         print(f'compid={compid}')
         msg=ehrbase_routines.getcomp(auth,hostname,port,username,password,compid,eid,filetype)
         compjson=""
@@ -222,25 +238,125 @@ def gcomp():
             if('xml' in msg):
                 compxml=msg['xml']
             elif('flat' in msg):
-                compjson=msg['flat']
+                compflat=msg['flat']
             else:
                 compjson=msg['json']
             ehrid=msg["ehrid"]
             compositionid=msg['compositionid']
-            yourresults=f"EHR retrieved successfully. status_code={msg['status_code']} \n \
+            yourresults=f"Composition retrieved successfully. status_code={msg['status_code']} \n \
             EHRID={msg['ehrid']} versionUID={msg['compositionid']}\n headers={msg['headers']}"
             lastehrid=ehrid
             lastcompositionid=compositionid
-
+ 
         else:
             ehrid=msg["ehrid"]
             compositionid=msg['compositionid']
-            yourresults=f"EHR retrieval failure. status_code={msg['status_code']} \n \
+            yourresults=f"Composition retrieval failure. status_code={msg['status_code']} \n \
                 headers={msg['headers']}\n text={msg['text']}"        
         return render_template('gcomp.html',yourresults=yourresults,last=lastcompositionid,
-                lastehr=lastehrid,compxml=compxml,compjson=compjson)
+                lastehr=lastehrid,compxml=compxml,compjson=compjson,compflat=compflat)
     else:
-        return render_template('gcomp.html',last=lastcompositionid,lastehr=lastehrid)
+        return render_template('gcomp.html',last=lastcompositionid,lastehr=lastehrid,compflat=compflat)
+
+@app.route("/paql.html",methods=["GET"])
+def paql():
+    global hostname,port,username,password,auth,nodename
+    if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        return redirect(url_for("ehrbase"))
+    if request.args.get("pippo")=="Store query":
+        aqltext=request.args.get("aqltext","")
+        version=request.args.get("version","")
+        qtype=request.args.get("qtype","")
+        qname=request.args.get("nquery","")
+        print(f'aqltext={aqltext} ') 
+        if(aqltext=="" or qname==""):
+            print("no text in aql")
+            render_template('paql.html')
+        myaqltext="{'q':'"+aqltext+"'}"
+        reversed_nodename=".".join(reversed(nodename.split(".")))
+        qname=reversed_nodename+"::"+qname+"/"
+        print(myaqltext)
+        msg=ehrbase_routines.postaql(auth,hostname,port,username,password,myaqltext,qname,version,qtype)
+        if(msg['status']=="success"):
+            yourresults=f"Query inserted successfully.\n status_code={msg['status_code']}\n text={msg['text']}\n headers={msg['headers']}"
+        else:
+            yourresults=f"Query insertion failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
+        return render_template('paql.html',yourresults=yourresults,aqltext=aqltext)
+    else: 
+        return render_template('paql.html')
+
+@app.route("/gaql.html",methods=["GET"])
+def gaql():
+    global hostname,port,username,password,auth,nodename
+    if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        return redirect(url_for("ehrbase"))
+    if request.args.get("pippo")=="Submit":
+        qname=request.args.get("qname","")
+        version=request.args.get("version","")
+        reversed_nodename=".".join(reversed(nodename.split(".")))
+        if(qname != "" and "::" not in qname):
+            qname=reversed_nodename+"::"+qname+"/"
+        msg=ehrbase_routines.getaql(auth,hostname,port,username,password,qname,version)
+        if(msg['status']=="success"):
+            yourresults=f"Query retrieved successfully.\n status_code={msg['status_code']}\n text={msg['text']}\n headers={msg['headers']}"
+        else:
+            yourresults=f"Query retrieval failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
+        return render_template('gaql.html',yourresults=yourresults)
+    else: 
+        return render_template('gaql.html')
+
+@app.route("/raql.html",methods=["GET"])
+def runaql():
+    global hostname,port,username,password,auth,nodename
+    if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        return redirect(url_for("ehrbase"))
+    global lastehrid
+    if request.args.get("pippo")=="Run pasted query": 
+        aqltext=request.args.get("aqltext","")
+        qmethod=request.args.get("qmethod","")
+        limit=request.args.get("limit","")
+        # offset=request.args.get("offset","")
+        # fetch=request.args.get("fetch","")
+        eid=request.args.get("ehrid","") 
+        qparam=request.args.get("qparam","")
+        qname=""
+        version=""
+        if(aqltext==""):
+            print("no text in aql")
+            render_template('raql.html',lastehr=lastehrid)
+        print(aqltext)
+#        msg=ehrbase_routines.runaql(auth,hostname,port,username,password,aqltext,qmethod,offset,fetch,eid,qparam,qname,version)
+        msg=ehrbase_routines.runaql(auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam,qname,version)
+        if(msg['status']=="success"):
+            yourresults=f"Query run successfully.\n status_code={msg['status_code']}\n text={msg['text']}\n headers={msg['headers']}"
+        else:
+            yourresults=f"Query run failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
+        return render_template('raql.html',yourresults=yourresults,aqltext=aqltext,lastehr=lastehrid)
+    elif(request.args.get("pippo2")=="Run stored query"):
+        qname=request.args.get("nquery","")
+        qmethod=request.args.get("qmethod","")
+        version=request.args.get("version","")
+        limit=request.args.get("limit","")
+        aqltext=""
+        # offset=request.args.get("offset","")
+        # fetch=request.args.get("fetch","")
+        eid=request.args.get("ehrid","") 
+        qparam=request.args.get("qparam","")
+        reversed_nodename=".".join(reversed(nodename.split(".")))
+        if(qname==""):
+            return render_template('raql.html',lastehr=lastehrid)
+        if(qname != "" and "::" not in qname):
+            qname=reversed_nodename+"::"+qname+"/"
+#        msg=ehrbase_routines.runaql(auth,hostname,port,username,password,aqltext,qmethod,offset,fetch,eid,qparam,qname,version)
+        msg=ehrbase_routines.runaql(auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam,qname,version)
+        if(msg['status']=="success"):
+            yourresults=f"Query run successfully.\n status_code={msg['status_code']}\n text={msg['text']}\n headers={msg['headers']}"
+        else:
+            yourresults=f"Query run failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
+        return render_template('raql.html',yourresults=yourresults,lastehr=lastehrid)
+    else:
+        return render_template('raql.html',lastehr=lastehrid)
+
 
 
 

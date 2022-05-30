@@ -18,7 +18,7 @@
       <a href="gcomp.html">Get Composition</a>            
       <a href="pcomp.html">Post Composition</a>
       <a href="gaql.html">GET AQL Query</a>
-      <a href="paql.html">POST AQ QueryL</a>
+      <a href="paql.html">POST AQL Query</a>
       <a href="raql.html">RUN AQL Query</a>
       <a href="pbcompo.html">POST BATCH Compositions</a>
     </div>
@@ -28,30 +28,31 @@
           
           <!-- Add all page content inside this div if you want the side nav to push page content to the right (not used if you only want the sidenav to sit on top of the page -->
           <div id="main">
-            <h1>EHRBase Settings</h1>
-
-            <p>Specify the main parameters of your EHRBase server. Basic Authentication is used.</p>
+            <h1>Retrieve a stored AQL query or the list</h1>
 
             <div id=forms style = "position:relative; left:80px; top:2px;">
             
             <form id="form1">
-              <label for="hostname">Address or Hostname (Leave empty for localhost):</label><br>
-              <input type="text" id="hname" name="hname"><br><br><br>
-              <label for="port">Port (Leave empty for 8080):</label><br>
-              <input type="text" id="port" name="port"><br><br><br>      
-              <label for="username">Username (Leave empty for default username):</label><br>
-              <input type="text" id="uname" name="uname"><br><br><br>
-              <label for="port">Password (Leave empty for default password):</label><br>
-              <input type="text" id="pword" name="pword"><br><br><br>
-              <label for="port">Server nodename (Leave empty for default nodename):</label><br>
-              <input type="text" id="nodename" name="nodename"><br><br><br><br>      
-
-              <input type="submit" id='pippo' name="pippo" value="Submit">
+              <label for="template">Name of the query to be retrieved (blank for all):</label><br>
+              <input type="text" id="qname" name="qname"><br><br>
+              <label for="version">Version (Optional but necessary for the query text):</label><br>
+              <input type="text" id="version" name="version"><br><br><br>
+              <input name="pippo" type="submit" value="Submit">
             </form>
 
-            <div id="answers" style = "position:relative; left:80px; top:2px;"></div>
-            <h2>Current values</h2>
-            hostname={{ho}} port={{po}} username={{us}} password={{pas}} nodename={{no}} 
+            <div id="template" style = "position:relative; left:80px; top:2px;"></div>
+            <h2>Result</h2>
+{% macro linebreaks_for_string( the_string ) -%}
+{% if the_string %}
+{% for line in the_string.split('\n') %}
+<br />
+{{ line }}
+{% endfor %}
+{% else %}
+{{ the_string }}
+{% endif %}
+{%- endmacro %}
+{{ linebreaks_for_string( yourresults ) }} 
             </div>
           </div>
 
