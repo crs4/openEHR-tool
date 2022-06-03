@@ -17,7 +17,7 @@ app = Flask(__name__)
 def about():
     return render_template('about.html')
 
-@app.route("/ehrbase.html",methods=["GET"])
+@app.route("/settings.html",methods=["GET"])
 def ehrbase():
     global hostname,port,username,password,nodename,lastehrid,lastcompositionid
     hostname=""
@@ -47,10 +47,10 @@ def ehrbase():
         print(f'hostname={hostname} port={port} username={username} password={password} nodename={nodename}')            
         global auth
         auth = ehrbase_routines.init_session(username,password)
-        return render_template('ehrbase.html',ho=hostname,po=port,us=username,pas=password,no=nodename)
+        return render_template('settings.html',ho=hostname,po=port,us=username,pas=password,no=nodename)
 
     
-    return render_template('ehrbase.html')
+    return render_template('settings.html')
 
 @app.route("/gtemp.html",methods=["GET"])
 def gtemp():
