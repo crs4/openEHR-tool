@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>OpenEHR Tool</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+  <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script> -->
+</head>
+
+
+<nav class="navbar  navbar-dark bg-dark">
+  <div class="container-fluid">
+    <!-- <a class="navbar-brand" href="#">Navbar</a>  -->
+    <!-- <button id="myButton" onclick="myFunc(event);" class="navbar-toggler navbar-dark" style="width: 30px;" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" >
+    <span class="navbar-toggler-icon float-start " ></span>
+    </button> -->
+    <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" >
+        <span class="navbar-toggler-icon float-start"></span><h4>OpenEHR Tool</h4>
+      </button>
+      
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" aria-current="page" href="about.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="settings.html">Settings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="dashboard.html">Dashboard</a>
+        </li>        
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Template
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item" href="gtemp.html">Get Template</a></li>
+            <li><a class="dropdown-item" href="ptemp.html">Post Template</a></li>
+            <li><a class="dropdown-item" href="utemp.html">Update Template</a></li>
+                        <!-- <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#">Something else here</a></li> -->
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              EHR
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="gehr.html">Get EHR</a></li>
+              <li><a class="dropdown-item" href="pehr.html">Post EHR</a></li>
+              <!-- <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#">Something else here</a></li> -->
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Composition
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="gcomp.html">Get Composition</a></li>
+              <li><a class="dropdown-item" href="pcomp.html">Post Composition</a></li>
+              <!-- <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#">Something else here</a></li> -->
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              AQL Query
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="gaql.html">Get AQL Query</a></li>
+              <li><a class="dropdown-item" href="paql.html">Post AQL Query</a></li>
+              <li><a class="dropdown-item" href="raql.html">Run AQL Query</a></li>
+              <!-- <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#">Something else here</a></li> -->
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Batch Compositions
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="pbatch1.html">Post Batch Compositions</a></li>
+              <li><a class="dropdown-item" href="pbatch2.html">Post Batch Compositions same ehrid</a></li>
+
+              <!-- <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#">Something else here</a></li> -->
+            </ul>
+          </li>
+
+<!-- 
+        <li class="nav-item">
+          <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+        </li>
+      </ul>
+      <form class="d-flex">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form> -->
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid">
+
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+      <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+  </div>
+
+  <div class="row">
+
+      <!-- Earnings (Monthly) Card Example -->
+      <div class="col-xl-3 col-md-6 mb-4">
+          <div class="card border-left-primary shadow h-100 py-2">
+              <div class="card-body">
+                  <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                          <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                              EHRs/in use</div>
+                          <div class="h5 mb-0 font-weight-bold text-gray-800">{{total_ehrs}}/{{total_ehrs_in_use}}</div>
+                      </div>
+                      <div class="col-auto">
+                          <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      <!-- Earnings (Annual) Card Example -->
+      <div class="col-xl-3 col-md-6 mb-4">
+          <div class="card border-left-success shadow h-100 py-2">
+              <div class="card-body">
+                  <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                          <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                              Compositions</div>
+                          <div class="h5 mb-0 font-weight-bold text-gray-800">{{total_compositions}}</div>
+                      </div>
+                      <div class="col-auto">
+                          <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+            <!-- Earnings (Annual) Card Example -->
+            <div class="col-xl-3 col-md-6 mb-4">
+              <div class="card border-left-info shadow h-100 py-2">
+                  <div class="card-body">
+                      <div class="row no-gutters align-items-center">
+                          <div class="col mr-2">
+                              <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                  Templates/in use</div>
+                              <div class="h5 mb-0 font-weight-bold text-gray-800">{{total_templates}}/{{total_templates_in_use}}</div>
+                          </div>
+                          <div class="col-auto">
+                              <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+<!--       Tasks Card Example
+      <div class="col-xl-3 col-md-6 mb-4">
+          <div class="card border-left-info shadow h-100 py-2">
+              <div class="card-body">
+                  <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                          <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Templates
+                          </div>
+                          <div class="row no-gutters align-items-center">
+                              <div class="col-auto">
+                                  <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">50%</div>
+                              </div>
+                              <div class="col">
+                                  <div class="progress progress-sm mr-2">
+                                      <div class="progress-bar bg-info" role="progressbar"
+                                          style="width: 50%" aria-valuenow="50" aria-valuemin="0"
+                                          aria-valuemax="100"></div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="col-auto">
+                          <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+ -->
+      <!-- Pending Requests Card Example -->
+      <div class="col-xl-3 col-md-6 mb-4">
+          <div class="card border-left-warning shadow h-100 py-2">
+              <div class="card-body">
+                  <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                          <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                              AQL Queries Stored</div>
+                          <div class="h5 mb-0 font-weight-bold text-gray-800">{{total_aql_queries}}</div>
+                      </div>
+                      <div class="col-auto">
+                          <i class="fas fa-comments fa-2x text-gray-300"></i>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+
+  </div>
+  <div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+          <div class="card-header py-3">
+              <h6 class="m-0 font-weight-bold text-primary">Compositions per EHR frequency</h6>
+          </div>
+          <div class="card-body">
+              <div class="chart-bar pt-4">
+                  <canvas id="myBarChart"></canvas>
+              </div>
+          <hr>
+      
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+          <!-- Donut Chart -->
+        <div class="card shadow mb-4">
+            <!-- Card Header - Dropdown -->
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Compositions per template</h6>
+            </div>
+            <!-- Card Body -->
+            <div class="card-body">
+                <div class="chart-pie pt-4">
+                    <canvas id="myPieChart"></canvas>
+                </div>
+                <hr>
+            </div>
+        </div>
+      </div>
+
+</div>
+<div class="row">
+  <div class="col browser">
+      <div class="top text-primary">
+        EHRBase
+      </div>
+      <div class="content text-gray-800" >
+        {{info|tojson}}
+      </div>
+  </div>
+  <div class="col browser">
+    <div class="top text-success">
+      Disk
+    </div>
+    <div class="content">
+      {{disk|tojson}}
+    </div>
+  </div>
+  <div class="col browser">
+    <div class="top text-primary">
+      AQL
+    </div>
+    <div class="content">
+      {{aql|tojson}}
+    </div>
+  </div>
+  <div class="col browser">
+    <div class="top text-success">
+      DB
+    </div>
+    <div class="content">
+      {{db|tojson}}
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col browser">
+    <div class="top text-success" >
+      EHRBase Gen Properties
+    </div>
+    <div class="content text-gray-800">
+      {{gen_properties|tojson}}
+    </div>
+  </div> 
+  <div class="col browser">
+    <div class="top text-info" >
+      EHRBase Endpoint Properties
+    </div>
+    <div class="content text-gray-800">
+      {{end_properties|tojson}}
+    </div>
+  </div>    
+  <div class="col browser">
+    <div class="top text-primary">
+      Terminology
+    </div>
+    <div class="content">
+      {{terminology|tojson}}
+    </div>
+  </div>
+  <div class="col browser">
+    <div class="top text-success">
+      Plugin
+    </div>
+    <div class="content">
+      {{plugin|tojson}}
+    </div>
+  </div>
+  <div class="col browser">
+    <div class="top text-primary">
+      Env
+    </div>
+    <div class="content">
+      {{env|tojson}}
+    </div>
+  </div>
+ 
+</div>
+
+<style>
+  .browser {
+    border: 3px solid #f1f1f1;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+  .top {
+    padding: 10px;
+    background: #98b59e;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+.content {
+    padding: 0;
+    background: #e4ece6
+}
+
+</style>
+
+
+<style>
+  body{
+background-image: url('/static/img/Medicine-icons2.png');
+background-size: auto;
+ }
+</style>
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+ <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script> -->
+
+<style>
+
+.custom-toggler.navbar-toggler {
+            border-color: lightgreen;
+        }
+        /* Setting the stroke to green using rgb values (0, 128, 0) */
+          
+.custom-toggler .navbar-toggler-icon {
+            background-image: url(
+"data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(0, 128, 0, 0.8)' stroke-width='4' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+        }
+
+    
+        .dropdown-item {
+            color: white; 
+        }   
+        .dropdown-item:focus,
+        .dropdown-item:hover{
+      background-color:#FFACB7;
+      color: #262626;
+        }
+
+.dropdown-menu {
+background-color: #262626;
+color:white;
+}
+
+.navbar .navbar-nav .nav-link {
+    color: #fff;
+    font-size: 1.1em;
+}
+.navbar .navbar-nav .nav-link:hover {
+  background-color: #FFACB7;
+  color: #fff;
+}
+
+</style>
+<script src="{{url_for('static', filename='javascript/Chart.min.js')}}"></script>
+<script>
+// Set new default font family and font color to mimic Bootstrap's default styling
+Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+Chart.defaults.global.defaultFontColor = '#858796';
+
+function number_format(number, decimals, dec_point, thousands_sep) {
+  // *     example: number_format(1234.56, 2, ',', ' ');
+  // *     return: '1 234,56'
+  number = (number + '').replace(',', '').replace(' ', '');
+  var n = !isFinite(+number) ? 0 : +number,
+    prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+    sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
+    dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
+    s = '',
+    toFixedFix = function(n, prec) {
+      var k = Math.pow(10, prec);
+      return '' + Math.round(n * k) / k;
+    };
+  // Fix for IE parseFloat(0.55).toFixed(0) = 0;
+  s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
+  if (s[0].length > 3) {
+    s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
+  }
+  if ((s[1] || '').length < prec) {
+    s[1] = s[1] || '';
+    s[1] += new Array(prec - s[1].length + 1).join('0');
+  }
+  return s.join(dec);
+}
+
+// Bar Chart 
+var ctx = document.getElementById("myBarChart");
+var myBarChart = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: {{bar_labels| tojson}},
+    datasets: [{
+      label: "#EHRs",
+      backgroundColor: "#4e73df",
+      hoverBackgroundColor: "#2e59d9",
+      borderColor: "#4e73df",
+      data: {{bar_values| tojson}},
+    }],
+  },
+  options: {
+    maintainAspectRatio: false,
+    layout: {
+      padding: {
+        left: 5,
+        right: 10,
+        top: 25,
+        bottom: 0
+      }
+    },
+    scales: {
+      xAxes: [{
+        time: {
+          unit: 'comp/ehr'
+        },
+        gridLines: {
+          display: false,
+          drawBorder: false
+        },
+        ticks: {
+          maxTicksLimit: 30
+        },
+        maxBarThickness: 30,
+      }],
+      yAxes: [{
+        ticks: {
+          min: 0,
+          max: {{bar_max | tojson}},
+          maxTicksLimit: 20,
+          padding: 10,
+          callback: function(value) {if (value % 1 === 0) {return number_format(value);}}
+          // // Include a dollar sign in the ticks
+          // callback: function(value, index, values) {
+          //   return number_format(value);
+          //}
+        },
+        gridLines: {
+          // display:false,
+          color: "rgb(234, 236, 244)",
+          zeroLineColor: "rgb(234, 236, 244)",
+          drawBorder: false,
+          borderDash: [2],
+          zeroLineBorderDash: [2]
+        }
+      }],
+    },
+    legend: {
+      display: false
+    },
+    tooltips: {
+      titleMarginBottom: 10,
+      titleFontColor: '#6e707e',
+      titleFontSize: 14,
+      backgroundColor: "rgb(255,255,255)",
+      bodyFontColor: "#858796",
+      borderColor: '#dddfeb',
+      borderWidth: 1,
+      xPadding: 15,
+      yPadding: 15,
+      displayColors: false,
+      caretPadding: 10,
+      callbacks: {
+        label: function(tooltipItem, chart) {
+          var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+          return datasetLabel + ':' + number_format(tooltipItem.yLabel);
+        }
+      }
+    },
+  }
+});
+</script>
+<script>
+
+// Set new default font family and font color to mimic Bootstrap's default styling
+Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+Chart.defaults.global.defaultFontColor = '#858796';
+
+// Pie Chart
+var ctx = document.getElementById("myPieChart");
+var myPieChart = new Chart(ctx, {
+  type: 'doughnut',
+  data: {
+    labels: {{pie_labels|tojson}},
+    datasets: [{
+      data: {{pie_values|tojson}},
+      backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
+      hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf'],
+      hoverBorderColor: "rgba(234, 236, 244, 1)",
+    }],
+  },
+  options: {
+    maintainAspectRatio: false,
+    tooltips: {
+      backgroundColor: "rgb(255,255,255)",
+      bodyFontColor: "#858796",
+      borderColor: '#dddfeb',
+      borderWidth: 1,
+      xPadding: 15,
+      yPadding: 15,
+      displayColors: false,
+      caretPadding: 10,
+    },
+    legend: {
+      display: false
+    },
+    cutoutPercentage: 80,
+  },
+});
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
+    
+    
+    
+    

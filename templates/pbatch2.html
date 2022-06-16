@@ -108,21 +108,63 @@
 </nav>
 
 <div class="container">
-  <h1>Post a template</h1>
+  <h1>Post Compositions with the same EHRID in batch</h1>
 
            <br>
             <div class="position-relative">
                 <div id="forms" class="position-absolute" data-tor="place.top(30px)">
                 
                   <form method="POST" action="" enctype="multipart/form-data">
-                    <label class="form-label" for="choofile">Choose the file</label><br>
-                    <p><input class="form-control" type="file" name="file"></p>
+                    <label class="form-label"  for="path">Files:</label><br>
+                    <p><input class="form-control" type="file" name="file" multiple="multiple"></p>
                     <p><input class="btn btn-primary" type="submit" value="Submit"></p>
                   </form>                
+                  {{yourfile}}
+                <br><br>
+              <div class="form-check form-switch">
+                <h2>Parameters:</h2>
+                <form id="form1">     
+                  <br><br>           
+                  <input class="form-check-input" type="checkbox" autocomplete="off" id="mySwitch" name="random" value="yes" checked>
+                  <label class="form-check-label" for="mySwitch">Random EHR</label>
+              </div> 
 
-                <br><br><br><br><br>
-            
-     
+
+
+                <div id="path" style="display:none;">
+                  <br><br>
+                  <label class="form-label"  for="path">EHRID:</label><br>
+                  <input class="form-control"  type="text" id="eid" name="eid"><br><br>      
+                </div>    
+
+                <div id="forform1"> 
+                  <br><br> 
+                    <label class="form-label"  for="template">Template:</label><br>
+                    <input class="form-control"  type="text" id="tname" name="tname"><br>     
+                </div>
+                <br><br>
+                <label class="form-label" for="ehrid">Check Against original Composition</label><br>
+                <input class="form-check-input" type="radio" name="check" value="Yes">Yes</input>
+                <input class="form-check-input" type="radio" name="check" value="No" checked>No</input>
+
+                <br><br>
+                <input class="btn btn-primary" name="pippolippo" type="submit" value="POST THE COMPOSITIONS">
+              </form>
+              <script>
+
+const checkbox = document.getElementById('mySwitch')
+const path = document.getElementById("path")
+checkbox.addEventListener('change', (event) => {
+  if (event.currentTarget.checked) {
+    path.style.display = "none";
+  } else {
+    path.style.display = "block";
+  }
+})
+
+              </script>
+
+              <br><br>
                   <div id="results">
                     <h2>Results</h2>
                     {% macro linebreaks_for_string( the_string ) -%}

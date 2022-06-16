@@ -1,85 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		    
-		<H1><title>EHRBase Access Tool</title></H1>
-		<link rel="stylesheet" href="basic.css">
+<head>
+  <title>OpenEHR Tool</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
-    <style>
-      .flex-parent {
-  display: flex;
-}
-.flex-child {
-  flex: 1;
-}
-    </style>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script> -->
+</head>
 
+<body >
+<nav class="navbar  navbar-dark bg-dark">
+  <div class="container-fluid">
+    <!-- <a class="navbar-brand" href="#">Navbar</a>  -->
+    <!-- <button id="myButton" onclick="myFunc(event);" class="navbar-toggler navbar-dark" style="width: 30px;" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" >
+    <span class="navbar-toggler-icon float-start " ></span>
+    </button> -->
+    <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" >
+        <span class="navbar-toggler-icon float-start"></span><h4>openEHR Tool</h4>
+      </button>
+      
+    <div class="collapse navbar-collapse " id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" aria-current="page" href="about.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="settings.html">Settings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="dashboard.html">Dashboard</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Template
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item" href="gtemp.html">Get Template</a></li>
+            <li><a class="dropdown-item" href="ptemp.html">Post Template</a></li>
+            <li><a class="dropdown-item" href="utemp.html">Update Template</a></li>
+            <!-- <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#">Something else here</a></li> -->
+          </ul>
+        </li>
 
-	</head>
-  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/basic.css') }}">
-	<body>
-    <div id="mySidenav" class="sidenav">
-      <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-      <a href="about.html">About</a>
-      <a href="ehrbase.html">Settings</a>
-      <a href="gtemp.html">Get Template</a>            
-      <a href="ptemp.html">Post Template</a>
-      <a href="gehr.html">Get EHR</a>
-      <a href="pehr.html">Post EHR</a>
-      <a href="gcomp.html">Get Composition</a>            
-      <a href="pcomp.html">Post Composition</a>
-      <a href="gaql.html">GET AQL Query</a>
-      <a href="paql.html">POST AQL Query</a>
-      <a href="raql.html">RUN AQL Query</a>
-      <a href="pbcompo.html">POST BATCH Compositions</a>
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              EHR
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="gehr.html">Get EHR</a></li>
+              <li><a class="dropdown-item" href="pehr.html">Post EHR</a></li>
+              <!-- <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#">Something else here</a></li> -->
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Composition
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="gcomp.html">Get Composition</a></li>
+              <li><a class="dropdown-item" href="pcomp.html">Post Composition</a></li>
+              <!-- <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#">Something else here</a></li> -->
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              AQL Query
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="gaql.html">Get AQL Query</a></li>
+              <li><a class="dropdown-item" href="paql.html">Post AQL Query</a></li>
+              <li><a class="dropdown-item" href="raql.html">Run AQL Query</a></li>
+              <!-- <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#">Something else here</a></li> -->
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Batch Compositions
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="pbatch1.html">Post Batch Compositions</a></li>
+              <li><a class="dropdown-item" href="pbatch2.html">Post Batch Compositions same ehrid</a></li>
+
+              <!-- <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#">Something else here</a></li> -->
+            </ul>
+          </li>
+
+<!-- 
+        <li class="nav-item">
+          <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+        </li>
+      </ul>
+      <form class="d-flex">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form> -->
     </div>
-          
-          <!-- Use any element to open the sidenav -->
-          <span onclick="openNav()"><h2>-Menu</h2></span>
-          
-          <!-- Add all page content inside this div if you want the side nav to push page content to the right (not used if you only want the sidenav to sit on top of the page -->
-          <div id="main">
-            <h1>Retrieve a EHR</h1><br><br>
-            (Last ehr created EHRID={{lastehr}})
+  </div>
+</nav>
 
-            <div id=forms style = "position:relative; left:80px; top:2px;">
-
-              <div class='parent flex-parent'>
-                <div id="forform1" class='child flex-child'>
-                <h2>Get EHR from EHRID</h2>  
-                <form id="form1">
-                  <label for="ehrid">EHRID:</label><br>
-                  <input type="text" id="ename" name="ename"><br><br><br>
-                  <input id="fform1" name="fform1" type="submit" value="Submit">
-                </form>                   
-                </div>
-                <div id="forform2" class='child flex-child'>
-                  <h2>Get EHR given<br>SubjectID and SubjectNamespace</h2>  
-                  <form id="form2">
-                    <label for="ehrs">SubjectID</label><br>
-                    <input type="text" id="sid" name="sid"><br><br>
-                    <label for="ehrn">SubjectNamespace</label><br>
-                    <input type="text" id="sna" name="sna"><br><br><br>
-                    <input id="fform2" name="fform2" type="submit" value="Submit">
-                  </form>                       
-                  </div>
-              </div>
-              
-
-            <h2>Result</h2>
-              {{yourresults}}
+  
+<div class="container" >
+  <h1>Retrieve a EHR</h1>
+  (Last ehr created EHRID={{lastehr}})
+  <br><br><br>
+  <div class="row">
+    <!-- <div class="row gx-5"> -->
+    <div class="col pe-5">
+      <h2>Get EHR from EHRID</h2>  
+      <form id="form1">
+        <label class="form-label" for="ehrid">EHRID:</label><br>
+        <input class="form-control" type="text" id="ename" name="ename"><br><br><br>
+        <input class="btn btn-primary" id="fform1" name="fform1" type="submit" value="Submit">
+      </form>   
+    </div>
+    <div class="col ps-5">
+      <h2>Get EHR given SubjectID and SubjectNamespace</h2>  
+      <form id="form2">
+        <label class="form-label" for="ehrs">SubjectID</label><br>
+        <input class="form-control" type="text" id="sid" name="sid"><br><br>
+        <label class="form-label" for="ehrn">SubjectNamespace</label><br>
+        <input class="form-control" type="text" id="sna" name="sna"><br><br><br>
+        <input class="btn btn-primary" id="fform2" name="fform2" type="submit" value="Submit">
+      </form>                              
+    </div>
+  <!-- </div> -->
+  
+                <br><br><br><br><br>
+            
+                <div id="results">
+                <br><br><br>
+                    <h2>Results</h2>
+                    <div id="save" style="display:none;">
+                      <br><br>
+                      <a class="btn btn-danger" role="button" href="data:application/json;charset=utf-8,{{ehr}}"
+                         download="ehr.json">
+                         Save to file
+                       </a>
+                       <br><br>
+                   </div>
+                    {{yourresults}}
             <pre id="json">{{ehr}}</pre>
-            </div>
-          </div>
+               </div>
+   </div>
+   
+</div>
+<!-- </div> -->
+<script type="text/javascript">
+  if ( {{status|tojson}} == "success" ) {
+    document.getElementById("save").style.display = 'block';}
+    else {   
+    document.getElementById("save").style.display = 'none';}
+</script> 
+
+<style>
+   body{
+background-image: url('/static/img/Medicine-icons2.png');
+/* background-image: url('./Medicine-icons2.png'); */
+background-size: auto;
+  }
+</style>
+
+  
 
 
 
-          </div> 
 
-	</body>
-  <script src="{{url_for('static', filename='javascript/mynav.js')}}"></script>
-  <!-- <script> 
-    var ehr= ehr
-    document.getElementById("json").textContent = JSON.stringify(ehr, undefined, 2);
-  </script> -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+ <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script> -->
+
+<style>
+
+.custom-toggler.navbar-toggler {
+            border-color: lightgreen;
+        }
+        /* Setting the stroke to green using rgb values (0, 128, 0) */
+          
+.custom-toggler .navbar-toggler-icon {
+            background-image: url(
+"data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(0, 128, 0, 0.8)' stroke-width='4' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+        }
+
+    
+        .dropdown-item {
+            color: white; 
+        }   
+        .dropdown-item:focus,
+        .dropdown-item:hover{
+      background-color:#FFACB7;
+      color: #262626;
+        }
+
+.dropdown-menu {
+background-color: #262626;
+color:white;
+}
+
+.navbar .navbar-nav .nav-link {
+    color: #fff;
+    font-size: 1.1em;
+}
+.navbar .navbar-nav .nav-link:hover {
+  background-color: #FFACB7;
+  color: #fff;
+}
+
+</style>
+
+</body>
 </html>
+    
+    
+    
+    
