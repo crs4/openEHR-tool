@@ -1650,3 +1650,27 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
         myresp['filenamecheckfailed']=filenamecheckfailed
         myresp['error']=""
         return myresp
+
+
+def examplecomp(auth,hostname,port,username,password,template_name):
+    client.auth = (username,password)
+    print('inside example_composition')
+    EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+    myurl=url_normalize(EHR_SERVER_BASE_URL+'template/'+template_name+'/example')  
+    response = client.get(myurl,
+                       params={'format':'FLAT'},
+                       headers={'Authorization':auth,'Content-Type':'application/json'}
+                        )
+    print(response.text)
+    print(response.status_code)
+    print(response.headers)
+    myresp={}
+    myresp["status_code"]=response.status_code
+    if(response.status_code<210 and response.status_code>199):
+        myresp["status"]="success"
+        myresp['composition']=response.text
+    else:
+        myresp["status"]="failure"
+    myresp['text']=response.text
+    myresp["headers"]=response.headers
+    return myresp

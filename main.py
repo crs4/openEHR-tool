@@ -703,6 +703,33 @@ def gtest():
 
 
 
+@app.route("/ecomp.html",methods=["GET"])
+def excomp():
+    global hostname,port,username,password,auth,nodename
+    if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        return redirect(url_for("ehrbase"))
+    yourresults=""
+    success='false'
+    yourjson='{}'
+    print(request.args)
+    if request.args.get("pippo")=="Submit": 
+        template_name=request.args.get("tname","")
+        print(f'template={template_name}')
+        msg=ehrbase_routines.examplecomp(auth,hostname,port,username,password,template_name)
+
+        if(msg['status']=="success"):
+            success='true'
+            yourjson=msg['composition']
+            yourresults=str(msg['status'])+ " "+ str(msg['status_code'])
+            return render_template('ecomp.html',success=success,yourresults=yourresults,yourjson=yourjson)
+        else:   
+            success='false'
+            yourresults=str(msg['status'])+ " "+ str(msg['status_code']) +"\n"+ \
+                            str(msg['text']) + "\n" +\
+                            str(msg['headers'])
+            return render_template('ecomp.html',success=success,yourresults=yourresults)
+    else:
+        return render_template('ecomp.html',success=success,yourresults=yourresults)
 
 
 
