@@ -25,7 +25,7 @@ def getauth(username,password):
     auth="Basic "+base64_message
     return auth
 
-def gettemp(auth,hostname,port,username,password,template=""):
+def gettemp(auth,hostname,port,username,password,tformat,template=""):
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)
     myresp={}
@@ -33,20 +33,29 @@ def gettemp(auth,hostname,port,username,password,template=""):
         myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4')
         response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'})
     else:
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4/'+template)
-        response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'})
+        if(tformat=="OPT"):
+            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4/'+template)
+            response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'})
+        else: #format webtemplate
+            print(format)
+            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+            myurl=url_normalize(EHR_SERVER_BASE_URL+'template/'+template+'/example')
+            response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/JSON'})
     print(response.status_code)
     print(response.text)
     print(response.headers)
     if(response.status_code<210 and response.status_code>199):
         if(template!=""):
- #           responsexml = minidom.parseString(response.text).toprettyxml(indent="   ")
-            root = etree.fromstring(response.text)
- #           root.indent(tree, space="\t", level=0)
-            responsexml = etree.tostring(root,  encoding='unicode', method='xml', pretty_print=True)
-            #responsexml=responsexml.replace("&#13","").replace("#","%23")
-            responsexml=responsexml.replace("#","%23")
-            myresp['template']=responsexml
+            if(tformat=="OPT"):
+     #           responsexml = minidom.parseString(response.text).toprettyxml(indent="   ")
+                root = etree.fromstring(response.text)
+    #           root.indent(tree, space="\t", level=0)
+                responsexml = etree.tostring(root,  encoding='unicode', method='xml', pretty_print=True)
+                #responsexml=responsexml.replace("&#13","").replace("#","%23")
+                responsexml=responsexml.replace("#","%23")
+                myresp['template']=responsexml
+            else:
+                myresp['template']=json.dumps(json.loads(response.text),sort_keys=True, indent=4, separators=(',', ': '))
         myresp['text']=response.text
         myresp['status']='success'
         myresp['headers']=response.headers

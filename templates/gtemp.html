@@ -117,6 +117,15 @@
                   <form id="form1">
                     <label  class="form-label" for="template">Name of the template to be retrieved:</label><br>
                     <input  class="form-control" type="text" id="tname" name="tname"><br><br>
+
+                    <br>
+                    <label class="form-label" for="ehrid">Format</label><br>
+                    <input class="form-check-input" type="radio" name="format" value="WT">WebTemplate</input>
+                    <input class="form-check-input" type="radio" name="format" value="OPT" checked>OPT</input>
+                    <br><br>
+
+
+
                     <input   id='pippo' name='pippo' class="btn btn-primary" type="submit" value="Submit">
                   </form>
                 <br><br><br><br><br>
@@ -133,6 +142,15 @@
                        </a>
                        <br><br>
                    </div>
+ 
+                   <div id="boh" style="display:none;">
+                    <br><br>
+                    <a class="btn btn-danger" role="button" href="data:application/json;charset=utf-8,{{temp}}"
+                       download="template.json">
+                       Save to file
+                     </a>
+                     <br><br>
+                 </div>
 
                     {{yourresults}}
                     <br>
@@ -147,12 +165,15 @@
                     {% endif %}
                     {%- endmacro %}
                     {{linebreaks_for_string(yourtemp) if yourtemp!= ''}}
-                    </div>
-                </div>
-              </div>
-
-
-
+                    {{yourtemp}}
+                    <pre id="json">{{yourjson if yourjson!=''}}</pre>
+                  
+                    
+          
+                     
+                      
+        
+        
   </div>
 
 
@@ -163,6 +184,12 @@
       document.getElementById("save").style.display = 'block';}
       else {   
       document.getElementById("save").style.display = 'none';}
+  </script> 
+  <script type="text/javascript">
+    if ( {{singletemplate2|tojson}} == "true" ) {
+      document.getElementById("boh").style.display = 'block';}
+      else {   
+      document.getElementById("boh").style.display = 'none';}
   </script> 
 
   <style>

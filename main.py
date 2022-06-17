@@ -78,33 +78,49 @@ def gtemp():
         return redirect(url_for("ehrbase"))
     yourresults=""
     singletemplate='false'
+    singletemplate2='false'
     yourtemp=""
+    tempjson=""
+    yourjson='{}'
     print(request.args)
     if request.args.get("pippo")=="Submit": 
         template_name=request.args.get("tname","")
         print(f'template={template_name}')
-        msg=ehrbase_routines.gettemp(auth,hostname,port,username,password,template_name)
+        tformat=request.args.get("format","")
+        msg=ehrbase_routines.gettemp(auth,hostname,port,username,password,tformat,template_name)
 
         if(msg['status']=="success"):
             if(template_name!=""):
-                singletemplate='true'
-                temp=msg['template']
-                yourresults=str(msg['status'])+ " "+ str(msg['status_code'])
-                yourtemp=temp
-                return render_template('gtemp.html',temp=temp,singletemplate=singletemplate,yourresults=yourresults,yourtemp=yourtemp)
+                if(tformat=='OPT'):
+                    singletemplate='true'
+                    singletemplate2='false'
+                    temp=msg['template']
+                    yourresults=str(msg['status'])+ " "+ str(msg['status_code'])
+                    yourtemp=temp
+                    return render_template('gtemp.html',temp=temp,singletemplate=singletemplate,yourresults=yourresults,singletemplate2=singletemplate2,yourtemp=yourtemp)
+                else:
+                    singletemplate2='true'
+                    singletemplate='false'
+                    temp=msg['template']
+                    yourresults=str(msg['status'])+ " "+ str(msg['status_code'])
+                    yourjson=temp
+                    return render_template('gtemp.html',temp=temp,singletemplate=singletemplate,singletemplate2=singletemplate2,yourresults=yourresults,yourjson=yourjson)
+  
             else:
                 singletemplate='false'
+                singletemplate2='false'
                 yourresults=str(msg['status'])+ " "+ str(msg['status_code']) +"\n"+ \
                     str(msg['text'])
-                return render_template('gtemp.html',singletemplate=singletemplate,yourresults=yourresults)
+                return render_template('gtemp.html',singletemplate=singletemplate,singletemplate2=singletemplate2,yourresults=yourresults)
         else:   
             singletemplate='false'
+            singletemplate2='false'
             yourresults=str(msg['status'])+ " "+ str(msg['status_code']) +"\n"+ \
                             str(msg['text']) + "\n" +\
                             str(msg['headers'])
-            return render_template('gtemp.html',singletemplate=singletemplate, yourresults=yourresults)
+            return render_template('gtemp.html',singletemplate=singletemplate,singletemplate2=singletemplate2, yourresults=yourresults)
     else:
-        return render_template('gtemp.html',singletemplate=singletemplate, yourresults=yourresults)
+        return render_template('gtemp.html',singletemplate=singletemplate,singletemplate2=singletemplate2, yourresults=yourresults)
 
 @app.route("/ptemp.html",methods=['GET', 'POST'])
 def pwrite():
