@@ -1,4 +1,6 @@
 #from sre_constants import SUCCESS
+from urllib.request import CacheFTPHandler
+from jinja2 import TemplateNotFound
 import requests
 import base64
 from url_normalize import url_normalize
@@ -14,6 +16,7 @@ from xmldiff import main as diffmain
 from xdiff import xdiff
 import string,random
 import sys
+from flask import request
 
 client=requests.Session()
 
@@ -1674,3 +1677,390 @@ def examplecomp(auth,hostname,port,username,password,template_name):
     myresp['text']=response.text
     myresp["headers"]=response.headers
     return myresp
+
+
+def createform(auth,hostname,port,username,password,template_name):
+    resp=examplecomp(auth,hostname,port,username,password,template_name)
+    if(resp['status']=='failure'):
+        return resp
+    else:
+        flatcomp=json.loads(resp['composition'])
+        listcontext=[]
+        listcontent=[]
+        listcontext,listcontent,listcontextvalues,listcontentvalues=fillListsfromComp(flatcomp)
+        contexttoadd=[]
+        contenttoadd=[]
+        varcontext=[]
+        varcontent=[]
+        # varlistctx=[]
+        # varlistcnt=[]
+        contexttoadd,varcontext,ivarstart=fillforms(listcontext,listcontextvalues,0)
+        contenttoadd,varcontent,ivarend=fillforms(listcontent,listcontentvalues,ivarstart)
+        createformfile(contexttoadd,varcontext,contenttoadd,varcontent,template_name)
+        msg={}
+        msg['status']='success'
+        return msg
+
+def createformfile(contexttoadd,varcontext,contenttoadd,varcontent,template_name):
+    c1=[]
+    c3=[]
+    c5=[]
+    contextstart='HERE NORE CONTEXT'
+    contentstart='HERE THE CONTENT'
+    with open('./templates/base.html','r') as bf:
+        context=bf.readlines()
+    icontext=0
+    for i,line in enumerate(context):
+        if(contextstart in line):
+            c1=context[:i]
+            icontext=i
+        if(contentstart in line):
+            c3=context[icontext+1:i]
+            c5=context[i+1:]
+
+    varline='<!-- '
+    varctx=','.join(','.join(b) for b in varcontext)
+    varline2=','
+    varcnt=','.join(','.join(b) for b in varcontent)
+    varend=' -->'
+        
+    formstring=''
+    with open('./templates/form.html','w') as ff:
+        ff.write("\n".join(c1))
+        ff.write("\n".join(contexttoadd))
+        ff.write("\n".join(c3))
+        ff.write("\n".join(contenttoadd))
+        ff.write("\n".join(c5))
+        ff.write(varline+template_name+varend)
+        ff.write(varline+str(varctx)+varline2+str(varcnt)+varend)
+
+
+
+
+def fillforms(listc,listcvalues,ivarstart):
+    startrow='<div class="row">'
+    endrow='</div>'
+    startcol='   <div class="col">'
+    endcol='   </div>'
+    label1='<label  class="form-label" for="category">'
+    label3='</label><br>'
+    control1='<input  class="form-control" type="text" id="'
+    control3='" name="'
+    control5='" placeholder="'
+    control7='">'
+    ctoadd=[]
+    varc=[]
+    #fill context or content
+    i=ivarstart
+    j=0
+    for c,v in zip(listc,listcvalues):
+        if(j%2==0):
+            if(j%2!=0):
+                ctoadd.append(endrow)
+            ctoadd.append(startrow)
+        ctoadd.append(startcol)
+
+        # if(isinstance(c,list)):
+        mylabel=c[0].split('|')[0]
+        ctoadd.append(label1+mylabel+label3)
+        for ci,vi in zip(c,v):
+            segment=ci.split('/')[-1].split('|')
+            piece=""
+            if(len(segment)>1):
+                piece=segment[1]
+            else:
+                piece=segment[0]
+            ctoadd.append(control1+'var'+str(i)+control3+
+                'var'+str(i)+control5+piece+' ex '+ str(vi) +control7)
+            varc.append(['var'+str(i),ci])
+            i=i+1
+        j=j+1
+        ctoadd.append('<br><br>')
+        ctoadd.append(endcol)
+    if(j%2 !=0):#add void col if needed
+        ctoadd.append(startcol)
+        ctoadd.append(endcol)
+    return ctoadd,varc,i
+
+
+
+def fillListsfromComp(flatcomp):
+    listcontext=[]
+    listcontextvalues=[]
+    listcontent=[]
+    listcontentvalues=[]
+    words1=['context','ctx','category','language','territory','composer']
+    words2=['location','start_time','_end_time','setting','_health_care_facility','_participation','_uid']
+    words3=['context','ctx']
+    # words4=['_uid']
+    lastel=""
+    for el in flatcomp:
+      #  print(el)
+        second=el.split('/')[1].split('|')[0]
+        last=el.split('/')[-1]
+        # if(last in words4):
+        #     continue
+        if(second in words1):
+            #check if in already considered fields
+            if(second in words3):
+                third=el.split('/')[2].split('|')[0]
+                if(third in words2):
+                    print('not in context or content')
+                    continue
+                else:
+     #               print('in context')
+                    #check if left part already found
+                    if(el.split('|')[0]==lastel.split('|')[0]):
+     #                   print('recognized')
+                        listcontext[-1].append([el])
+                        listcontextvalues[-1].append(flatcomp[el])
+                    else:
+     #                   print('unrecognized')
+                        listcontext.append([el])
+                        listcontextvalues.append([flatcomp[el]])
+                    lastel=el
+            else:
+   #             print('not in context or content')
+                pass
+        else:
+   #         print('in content')
+            #check if left part already found
+            if(el.split('|')[0]==lastel.split('|')[0]):
+                print('recognized')
+                listcontent[-1].append(el)
+                listcontentvalues[-1].append(flatcomp[el])
+            else:
+   #             print('unrecognized')
+    #            print(el)
+     #           print(lastel)
+                listcontent.append([el])
+                listcontentvalues.append([flatcomp[el]])
+            lastel=el
+   # print(listcontent)
+   # sys.exit(0)
+    return listcontext,listcontent,listcontextvalues,listcontentvalues
+
+def readform():
+    with open('./templates/form.html','r') as ff:
+        allfile=ff.readlines()
+    #allfilecorrected=[af.replace("#","%23") for af in allfile]
+    formstring=''.join(allfile)
+    # with open('./pippolippo','w') as pl:
+    #     pl.write(formstring)
+    return formstring
+
+def postform(auth,hostname,port,username,password,formname):
+    #retrieve var and path
+    tid=formname
+    formname=formname.lower()
+    with open('./templates/form.html','r') as ff:
+        allfile=ff.readlines()
+    varinfo=allfile[-1].split('<!--')[1].split('-->')[0].strip()
+    varinfolist=varinfo.split(',')
+    #create flat composition
+    composition={}
+    #add context variables
+    #category
+    tcat=request.args.get("tcat","")
+    if(tcat==""):
+        tcat="openehr"
+    ccat=request.args.get("ccat","")
+    if(ccat==""):
+        ccat="433"
+    vcat=request.args.get("vcat","")
+    if(vcat==""):
+        vcat='event'
+    composition[formname+'/category|terminology']=tcat
+    composition[formname+'/category|code']=ccat
+    composition[formname+'/category|value']=vcat
+    #language
+    tlan=request.args.get("tlan","")
+    if(tlan==""):
+        tlan="ISO_639-1"
+    clan=request.args.get("clan","")
+    if(clan==""):
+        clan="en"
+    composition[formname+'/language|terminology']=tlan
+    composition[formname+'/language|code']=clan
+    #territory
+    tter=request.args.get("tter","")
+    if(tter==""):
+        tter="ISO_3166-1"
+    cter=request.args.get("cter","")
+    if(cter==""):
+        cter="IT"
+    composition[formname+'/territory|terminology']=tter
+    composition[formname+'/territory|code']=cter
+    #time
+    stime=request.args.get("stime","")
+    if(stime==""):
+        stime="2022-03-15T12:04:38.49Z"
+    etime=request.args.get("etime","")
+    composition[formname+'/context/start_time']=stime
+    if(etime != ""):
+        composition[formname+'/context/_end_time']=etime
+    #health_care_facility
+    idhcf=request.args.get("idhcf","")
+    idshcf=request.args.get("idshcf","")
+    idnhcf=request.args.get("idnhcf","")
+    nhcf=request.args.get("nhcf","")
+    if(idhcf != ""):
+        composition[formname+'/context/_health_care_facility|id']=idhcf
+    if(idshcf != ""):
+        composition[formname+'/context/_health_care_facility|id_scheme']=idshcf
+    if(idnhcf != ""):    
+        composition[formname+'/context/_health_care_facility|id_namespace']=idnhcf
+    if(nhcf != ""):    
+        composition[formname+'/context/_health_care_facility|name']=nhcf
+    #participation1-2-3
+    fpart1=request.args.get("fpart1","")
+    mpart1=request.args.get("mpart1","")
+    npart1=request.args.get("npart1","")
+    ipart1=request.args.get("ipart1","")
+    ispart1=request.args.get("ispart1","")
+    inpart1=request.args.get("inpart1","")
+    if(fpart1 !=""):
+        composition[formname+'/context/_participation:0|function']=fpart1
+    if(mpart1 !=""):
+        composition[formname+'/context/_participation:0|mode']=mpart1
+    if(npart1 !=""):
+        composition[formname+'/context/_participation:0|name']=npart1
+    if(ipart1 !=""):
+        composition[formname+'/context/_participation:0|id']=ipart1
+    if(ispart1 !=""):
+        composition[formname+'/context/_participation:0|id_scheme']=ispart1
+    if(inpart1 != ""):
+        composition[formname+'/context/_participation:0|id_namespace']=inpart1
+    if(fpart1 !=""):
+        fpart2=request.args.get("fpart2","")
+        mpart2=request.args.get("mpart2","")
+        npart2=request.args.get("npart2","")
+        ipart2=request.args.get("ipart2","")
+        ispart2=request.args.get("ispart2","")  
+        inpart2=request.args.get("inpart2","")    
+        if(fpart2 !=""):
+            composition[formname+'/context/_participation:1|function']=fpart2
+        if(mpart2 !=""):
+            composition[formname+'/context/_participation:1|mode']=mpart2
+        if(npart2 !=""):
+            composition[formname+'/context/_participation:1|name']=npart2
+        if(ipart2 !=""):
+            composition[formname+'/context/_participation:1|id']=ipart2
+        if(ispart2 !=""):
+            composition[formname+'/context/_participation:1|id_scheme']=ispart2
+        if(inpart1 != ""):
+            composition[formname+'/context/_participation:1|id_namespace']=inpart2
+        if(fpart2!=""):
+            fpart3=request.args.get("fpart3","")
+            mpart3=request.args.get("mpart3","")
+            npart3=request.args.get("npart3","")
+            ipart3=request.args.get("ipart3","")
+            ispart3=request.args.get("ispart3","")  
+            inpart3=request.args.get("inpart3","") 
+            if(fpart3 !=""):
+                composition[formname+'/context/_participation:2|function']=fpart3
+            if(mpart3 !=""):
+                composition[formname+'/context/_participation:2|mode']=mpart3
+            if(npart3 !=""):
+                composition[formname+'/context/_participation:2|name']=npart3
+            if(ipart3 !=""):
+                composition[formname+'/context/_participation:2|id']=ipart3
+            if(ispart3 !=""):
+                composition[formname+'/context/_participation:2|id_scheme']=ispart3
+            if(inpart3 != ""):
+                composition[formname+'/context/_participation:2|id_namespace']=inpart3
+    #composer PARTY_SELF or PARTY_IDENTIFIED
+    cself=request.args.get("cself","")
+    ciid=request.args.get("ciid","")
+    if(cself != ""):#party self
+        composition['ctx/composer_self']=True
+        composition['ctx/composer_id']=cself
+        sself=request.args.get("sself","")
+        nself=request.args.get("nself","")
+        if(sself != ""):
+            composition['ctx/id_scheme']=sself
+        if(nself != ""):
+            composition['ctx/id_namespace']=nself
+    elif(ciid != ""):#party identified
+        composition['ctx/composer_id']=ciid
+        ciname=request.args.get("ciname","")
+        ciisc=request.args.get("ciisc","")
+        cins=request.args.get("cins","")
+        if(ciname != ""):
+            composition['ctx//composer_name']=ciname
+        if(ciisc != ""):
+            composition['ctx//id_scheme']=ciisc
+        if(cins != ""):
+            composition['ctx/id_namespace']=cins      
+    #setting
+    setter=request.args.get("setter","")
+    if(setter==""):
+        setter="openehr"
+    codeter=request.args.get("codeter","")
+    if(codeter==""):
+        codeter="238"
+    valter=request.args.get("valter","")
+    if(valter==""):
+        valter="other care"
+    composition[formname+'/context/setting|terminology']=setter
+    composition[formname+'/context/setting|code']=codeter
+    composition[formname+'/context/setting|value']=valter
+    #location
+    loc=request.args.get("loc","")
+    if(loc != ""):
+        composition[formname+'/context/_location']=loc
+    #the remaining variables
+    for var,path in two_at_a_time(varinfolist):
+        value=request.args.get(var,"")
+        if(value != ""):
+            composition[path]=value
+    #post the composition
+    filetype='FLAT'
+    eid=request.args.get("ename","")    
+    check=request.args.get("check","")
+    checkresults=""
+    checkinfo=""
+    comp=json.dumps(composition)
+    myresp=postcomp(auth,hostname,port,username,password,comp,eid,tid,filetype,check)
+    return myresp       
+ 
+def two_at_a_time(iterable):
+    "s -> (s0, s1), (s2, s3), (s4, s5), ..."
+    a = iter(iterable)
+    return zip(a, a)
+
+def retrievetemplatefromform(formloaded):
+    index=formloaded.rfind("<!-- ", 0, formloaded.rfind("<!-- "))
+    index2=formloaded.find(" -->",index,len(formloaded))
+    template_name=formloaded[index+4:index2].strip()
+    return template_name
+
+def fixformloaded(formloaded):
+    #fix missing double braces 
+    #<h1>Form for template form.html</h1>
+    #{{forname}}
+    fl=formloaded.replace("<h1>Form for template form.html</h1>",
+                    "<h1>Form for template {{formname}}</h1>")
+    fl2=fl.replace('<input class="form-control" type="text" id="ename" name="ename" value= >',
+                    '<input class="form-control" type="text" id="ename" name="ename" value={{last}}>')
+
+    index1=fl2.find("<h2>Results</h2>")+17
+    index2=fl2.find("<br><br>",index1)
+    index3=fl2.find("<br><br>",index2+8)
+    linestoadd1='''
+    {% macro linebreaks_for_string( the_string ) -%}
+    {% if the_string %}
+    {% for line in the_string.split('\n') %}
+    <br />
+    {{ line }}
+    {% endfor %}
+    {% else %}
+    {{ the_string }}
+    {% endif %}
+    {%- endmacro %}
+    {{ linebreaks_for_string( yourresults ) }}
+    '''
+    linestoadd2='{{checkresults}}'
+    linestoadd3='{{checkinfo}}'  
+    formfixed=fl2[:index1]+linestoadd1+fl2[index2:index2+9]+linestoadd2+fl2[index3:index3+9]+linestoadd3+fl2[index3+10:]
+    return formfixed

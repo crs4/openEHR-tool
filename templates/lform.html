@@ -168,61 +168,39 @@ if (window.innerWidth < 992) {
 
  
 <div class="container">
-  <h1>Post AQL query</h1>
- 
+  <h1>Load a previously saved Form</h1>
 
-            <br>
+           <br>
             <div class="position-relative">
-
                 <div id="forms" class="position-absolute" data-tor="place.top(30px)">
+                
+                  <form method="POST" action="" enctype="multipart/form-data">
+                    <label class="form-label" for="choofile">Choose the file</label><br>
+                    <p><input class="form-control" type="file" name="file"></p>
+                    <p><input class="btn btn-primary" type="submit" value="Submit"></p>
+                  </form>                
 
-
-
-                  <label for="comment">Paste below your AQL query:</label>
-                  <textarea class="form-control" id='aqltext' form='form1' name="aqltext" rows="5"></textarea> 
-                  <br><br>
-                  <div class="row">
-                    <div id="forform1" class="col">  
-                      <form id="form1">
-                        <label class="form-label"  for="template">Query name:</label><br>
-                        <input class="form-control"  type="text" id="nquery" name="nquery"><br><br><br>       
-                    </div>
-                    
-                    <div id="forform2" class="col">
-                        <label class="form-label"  for="jk">Version (Optional)</label><br>
-                        <input class="form-control" type="text" id="version" name="version"><br><br>
-                        <label class="form-label"  for="ehrs">Type (Optional)</label><br>
-                        <input class="form-control" type="text" id="qtype" name="qtype"><br><br>                   
-                    </div>
-                  </div>
+                <br><br><br><br><br>
             
-                  <div id="mycommit" class="centered">
-                    <p><input class="btn btn-primary" name="pippo" type="submit" value="Store query"></p>
-                    </div>
-                  </form>
-                <br><br><br><br>
-
+     
                   <div id="results">
                     <h2>Results</h2>
                     {% macro linebreaks_for_string( the_string ) -%}
-                    {% if the_string %}
-                    {% for line in the_string.split('\n') %}
-                    <br />
-                    {{ line }}
-                    {% endfor %}
-                    {% else %}
-                    {{ the_string }}
-                    {% endif %}
-                    {%- endmacro %}
-                    
-                    <pre id="result">{{ linebreaks_for_string( yourresults ) }}</pre> 
-      
-                    <pre id="aqlt"></pre>
+              {% if the_string %}
+              {% for line in the_string.split('\n') %}
+              <br />
+              {{ line }}
+              {% endfor %}
+              {% else %}
+              {{ the_string }}
+              {% endif %}
+              {%- endmacro %}
+              {{ linebreaks_for_string( yourresults ) }} 
                   </div>
                 </div>
               </div>
 
-             
+
 
   </div>
 
@@ -233,10 +211,6 @@ if (window.innerWidth < 992) {
    }
  </style>
 
-<script type="text/javascript">
-  if ( {{aqltext|tojson}} !== '{}' ) {
-    document.getElementById("aqlt").innerHTML = 'Query: {{aqltext|tojson}}';}
-</script>   
 
 <style>
 
