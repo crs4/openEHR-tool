@@ -185,10 +185,14 @@ if (window.innerWidth < 992) {
                       <form id="form1">
                         <br><br>
                         <input class="form-check-input" type="checkbox" autocomplete="off" id="mySwitch" name="random" value="yes" checked>
-                        <label class="form-check-label" for="mySwitch">Random EHR</label>
+                        <label class="form-check-label" for="mySwitch">Random EHRs</label>
                   </div> 
-
-
+                  <div id="inlistblock" style="display:block">
+                    <br><br>
+                    <input class="form-check-input" type="checkbox" autocomplete="off" id="mySwitch2" name="inlist" value="yes" checked>
+                    <label class="form-check-label" for="mySwitch2">EHRs chosen among avaible EHRs</label>
+                  </div>
+                    
 
                     <div id="path" style="display:none;">
                       <br><br>
@@ -225,8 +229,10 @@ const path = document.getElementById("path")
 checkbox.addEventListener('change', (event) => {
   if (event.currentTarget.checked) {
     path.style.display = "none";
+    inlistblock.style.display = "block";
   } else {
     path.style.display = "block";
+    inlistblock.style.display = "none";
   }
 })
 
