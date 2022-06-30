@@ -1,5 +1,3 @@
-from tkinter import FALSE
-from turtle import up
 from flask import Flask
 from flask import request,render_template,redirect,url_for
 import ehrbase_routines
@@ -73,38 +71,53 @@ def ehrbase():
 
 @app.route("/gtemp.html",methods=["GET"])
 def gtemp():
-    global hostname,port,username,password,auth,nodename
+    global hostname,port,username,password,auth,nodename,mymsg
     if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
         return redirect(url_for("ehrbase"))
     yourresults=""
     singletemplate='false'
+    singletemplate2='false'
     yourtemp=""
-    print(request.args)
-    if request.args.get("pippo")=="Submit": 
+    tempjson=""
+    yourjson='{}'
+    mymsg=ehrbase_routines.creategtemp(auth,hostname,port,username,password)
+    if(mymsg['status']=='failure'):
+        return redirect(url_for("ehrbase"))
+    if request.args.get("pippo")=="Get Template": 
         template_name=request.args.get("tname","")
-        print(f'template={template_name}')
-        msg=ehrbase_routines.gettemp(auth,hostname,port,username,password,template_name)
-
+        #print(f'template={template_name}')
+        tformat=request.args.get("format","")
+        msg=ehrbase_routines.gettemp(auth,hostname,port,username,password,tformat,template_name)
         if(msg['status']=="success"):
-            if(template_name!=""):
+            if(tformat=='OPT'):
                 singletemplate='true'
+                singletemplate2='false'
                 temp=msg['template']
                 yourresults=str(msg['status'])+ " "+ str(msg['status_code'])
                 yourtemp=temp
-                return render_template('gtemp.html',temp=temp,singletemplate=singletemplate,yourresults=yourresults,yourtemp=yourtemp)
+                return render_template('gtemp.html',temp=temp,singletemplate=singletemplate,yourresults=yourresults,singletemplate2=singletemplate2,yourtemp=yourtemp)
             else:
+                singletemplate2='true'
                 singletemplate='false'
-                yourresults=str(msg['status'])+ " "+ str(msg['status_code']) +"\n"+ \
-                    str(msg['text'])
-                return render_template('gtemp.html',singletemplate=singletemplate,yourresults=yourresults)
+                temp=msg['template']
+                yourresults=str(msg['status'])+ " "+ str(msg['status_code'])
+                yourjson=temp
+                return render_template('gtemp.html',temp=temp,singletemplate=singletemplate,singletemplate2=singletemplate2,yourresults=yourresults,yourjson=yourjson)
         else:   
             singletemplate='false'
+            singletemplate2='false'
             yourresults=str(msg['status'])+ " "+ str(msg['status_code']) +"\n"+ \
                             str(msg['text']) + "\n" +\
                             str(msg['headers'])
-            return render_template('gtemp.html',singletemplate=singletemplate, yourresults=yourresults)
+            return render_template('gtemp.html',singletemplate=singletemplate,singletemplate2=singletemplate2, yourresults=yourresults)
+    elif request.args.get("pippo2")=="Get List":
+        singletemplate='false'
+        singletemplate2='false'
+        yourresults=str(mymsg['status'])+ " "+ str(mymsg['status_code']) +"\n"+ \
+                    str(mymsg['text'])
+        return render_template('gtemp.html',singletemplate=singletemplate,singletemplate2=singletemplate2,yourresults=yourresults)
     else:
-        return render_template('gtemp.html',singletemplate=singletemplate, yourresults=yourresults)
+        return render_template('gtemp.html',singletemplate=singletemplate,singletemplate2=singletemplate2,yourresults=yourresults)
 
 @app.route("/ptemp.html",methods=['GET', 'POST'])
 def pwrite():
@@ -670,28 +683,147 @@ def pbatchsameehr():
 
 
 
-@app.route("/test.html",methods=["GET"])
-def gtest():
+# @app.route("/test.html",methods=["GET"])
+# def gtest():
+#     global hostname,port,username,password,auth,nodename
+#     # if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+#     #     return redirect(url_for("ehrbase"))
+#     template_name=request.args.get("tname","")
+#     print(f'template={template_name}')
+#     #temp=ehrbase_routines.gettemp(auth,hostname,port,username,password,template_name)
+#     success='success'
+#     success='failure'
+#     #return render_template('test.html',temp=temp,success=success)
+#     mycontent="<test>start</test><uno>true</uno>"
+#     return render_template('test.html',success=success,mycontent=mycontent)
+
+# @app.route("/base.html",methods=["GET"])
+# def gbase():
+#     global hostname,port,username,password,auth,nodename
+#     # if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+#     #     return redirect(url_for("ehrbase"))
+#     test='''
+#                     <div class="row">
+
+#                     <div class="col">
+
+#                       <label  class="form-label" for="category">Setting</label><br>
+#                       <input  class="form-control" type="text" id="setter" name="setter" placeholder="Terminology: openehr">
+#                       <input  class="form-control" type="text" id="codeter" name="codeter" placeholder="Code: 253">
+#                       <input  class="form-control" type="text" id="valter" name="valter" placeholder="Value: other_care">
+#                       <br><br><br>
+
+#                     </div>
+
+#                     <div class="col">
+ 
+#                       <label  class="form-label" for="category">Location (Optional)</label><br>
+#                       <input  class="form-control" type="text" id="loc" name="loc" placeholder="Location: ex Rome">
+                   
+#                     </div>
+                
+#                  </div>
+# '''
+#     yourjson=''
+#     return render_template('base.html',test=test,yourjson=yourjson)
+
+
+
+@app.route("/ecomp.html",methods=["GET"])
+def excomp():
     global hostname,port,username,password,auth,nodename
-    # if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
-    #     return redirect(url_for("ehrbase"))
-    template_name=request.args.get("tname","")
-    print(f'template={template_name}')
-    #temp=ehrbase_routines.gettemp(auth,hostname,port,username,password,template_name)
-    success='success'
-    success='failure'
-    #return render_template('test.html',temp=temp,success=success)
-    mycontent="<test>start</test><uno>true</uno>"
-    return render_template('test.html',success=success,mycontent=mycontent)
+    if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        return redirect(url_for("ehrbase"))
+    yourresults=""
+    success='false'
+    yourjson='{}'
+    print(request.args)
+    if request.args.get("pippo")=="Submit": 
+        template_name=request.args.get("tname","")
+        print(f'template={template_name}')
+        msg=ehrbase_routines.examplecomp(auth,hostname,port,username,password,template_name)
+
+        if(msg['status']=="success"):
+            success='true'
+            yourjson=msg['composition']
+            yourresults=str(msg['status'])+ " "+ str(msg['status_code'])
+            return render_template('ecomp.html',success=success,yourresults=yourresults,yourjson=yourjson)
+        else:   
+            success='false'
+            yourresults=str(msg['status'])+ " "+ str(msg['status_code']) +"\n"+ \
+                            str(msg['text']) + "\n" +\
+                            str(msg['headers'])
+            return render_template('ecomp.html',success=success,yourresults=yourresults)
+    else:
+        return render_template('ecomp.html',success=success,yourresults=yourresults)
 
 
+@app.route("/cform.html",methods=["GET"])
+def cform():
+    global hostname,port,username,password,auth,nodename
+    if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        return redirect(url_for("ehrbase"))
+    yourresults=""
+    if request.args.get("pippo")=="Submit": 
+        template_name=request.args.get("tname","")
+        print(f'template={template_name}')
+        msg=ehrbase_routines.createform(auth,hostname,port,username,password,template_name)
+
+        if(msg['status']=="success"):    
+            return redirect(url_for("form",formname=template_name))
+        else:   
+            yourresults=str(msg['status'])+ " "+ str(msg['status_code']) +"\n"+ \
+                            str(msg['text']) + "\n" +\
+                            str(msg['headers'])
+            return render_template('cform.html',yourresults=yourresults)
+    else:
+        return render_template('cform.html',yourresults=yourresults)
 
 
+@app.route("/form.html/<formname>",methods=["GET"])
+def form(formname):
+    if(formname.endswith(".html")):
+        if(formname != 'form.html'):
+            return redirect("/"+formname)
+    global hostname,port,username,password,auth,nodename
+    if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        return redirect(url_for("ehrbase"))
+    global lastehrid,lastcompositionid
+    yourresults=""
+    checkresults=""
+    checkinfo=""
+    if request.args.get("pippo")=="Submit Composition": 
+        msg=ehrbase_routines.postform(auth,hostname,port,username,password,formname)
+        if(msg['status']=="success"):
+            yourresults=f"Composition inserted successfully.\n status_code={msg['status_code']} VersionUID={msg['compositionid']}\n text={msg['text']}\n headers={msg['headers']}"
+            lastcompositionid=msg['compositionid']
+            if('check' in msg):
+                checkresults=msg['check']
+                checkinfo=msg['checkinfo']
+        else:
+            yourresults=f"Composition insertion failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"            
+        return render_template('form.html',formname=formname,yourresults=yourresults,last=lastehrid,checkresults=checkresults,checkinfo=checkinfo)        
+    else:       
+        return render_template('form.html',formname=formname,yourresults=yourresults,last=lastehrid)
 
 
+@app.route("/lform.html",methods=["GET","POST"])
+def lform():
+    global hostname,port,username,password,auth,nodename
+    if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        return redirect(url_for("ehrbase"))
 
-
-
+    if request.method == 'POST': 
+        uploaded_file = request.files['file']
+        uploaded_file.stream.seek(0) # seek to the beginning of file
+        formloaded=uploaded_file.read().decode("utf-8")
+        formfixed=ehrbase_routines.fixformloaded(formloaded)
+        template_name=ehrbase_routines.retrievetemplatefromform(formfixed)
+        with open('./templates/form.html','w') as ff:
+            ff.write(formfixed)
+        return redirect(url_for("form",formname=template_name))
+    else:
+        return render_template('lform.html')
 
 
 

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>openEHR Tool</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- <link href="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" > -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+
+
+<nav class="navbar  navbar-dark bg-dark">
+  <div class="container-fluid">
+    <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main_nav" aria-expanded="false" aria-label="Toggle navigation" >
+        <span class="navbar-toggler-icon float-start"></span><h4>openEHR Tool</h4>
+      </button>
+      
+    <div class="collapse navbar-collapse" id="main_nav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" aria-current="page" href="about.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="settings.html">Settings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="dashboard.html">Dashboard</a>
+        </li>        
+        <li class="nav-item dropdown dropend">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
+            Template
+          </a>
+          <ul class="dropdown-menu " >
+            <li><a class="dropdown-item" href="gtemp.html">Get Template</a></li>
+            <li><a class="dropdown-item" href="ptemp.html">Post Template</a></li>
+            <li><a class="dropdown-item" href="utemp.html">Update Template</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
+              EHR
+            </a>
+            <ul class="dropdown-menu" >
+              <li><a class="dropdown-item" href="gehr.html">Get EHR</a></li>
+              <li><a class="dropdown-item" href="pehr.html">Post EHR</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
+              Composition
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="gcomp.html">Get Composition</a></li>
+              <li><a class="dropdown-item" href="pcomp.html">Post Composition</a></li>
+              <li><a class="dropdown-item" href="ecomp.html">Example Composition</a></li>
+              <li><a class="dropdown-item" href="#" > Batch Compositions &#9656; </a>
+              <ul class="submenu dropdown-menu">
+                  <li><a class="dropdown-item second" href="pbatch1.html">Post Batch Compositions different ehrid</a></li>
+                  <li><a class="dropdown-item second" href="pbatch2.html">Post Batch Compositions same ehrid</a></li>
+              </ul>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#"  data-bs-toggle="dropdown" >
+              Form
+            </a>
+            <ul class="dropdown-menu" >
+              <li><a class="dropdown-item" href="cform.html">Create Form</a></li>
+              <li><a class="dropdown-item" href="lform.html">Load Form</a></li>
+           </ul>
+          </li>
+
+          <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#"  data-bs-toggle="dropdown" >
+              AQL Query
+            </a>
+            <ul class="dropdown-menu" >
+              <li><a class="dropdown-item" href="gaql.html">Get AQL Query</a></li>
+              <li><a class="dropdown-item" href="paql.html">Post AQL Query</a></li>
+              <li><a class="dropdown-item" href="raql.html">Run AQL Query</a></li>
+           </ul>
+          </li>
+    </div>
+  </div>
+</nav>
+
+<script>
+     document.addEventListener("DOMContentLoaded", function(){
+// make it as accordion for smaller screens
+if (window.innerWidth < 992) {
+
+  // close all inner dropdowns when parent is closed
+  document.querySelectorAll('.navbar .dropdown').forEach(function(everydropdown){
+    everydropdown.addEventListener('hidden.bs.dropdown', function () {
+      // after dropdown is hidden, then find all submenus
+        this.querySelectorAll('.submenu').forEach(function(everysubmenu){
+          // hide every submenu as well
+          everysubmenu.style.display = 'none';
+        });
+    })
+  });
+
+  document.querySelectorAll('.dropdown-menu a').forEach(function(element){
+    element.addEventListener('click', function (e) {
+        let nextEl = this.nextElementSibling;
+        if(nextEl && nextEl.classList.contains('submenu')) {	
+          // prevent opening link if link needs to open dropdown
+          e.preventDefault();
+          if(nextEl.style.display == 'block'){
+            nextEl.style.display = 'none';
+          } else {
+            nextEl.style.display = 'block';
+          }
+
+        }
+    });
+  })
+}
+// end if innerWidth
+}); 
+// DOMContentLoaded  end
+
+</script>
+ <style>
+  /* ============ desktop view ============ */
+@media all and (min-width: 992px) {
+	.dropdown-menu li{ position: relative; 	}
+	.nav-item .submenu{ 
+		display: none;
+    /* position:relative;
+    left:100%; top: -7px; */
+		/* position: absolute;
+		left:100%; top:-7px; */
+	}
+
+  .dropdown-item {
+    position: relative;
+    top: 0%; left: 2%;
+  }
+
+  .second {
+    position: relative;
+    top: 0%; left: 6%;
+  }
+
+
+	.nav-item .submenu-right{ 
+		right:auto; left:auto;
+	}
+	.dropdown-menu > li:hover{ background-color: #262626 }
+	.dropdown-menu > li:hover > .submenu{ display: block; }
+ 
+}	
+/* ============ desktop view .end// ============ */
+
+/* ============ small devices ============ */
+/* @media (max-width: 991px) {
+  .dropdown-menu .dropdown-menu{
+      margin-left:0.7rem; margin-right:0.7rem; margin-bottom: .5rem;
+  } 
+}	 */
+/* ============ small devices .end// ============ */
+</style>
+
+ 
+<div class="container">
+  <h1>Form for template {{formname}}</h1>
+
+            <br><br><br>
+            <div class="position-relative">
+                <div id="forms" class="position-absolute" data-tor="place.top(30px)">
+                  <div class="row position-relative start-0">
+                    <h2>Context</h2>
+                    ( Leave empty for default displayed values)
+                  </div>
+                  
+
+                 <form id="form1">
+                 <div class="row">
+                    <div class="col">
+ 
+                      <label  class="form-label" for="category">Category</label><br>
+                      <input  class="form-control" type="text" id="tcat" name="tcat" placeholder="Terminology: openehr">
+                      <input  class="form-control" type="text" id="ccat" name="ccat" placeholder="Code: 433">
+                      <input  class="form-control" type="text" id="vcat" name="vcat" placeholder="Value: event">
+     
+                      <br><br><br>
+                    </div>
+                    <div class="col">
+                      <label  class="form-label" for="category">Language</label><br>
+                      <input  class="form-control" type="text" id="tlan" name="tlan" placeholder="Terminology: openehr">
+                      <input  class="form-control" type="text" id="clan" name="clan" placeholder="Code: en">
+     
+
+                    </div>
+
+
+                 </div>
+                 <div class="row">
+
+                    <div class="col">
+
+                      <label  class="form-label" for="category">Territory</label><br>
+                      <input  class="form-control" type="text" id="tter" name="tter" placeholder="Terminology: ISO_639-1">
+                      <input  class="form-control" type="text" id="cter" name="cter" placeholder="Code: IT">
+
+                      <br><br><br>
+
+                    </div>
+
+                    <div class="col">
+ 
+                      <label  class="form-label" for="category">Time</label><br>
+                      <input  class="form-control" type="text" id="stime" name="stime" placeholder="Start Time: ex 2022-06-01T09:00:00.00Z">
+                      <input  class="form-control" type="text" id="etime" name="etime" placeholder="Optional End Time: ex 2022-06-21T09:00:00.00Z">
+            
+                    </div>
+                
+                 </div>
+                 <div class="row">    
+                    <div class="col">
+                      <label  class="form-label" for="category">Health Care Facility (Optional)</label><br>
+                      <input  class="form-control" type="text" id="idhcf" name="idhcf" placeholder="id: ex 9091">
+                      <input  class="form-control" type="text" id="idshcf" name="idshcf" placeholder="id_scheme: ex HOSPITAL-NS">
+                      <input  class="form-control" type="text" id="idnhcf" name="idnhcf" placeholder="id_namespace: ex HOSPITAL-NS">
+                      <input  class="form-control" type="text" id="nhcf" name="nhcf" placeholder="name: ex Hospital">
+     
+                      <br><br><br>
+                    </div>
+
+                    <div class="col">
+
+                      <label  class="form-label" for="category">Participation 1 (Optional)</label><br>
+                      <input  class="form-control" type="text" id="fpart1" name="fpart1" placeholder="Function: ex reporter">
+                      <input  class="form-control" type="text" id="mpart1" name="mpart1" placeholder="Mode: ex face-to-face communication">
+                      <input  class="form-control" type="text" id="npart1" name="npart1" placeholder="Name: ex Marcus Johnson">
+                      <input  class="form-control" type="text" id="ipart1" name="ipart1" placeholder="id: ex 9091">
+                      <input  class="form-control" type="text" id="ispart1" name="ispart1" placeholder="id_scheme ex HOSPITAL-NS">
+                      <input  class="form-control" type="text" id="inpart1" name="inpart1" placeholder="id_namespace ex HOSPITAL-NS">
+                      <br>
+                    </div>
+
+
+                  </div>
+
+                  <div class="row">    
+                    <div class="col">
+
+                      <label  class="form-label" for="category">Participation 2 (Optional)</label><br>
+                      <input  class="form-control" type="text" id="fpart2" name="fpart2" placeholder="Function: ex reporter">
+                      <input  class="form-control" type="text" id="mpart2" name="mpart2" placeholder="Mode: ex Face-to-Face">
+                      <input  class="form-control" type="text" id="npart2" name="npart2" placeholder="Name: ex Marcus Johnson">
+                      <input  class="form-control" type="text" id="ipart2" name="ipart2" placeholder="id: ex 9091">
+                      <input  class="form-control" type="text" id="ispart2" name="ispart2" placeholder="id_scheme ex HOSPITAL-NS">
+                      <input  class="form-control" type="text" id="inpart2" name="inpart2" placeholder="id_namespace ex HOSPITAL-NS">
+                      <br><br><br>
+                    </div>
+
+                    <div class="col">
+
+                      <label  class="form-label" for="category">Participation 3 (Optional)</label><br>
+                      <input  class="form-control" type="text" id="fpart3" name="fpart3" placeholder="Function: ex reporter">
+                      <input  class="form-control" type="text" id="mpart3" name="mpart3" placeholder="Mode: ex Face-to-Face">
+                      <input  class="form-control" type="text" id="npart3" name="npart3" placeholder="Name: ex Marcus Johnson">
+                      <input  class="form-control" type="text" id="ipart3" name="ipart3" placeholder="id: ex 9091">
+                      <input  class="form-control" type="text" id="ispart3" name="ispart3" placeholder="id_scheme ex HOSPITAL-NS">
+                      <input  class="form-control" type="text" id="inpart3" name="inpart3" placeholder="id_namespace ex HOSPITAL-NS">
+ 
+                      <br>
+                    </div>                   
+
+                  </div>
+
+
+                  <div class="row">    
+                    <div class="col">
+                      <label  class="form-label" for="category">Composer PARTY_SELF</label><br>
+                      <input  class="form-control" type="text" id="cself" name="cself" placeholder="id: ex 1234-5678">
+                      <input  class="form-control" type="text" id="sself" name="sself" placeholder="id_scheme: ex UUID">
+                      <input  class="form-control" type="text" id="nself" name="nself" placeholder="id_namespace: ex EHR.NETWORK">
+     
+                      <br><br><br>
+                    </div>
+
+                    <div class="col">
+
+                      <label  class="form-label" for="category">Composer PARTY_IDENTIFIED</label><br>
+                      <input  class="form-control" type="text" id="ciname" name="ciname" placeholder="name: ex Silvia Blake">
+                      <input  class="form-control" type="text" id="ciid" name="ciid" placeholder="id: ex 1234-5678">
+                      <input  class="form-control" type="text" id="cisc" name="ciisc" placeholder="id_scheme: ex UUID">
+                      <input  class="form-control" type="text" id="cins" name="cins" placeholder="id_namespace: ex EHR.NETWORK">
+
+     
+                      <br>
+                    </div>
+
+
+                  </div>
+                  <div class="row">
+
+                    <div class="col">
+
+                      <label  class="form-label" for="category">Setting</label><br>
+                      <input  class="form-control" type="text" id="setter" name="setter" placeholder="Terminology: openehr">
+                      <input  class="form-control" type="text" id="codeter" name="codeter" placeholder="Code: 238">
+                      <input  class="form-control" type="text" id="valter" name="valter" placeholder="Value: other care">
+                      <br><br><br>
+
+                    </div>
+
+                    <div class="col">
+ 
+                      <label  class="form-label" for="category">Location (Optional)</label><br>
+                      <input  class="form-control" type="text" id="loc" name="loc" placeholder="Location: ex Rome">
+                   
+                    </div>
+                
+                 </div>
+
+<!--         HERE NORE CONTEXT-->
+
+                    <br><br>
+                    <div class="row position-relative start-0">
+                      <h2>Content</h2>
+                    </div>
+                    
+ <!--         HERE THE CONTENT-->
+                    <br><br>
+                    <div class="row position-relative start-0">
+                      <h2>Parameters needed to post the composition</h2>
+                    </div>
+
+                    <div class="row">
+                      <div class="col">
+                        <label class="form-label" for="ehrid">EHRID</label><br>
+                        <input class="form-control" type="text" id="ename" name="ename" value={{last}} > 
+                        <br>  <br><br>  
+                      </div>
+                      <div class="col">
+                        <label class="form-label" for="ehrid">Check Against original Composition</label><br>
+                        <input class="form-check-input" type="radio" name="check" value="Yes">Yes</input>
+                        <input class="form-check-input" type="radio" name="check" value="No" checked>No</input>
+                      </div>
+                    </div>
+
+                <div class="row">
+                  <div class="col">
+                    <input   id='pippo' name='pippo' class="btn btn-primary" type="submit" value="Submit Composition">
+                  </div>
+                  <div id="save" class="col">
+                    <a class="btn btn-danger" role="button" href="form.html"
+                    download="MyForm.html">
+                    Save form to file
+                    </a>
+                  </div>
+                </form>
+                </div>
+
+                  <div id="results">
+                    <br><br><br>
+                    <h2>Results</h2>
+                      {% macro linebreaks_for_string( the_string ) -%}
+                      {% if the_string %}
+                      {% for line in the_string.split('\n') %}
+                      <br />
+                      {{ line }}
+                      {% endfor %}
+                      {% else %}
+                      {{ the_string }}
+                      {% endif %}
+                      {%- endmacro %}
+                      {{ linebreaks_for_string( yourresults ) }} 
+                      <br><br> 
+                      {{checkresults}}
+                      <br><br> 
+                      {{checkinfo}}
+                  </div>
+        
+  </div>
+
+
+
+
+  <style>
+    body{
+ background-image: url('/static/img/Medicine-icons2.png');
+ background-size: auto;
+   }
+ </style>
+
+
+<style>
+
+.custom-toggler.navbar-toggler {
+            border-color: lightgreen;
+        }
+        /* Setting the stroke to green using rgb values (0, 128, 0) */
+          
+.custom-toggler .navbar-toggler-icon {
+            background-image: url(
+"data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(0, 128, 0, 0.8)' stroke-width='4' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+        }
+
+    
+        .dropdown-item {
+            color: white; 
+        }   
+        .dropdown-item:focus,
+        .dropdown-item:hover{
+      background-color:#FFACB7;
+      color: #262626;
+        }
+
+.dropdown-menu {
+background-color: #262626;
+color:white;
+}
+
+.navbar .navbar-nav .nav-link {
+    color: #fff;
+    font-size: 1.1em;
+}
+.navbar .navbar-nav .nav-link:hover {
+  background-color: #FFACB7;
+  color: #fff;
+}
+
+</style>
+
+</body>
+</html>
+    
+    
+    
+    

@@ -168,42 +168,68 @@ if (window.innerWidth < 992) {
 
  
 <div class="container">
-  <h1>Post AQL query</h1>
- 
+  <h1>Retrieve the list of Templates or a specific one</h1>
 
-            <br>
             <div class="position-relative">
-
-                <div id="forms" class="position-absolute" data-tor="place.top(30px)">
-
-
-
-                  <label for="comment">Paste below your AQL query:</label>
-                  <textarea class="form-control" id='aqltext' form='form1' name="aqltext" rows="5"></textarea> 
-                  <br><br>
+                <div id="forms" class="position-absolute" data-tor="place.top(100px)">
                   <div class="row">
-                    <div id="forform1" class="col">  
+                    <div class="col pe-5">
+                      <br><br>
+                      <h3>Get Template</h3> 
                       <form id="form1">
-                        <label class="form-label"  for="template">Query name:</label><br>
-                        <input class="form-control"  type="text" id="nquery" name="nquery"><br><br><br>       
+                        <label  class="form-label" for="template">Template Name:</label><br>
+                        <!--dropdownmenustart-->
+                        <select  class="form-select" type="text" id="tname" name="tname">
+                          <option>1</option>
+                          <option>2</option>
+                          <option>3</option>
+                          <option>4</option>
+                        </select> 
+                        <!--dropdownmenustop-->
+                        <br>
+                        <label class="form-label" for="ehrid">Format</label><br>
+                        <input class="form-check-input" type="radio" name="format" value="WT">WebTemplate</input>
+                        <input class="form-check-input" type="radio" name="format" value="OPT" checked>OPT</input>
+                        <br><br>
+                        <input   id='pippo' name='pippo' class="btn btn-primary" type="submit" value="Get Template">
+                        <br><br><br>
+                      </form>
                     </div>
-                    
-                    <div id="forform2" class="col">
-                        <label class="form-label"  for="jk">Version (Optional)</label><br>
-                        <input class="form-control" type="text" id="version" name="version"><br><br>
-                        <label class="form-label"  for="ehrs">Type (Optional)</label><br>
-                        <input class="form-control" type="text" id="qtype" name="qtype"><br><br>                   
-                    </div>
-                  </div>
-            
-                  <div id="mycommit" class="centered">
-                    <p><input class="btn btn-primary" name="pippo" type="submit" value="Store query"></p>
-                    </div>
+                  
+                <br><br><br><br><br>
+                <div class="col ps-5">
+                  <br><br>
+                  <form id="form2">
+                    <h3>Get Templates list</h3>
+                    <br><br><br><br>
+                    <input   id='pippo2' name='pippo2' class="btn btn-primary" type="submit" value="Get List">                
+                  
                   </form>
-                <br><br><br><br>
-
+                </div>
+               </div>
                   <div id="results">
                     <h2>Results</h2>
+
+                    <div id="save" style="display:none;">
+                      <br><br>
+                      <a class="btn btn-danger" role="button" href="data:application/xml;charset=utf-8,{{temp}}"
+                         download="template.opt">
+                         Save to file
+                       </a>
+                       <br><br>
+                   </div>
+ 
+                   <div id="boh" style="display:none;">
+                    <br><br>
+                    <a class="btn btn-danger" role="button" href="data:application/json;charset=utf-8,{{temp}}"
+                       download="template.json">
+                       Save to file
+                     </a>
+                     <br><br>
+                 </div>
+
+                    {{yourresults}}
+                    <br>
                     {% macro linebreaks_for_string( the_string ) -%}
                     {% if the_string %}
                     {% for line in the_string.split('\n') %}
@@ -214,17 +240,32 @@ if (window.innerWidth < 992) {
                     {{ the_string }}
                     {% endif %}
                     {%- endmacro %}
+                    {{linebreaks_for_string(yourtemp) if yourtemp!= ''}}
+                    <pre id="json">{{yourjson if yourjson!=''}}</pre>
+                  
                     
-                    <pre id="result">{{ linebreaks_for_string( yourresults ) }}</pre> 
-      
-                    <pre id="aqlt"></pre>
-                  </div>
-                </div>
-              </div>
-
-             
-
+          
+                     
+                      
+        
+        
   </div>
+
+
+
+
+<script type="text/javascript">
+    if ( {{singletemplate|tojson}} == "true" ) {
+      document.getElementById("save").style.display = 'block';}
+      else {   
+      document.getElementById("save").style.display = 'none';}
+  </script> 
+  <script type="text/javascript">
+    if ( {{singletemplate2|tojson}} == "true" ) {
+      document.getElementById("boh").style.display = 'block';}
+      else {   
+      document.getElementById("boh").style.display = 'none';}
+  </script> 
 
   <style>
     body{
@@ -233,10 +274,6 @@ if (window.innerWidth < 992) {
    }
  </style>
 
-<script type="text/javascript">
-  if ( {{aqltext|tojson}} !== '{}' ) {
-    document.getElementById("aqlt").innerHTML = 'Query: {{aqltext|tojson}}';}
-</script>   
 
 <style>
 
