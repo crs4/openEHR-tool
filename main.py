@@ -71,7 +71,7 @@ def ehrbase():
 
 @app.route("/gtemp.html",methods=["GET"])
 def gtemp():
-    global hostname,port,username,password,auth,nodename
+    global hostname,port,username,password,auth,nodename,mymsg
     if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
         return redirect(url_for("ehrbase"))
     yourresults=""
@@ -80,36 +80,29 @@ def gtemp():
     yourtemp=""
     tempjson=""
     yourjson='{}'
-    print(request.args)
-    if request.args.get("pippo")=="Submit": 
+    mymsg=ehrbase_routines.creategtemp(auth,hostname,port,username,password)
+    if(mymsg['status']=='failure'):
+        return redirect(url_for("ehrbase"))
+    if request.args.get("pippo")=="Get Template": 
         template_name=request.args.get("tname","")
-        print(f'template={template_name}')
+        #print(f'template={template_name}')
         tformat=request.args.get("format","")
         msg=ehrbase_routines.gettemp(auth,hostname,port,username,password,tformat,template_name)
-
         if(msg['status']=="success"):
-            if(template_name!=""):
-                if(tformat=='OPT'):
-                    singletemplate='true'
-                    singletemplate2='false'
-                    temp=msg['template']
-                    yourresults=str(msg['status'])+ " "+ str(msg['status_code'])
-                    yourtemp=temp
-                    return render_template('gtemp.html',temp=temp,singletemplate=singletemplate,yourresults=yourresults,singletemplate2=singletemplate2,yourtemp=yourtemp)
-                else:
-                    singletemplate2='true'
-                    singletemplate='false'
-                    temp=msg['template']
-                    yourresults=str(msg['status'])+ " "+ str(msg['status_code'])
-                    yourjson=temp
-                    return render_template('gtemp.html',temp=temp,singletemplate=singletemplate,singletemplate2=singletemplate2,yourresults=yourresults,yourjson=yourjson)
-  
-            else:
-                singletemplate='false'
+            if(tformat=='OPT'):
+                singletemplate='true'
                 singletemplate2='false'
-                yourresults=str(msg['status'])+ " "+ str(msg['status_code']) +"\n"+ \
-                    str(msg['text'])
-                return render_template('gtemp.html',singletemplate=singletemplate,singletemplate2=singletemplate2,yourresults=yourresults)
+                temp=msg['template']
+                yourresults=str(msg['status'])+ " "+ str(msg['status_code'])
+                yourtemp=temp
+                return render_template('gtemp.html',temp=temp,singletemplate=singletemplate,yourresults=yourresults,singletemplate2=singletemplate2,yourtemp=yourtemp)
+            else:
+                singletemplate2='true'
+                singletemplate='false'
+                temp=msg['template']
+                yourresults=str(msg['status'])+ " "+ str(msg['status_code'])
+                yourjson=temp
+                return render_template('gtemp.html',temp=temp,singletemplate=singletemplate,singletemplate2=singletemplate2,yourresults=yourresults,yourjson=yourjson)
         else:   
             singletemplate='false'
             singletemplate2='false'
@@ -117,8 +110,14 @@ def gtemp():
                             str(msg['text']) + "\n" +\
                             str(msg['headers'])
             return render_template('gtemp.html',singletemplate=singletemplate,singletemplate2=singletemplate2, yourresults=yourresults)
+    elif request.args.get("pippo2")=="Get List":
+        singletemplate='false'
+        singletemplate2='false'
+        yourresults=str(mymsg['status'])+ " "+ str(mymsg['status_code']) +"\n"+ \
+                    str(mymsg['text'])
+        return render_template('gtemp.html',singletemplate=singletemplate,singletemplate2=singletemplate2,yourresults=yourresults)
     else:
-        return render_template('gtemp.html',singletemplate=singletemplate,singletemplate2=singletemplate2, yourresults=yourresults)
+        return render_template('gtemp.html',singletemplate=singletemplate,singletemplate2=singletemplate2,yourresults=yourresults)
 
 @app.route("/ptemp.html",methods=['GET', 'POST'])
 def pwrite():

@@ -168,29 +168,45 @@ if (window.innerWidth < 992) {
 
  
 <div class="container">
-  <h1>Retrieve a template (leave blank for all templates)</h1>
+  <h1>Retrieve the list of Templates or a specific one</h1>
 
-            
             <div class="position-relative">
-                <div id="forms" class="position-absolute" data-tor="place.top(30px)">
-                
-                  <form id="form1">
-                    <label  class="form-label" for="template">Name of the template to be retrieved:</label><br>
-                    <input  class="form-control" type="text" id="tname" name="tname"><br><br>
-
-                    <br>
-                    <label class="form-label" for="ehrid">Format</label><br>
-                    <input class="form-check-input" type="radio" name="format" value="WT">WebTemplate</input>
-                    <input class="form-check-input" type="radio" name="format" value="OPT" checked>OPT</input>
-                    <br><br>
-
-
-
-                    <input   id='pippo' name='pippo' class="btn btn-primary" type="submit" value="Submit">
-                  </form>
+                <div id="forms" class="position-absolute" data-tor="place.top(100px)">
+                  <div class="row">
+                    <div class="col pe-5">
+                      <br><br>
+                      <h3>Get Template</h3> 
+                      <form id="form1">
+                        <label  class="form-label" for="template">Template Name:</label><br>
+                        <!--dropdownmenustart-->
+                        <select  class="form-select" type="text" id="tname" name="tname">
+                          <option>1</option>
+                          <option>2</option>
+                          <option>3</option>
+                          <option>4</option>
+                        </select> 
+                        <!--dropdownmenustop-->
+                        <br>
+                        <label class="form-label" for="ehrid">Format</label><br>
+                        <input class="form-check-input" type="radio" name="format" value="WT">WebTemplate</input>
+                        <input class="form-check-input" type="radio" name="format" value="OPT" checked>OPT</input>
+                        <br><br>
+                        <input   id='pippo' name='pippo' class="btn btn-primary" type="submit" value="Get Template">
+                        <br><br><br>
+                      </form>
+                    </div>
+                  
                 <br><br><br><br><br>
-            
-     
+                <div class="col ps-5">
+                  <br><br>
+                  <form id="form2">
+                    <h3>Get Templates list</h3>
+                    <br><br><br><br>
+                    <input   id='pippo2' name='pippo2' class="btn btn-primary" type="submit" value="Get List">                
+                  
+                  </form>
+                </div>
+               </div>
                   <div id="results">
                     <h2>Results</h2>
 
@@ -225,7 +241,6 @@ if (window.innerWidth < 992) {
                     {% endif %}
                     {%- endmacro %}
                     {{linebreaks_for_string(yourtemp) if yourtemp!= ''}}
-                    {{yourtemp}}
                     <pre id="json">{{yourjson if yourjson!=''}}</pre>
                   
                     
