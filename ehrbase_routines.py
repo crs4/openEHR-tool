@@ -1033,9 +1033,28 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
         return myresp
 
 
-def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sidpath,snamespace,filetype,random,comps):
+def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sidpath,snamespace,filetype,myrandom,comps,inlist):
     client.auth = (username,password)
     print('inside post_batch composition1')
+    ehrslist=[]
+    if(inlist==True):
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+        client.auth = (username,password)            
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/aql')
+        data={}
+        aqltext="select e/ehr_id/value FROM EHR e"
+        data['q']=aqltext
+        response = client.post(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
+                data=json.dumps(data) )
+        print(response.url)
+        print(response.text)
+        print(response.status_code)
+        print(response.headers)
+        if(response.status_code<210 and response.status_code>199):
+            results=json.loads(response.text)['rows']
+            ehrslist=[r[0] for r in results]       
+            if len(ehrslist)==0:
+                inlist=False
     if(filetype=="XML"):
         EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"  
         succ=0
@@ -1050,7 +1069,7 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
 #            composition=uf.read()
             root=etree.fromstring(composition)
             #create EHRID
-            if(random):
+            if(myrandom):
                 sid=randomstring()
                 sna='fakenamespace'
             else:
@@ -1068,18 +1087,22 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
                     myresp['ehrid']=eids
                     return myresp
             eid=""
-            resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
-            if(resp10['status']!='success'):
-                if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
-                     #get ehr summary by subject_id , subject_namespace
-                    payload = {'subject_id':sid,'subject_namespace':sna}
-                    ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
-                    print('ehr already existent')
-                    eid=json.loads(ehrs.text)["ehr_id"]["value"]
+            if(inlist==False):
+                resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+                if(resp10['status']!='success'):
+                    if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
+                        #get ehr summary by subject_id , subject_namespace
+                        payload = {'subject_id':sid,'subject_namespace':sna}
+                        ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
+                        print('ehr already existent')
+                        eid=json.loads(ehrs.text)["ehr_id"]["value"]
+                        eids.append(eid)
+                        print(f'Patient {sid}: retrieved ehrid={eid}')
+                else:
+                    eid=resp10['ehrid']
                     eids.append(eid)
-                    print(f'Patient {sid}: retrieved ehrid={eid}')
             else:
-                eid=resp10['ehrid']
+                eid=random.choice(ehrslist)
                 eids.append(eid)
             myurl=url_normalize(EHR_SERVER_BASE_URL + 'ehr/'+eid+'/composition')
             response = client.post(myurl,
@@ -1133,7 +1156,7 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
             comp = json.loads(composition)
             compositionjson=json.dumps(comp)
             #create EHRID
-            if(random):
+            if(myrandom):
                 sid=randomstring()
                 sna='fakenamespace'
             else:
@@ -1151,19 +1174,23 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
                     myresp['ehrid']=eids
                     return myresp
             eid=""
-            resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
-            if(resp10['status']!='success'):
-                if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
-                    #get ehr summary by subject_id , subject_namespace
-                    payload = {'subject_id':sid,'subject_namespace':sna}
-                    ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
-                    print('ehr already existent')
-                    eid=json.loads(ehrs.text)["ehr_id"]["value"]
+            if(inlist==False):            
+                resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+                if(resp10['status']!='success'):
+                    if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
+                        #get ehr summary by subject_id , subject_namespace
+                        payload = {'subject_id':sid,'subject_namespace':sna}
+                        ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
+                        print('ehr already existent')
+                        eid=json.loads(ehrs.text)["ehr_id"]["value"]
+                        eids.append(eid)
+                        print(f'Patient {sid}: retrieved ehrid={eid}')
+                else:
+                    eid=resp10['ehrid']
                     eids.append(eid)
-                    print(f'Patient {sid}: retrieved ehrid={eid}')
             else:
-                eid=resp10['ehrid']
-                eids.append(eid)
+                eid=random.choice(ehrslist)
+                eids.append(eid)                  
             myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition')
             response = client.post(myurl,params={'format': 'RAW'},headers={'Authorization':auth,'Content-Type':'application/json', \
              'accept':'application/json'}, data=compositionjson)   
@@ -1218,7 +1245,7 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
             comp = json.loads(composition)
             compositionjson=json.dumps(comp) 
             #create EHRID
-            if(random):
+            if(myrandom):
                 sid=randomstring()
                 sna='fakenamespace'
             else:
@@ -1236,19 +1263,23 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
                     myresp['ehrid']=eids
                     return myresp
             eid=""
-            resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
-            if(resp10['status']!='success'):
-                if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
-                     #get ehr summary by subject_id , subject_namespace
-                    payload = {'subject_id':sid,'subject_namespace':sna}
-                    ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
-                    print('ehr already existent')
-                    eid=json.loads(ehrs.text)["ehr_id"]["value"]
+            if(inlist==False):
+                resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+                if(resp10['status']!='success'):
+                    if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
+                        #get ehr summary by subject_id , subject_namespace
+                        payload = {'subject_id':sid,'subject_namespace':sna}
+                        ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
+                        print('ehr already existent')
+                        eid=json.loads(ehrs.text)["ehr_id"]["value"]
+                        eids.append(eid)
+                        print(f'Patient {sid}: retrieved ehrid={eid}')
+                else:
+                    eid=resp10['ehrid']
                     eids.append(eid)
-                    print(f'Patient {sid}: retrieved ehrid={eid}')
             else:
-                eid=resp10['ehrid']
-                eids.append(eid)
+                eid=random.choice(ehrslist)
+                eids.append(eid)                    
             EHR_SERVER_BASE_URL_FLAT = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"    
             myurl=url_normalize(EHR_SERVER_BASE_URL_FLAT  + 'composition')
             response = client.post(myurl,

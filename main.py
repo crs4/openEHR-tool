@@ -545,8 +545,11 @@ def pbatch():
             sidpath=""
             snamespace=""
             random=False
+            inlist=False
             if(request.args.get('random')=='yes'):
                 random=True
+                if(request.args.get('inlist')=='yes'):
+                    inlist=True
             else:
                 sidpath=request.args.get("sidpath","")
                 snamespace=request.args.get("snamespace","")
@@ -563,7 +566,7 @@ def pbatch():
                 print("Compositions not loaded")
                 return render_template('pbatch1.html')
                 
-            msg=ehrbase_routines.postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sidpath,snamespace,filetype,random,comps)
+            msg=ehrbase_routines.postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sidpath,snamespace,filetype,random,comps,inlist)
             if(msg['status']=="success"):
                 yourresults=str(msg['nsuccess'])+"/"+str(numberoffiles)+" Compositions inserted successfully.\n" \
                     +"EHRIDs=" +str(msg['ehrid'])+"\n"  \
