@@ -5,8 +5,6 @@ services:
           context: .
           dockerfile: ./Dockerfile
         image: surfercrs4/openehrtool
-        ports:
-            - "9000:9000"
         volumes:
             - .:/code
         network_mode: host
