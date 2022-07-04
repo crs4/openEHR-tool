@@ -1,0 +1,14 @@
+version: '2'
+services:
+    web:
+        build: 
+          context: .
+          dockerfile: ./Dockerfile
+        image: surfercrs4/openehrtool
+        ports:
+            - "9000:9000"
+        volumes:
+            - .:/code
+        network_mode: host
+        env_file:
+            - ./.env.dev
