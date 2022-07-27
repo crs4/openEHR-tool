@@ -1,0 +1,9 @@
+[SERVER]
+hostname = localhost
+port = 8080
+nodename = local.ehrbase.org
+[USERS]
+username = ehrbase-user
+password = SuperSecretPassword
+adusername = ehrbase-admin
+adpassword = EvenMoreSecretPassword

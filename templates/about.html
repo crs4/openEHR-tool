@@ -21,8 +21,14 @@
         <li class="nav-item">
           <a class="nav-link" aria-current="page" href="about.html">Home</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="settings.html">Settings</a>
+        <li class="nav-item dropdown dropend">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
+            Settings
+          </a>
+          <ul class="dropdown-menu " >
+            <li><a class="dropdown-item" href="settings.html">Define/See Settings</a></li>
+            <li><a class="dropdown-item" href="fsettings.html">Reload Settings</a></li>
+          </ul>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="dashboard.html">Dashboard</a>
@@ -168,18 +174,41 @@ if (window.innerWidth < 992) {
 
  
 <div class="container">
-<h2><b>openEHR Tool</b></h2><br><br>
-This is a tool meant to make it easier to interact with a EHRBase server. </br><br>
-<b>IMPORTANT: </b> Before using any of the methods please remember to f
-ill in all EHRBase server details in <a href="settings.html">Settings</a>. 
+  <h2><b>openEHR Tool</b></h2><br><br>
+  This is a tool meant to make it easier to interact with a EHRBase server. </br><br>
+  <b>IMPORTANT: </b> Before using any of the methods please remember to do one of the following:<br>
+  
+
+      <div class="list-group list-group-numbered ">
+        <a href="settings.html" class="list-group-item list-group-item-success">Fill in all EHRBase server details in Settings.</a>
+        <a href="fsettings.html" class="list-group-item list-group-item-danger">Create the file openehrtool.cfg in config dir (An example is available in the same dir)</a>
+      </div> 
+<br><br>
+    <div class="pluto" >
+      {{result}}
+    </div>
+      
 </div>
-
-
 <style>
   body{
 background-image: url('/static/img/Medicine-icons2.png');
 background-size: auto;
  }
+
+ div.list-group {
+  text-indent: 2%;
+  display:inline;
+}
+.list-group-item {
+    padding: 5px 1px;
+   
+}
+
+div.pluto {
+  text-indent: 5%;
+  color: red;
+}
+
 </style>
 
 
