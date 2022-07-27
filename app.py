@@ -2,6 +2,9 @@ from flask import Flask
 from flask import request,render_template,redirect,url_for
 import ehrbase_routines
 from werkzeug.utils import secure_filename
+from os import path
+from config import readconfig
+import sys
 
 default_hostname="localhost"
 default_port="8080"
@@ -11,27 +14,57 @@ default_nodename="local.ehrbase.org"
 default_adusername="ehrbase-admin"
 default_adpassword="EvenMoreSecretPassword"
 hostname=""
-
+port=""
+username=""
+password=""
+lastehrid=""
+lastcompositionid=""
+nodename=""
+adusername=""
+adpassword=""
 app = Flask(__name__)
+
+settingsfile='./config/openehrtool.cfg'
+if (path.exists(settingsfile)):
+    varset=readconfig.readconfigfromfile(settingsfile)
+    if(len(varset)==7):
+        hostname,port,nodename,username,password,adusername,adpassword=varset        
+        global adauth
+        adauth= ehrbase_routines.getauth(adusername,adpassword)
+    else:
+        hostname,port,nodename,username,password=varset        
+    global auth
+    auth = ehrbase_routines.getauth(username,password)
 
 @app.route("/")
 @app.route('/about.html')
 def about():
     return render_template('about.html')
 
+@app.route("/fsettings.html",methods=["GET"])
+def fset():
+    global hostname,port,username,password,nodename,adusername,adpassword
+    if (path.exists(settingsfile)):
+        varset=readconfig.readconfigfromfile(settingsfile)
+        if(len(varset)==7):
+            hostname,port,nodename,username,password,adusername,adpassword=varset        
+            global adauth
+            adauth= ehrbase_routines.getauth(adusername,adpassword)
+        else:
+            hostname,port,nodename,username,password=varset        
+        global auth
+        auth = ehrbase_routines.getauth(username,password)    
+        result='Settings Reloaded Successfully'
+    else:
+        result='Settings File "config/openehrtool.cfg" not found'
+    return render_template('about.html',result=result)
+
+
 @app.route("/settings.html",methods=["GET"])
 def ehrbase():
     global hostname,port,username,password,nodename,lastehrid,lastcompositionid
     global adusername,adpassword
-    hostname=""
-    port=""
-    username=""
-    password=""
-    lastehrid=""
-    lastcompositionid=""
-    nodename=""
-    adusername=""
-    adpassword=""
+
     #print(request.args.keys())
     if request.args.get("pippo")=="Submit":
         hostname=request.args.get("hname","")
@@ -67,7 +100,8 @@ def ehrbase():
         auth = ehrbase_routines.getauth(username,password)
         return render_template('settings.html',ho=hostname,po=port,us=username,pas=password,no=nodename,
                     adus=adusername,adpas=adpassword)
-    return render_template('settings.html')
+    return render_template('settings.html',ho=hostname,po=port,us=username,pas=password,no=nodename,
+                    adus=adusername,adpas=adpassword)
 
 @app.route("/gtemp.html",methods=["GET"])
 def gtemp():

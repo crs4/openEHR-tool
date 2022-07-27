@@ -6,5 +6,7 @@ services:
           dockerfile: ./Dockerfile.prod
         image: surfercrs4/openehrtoolprod
         network_mode: host
+        volumes:
+            - .:/code        
         env_file:
             - ./.env.prod
