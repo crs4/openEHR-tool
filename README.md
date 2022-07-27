@@ -1,4 +1,4 @@
-﻿# openEHRTool
+# openEHRTool
 
 A tool meant to make it easier to interact with a **EHRBase** server. To take advantage of all the methods and the dashboard use a version of EHRBase >= 0.21.0 and add these lines to the .env.ehrbase file:
 ```
@@ -13,7 +13,10 @@ MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED=false
 MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED=true
 ADMIN_API_ACTIVE=true
 ```
+## Settings
+EHRBase Server settings can be written in a file named openehrtool.cfg in the config dir. An example file called openehrtool.cfg.default is available in the same dir. The file is loaded at application boot or can be reloaded at runtime using the related method.
 
+As an alternative, settings can be written at runtime in the application. Note that after rebooting ot stopping the app they are lost. 
 
 # How to Run
 
@@ -56,4 +59,3 @@ Run with:
 ```
 docker-compose -f docker-compose_prod.yml up
 ```
-
