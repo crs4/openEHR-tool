@@ -854,6 +854,7 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
     client.auth = (username,password)            
     #get aql stored
     myresp={}
+    myresp['status']='failure'
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/query/')
     responseaql = client.get(myurl, headers={'Authorization':auth,'Content-Type': 'application/json'})                     
     print (responseaql.url)
@@ -864,6 +865,11 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
     if(responseaql.status_code<210 and responseaql.status_code>199):
         resultsaql=json.loads(responseaql.text)['versions']
         myresp['aql']=len(resultsaql) 
+        myresp['status']='success1'
+    else:
+        myresp['text']=responseaql.text
+        myresp['headers']=responseaql.headers
+        return myresp
     # get total ehrs  
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/aql')
     data={}
@@ -879,6 +885,11 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
     if(response.status_code<210 and response.status_code>199):
         results=json.loads(response.text)['rows']
         myresp['ehr']=len(results) 
+        myresp['status']='success2'
+    else:
+        myresp['text']=response.text
+        myresp['headers']=response.headers
+        return myresp
 
     #get ehrid,compid, templateid list
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/aql')
@@ -888,26 +899,37 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
     response = client.post(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
                 data=json.dumps(data) )
     print(response.url)
-    print(response.text)
+   # print(response.text)
     print(response.status_code)
     print(response.headers)
   
     if(response.status_code<210 and response.status_code>199):
         results=json.loads(response.text)['rows']
         myresp['composition']=len(results)
+        myresp['status']='success3'
+    else:
+        myresp['text']=response.text
+        myresp['headers']=response.headers
+        return myresp 
+    #calculate total ehr in use    
+    ehr=set(r[0] for r in results)
+    myresp['uehr']=len(ehr)     
+    #total templates in use
+    templates_in_use=set(r[2] for r in results)
+    myresp['utemplate']=len(templates_in_use)     
     #get templates
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4')
     response2=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'})
+    print(response2.url)
+    print(response2.text)
+    print(response2.status_code)
+    print(response2.headers)
+  
     if(response2.status_code<210 and response2.status_code>199):
         resultstemp=json.loads(response2.text)
         myresp['template']=len(resultstemp)
         templates=[rt['template_id'] for rt in resultstemp]
-        #calculate total ehr in use
-        ehr=set(r[0] for r in results)
-        myresp['uehr']=len(ehr)
-        #total templates in use
-        templates_in_use=set(r[2] for r in results)
-        myresp['utemplate']=len(templates_in_use)
+        myresp['status']='success4'
         #compositions per ehr
         c=[0]*len(ehr)
         for i,e in enumerate(ehr):
@@ -932,7 +954,10 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
         myresp['bar_max']=max(myresp['bar_value'])      
         myresp['pie_label']=list(d.keys())
         myresp['pie_value']=list(d.values())
-        myresp['status']='partial_success'
+    else:
+        myresp['text']=response2.text
+        myresp['headers']=response2.headers
+        return myresp               
 
 #   additional info from management/env management/info if available and admin credentials provided
 # The first,second,third,fourth and sixth for env,info in .env.ehrbase must be set 
@@ -944,92 +969,117 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
 #MANAGEMENT_ENDPOINT_INFO_ENABLED=true
 #MANAGEMENT_ENDPOINT_METRICS_ENABLED=true
 
-        if(adusername!=""):        
-            client.auth = (adusername,adpassword)
-            EHR_SERVER = "http://"+hostname+":"+port+"/ehrbase/"
-            myurl=url_normalize(EHR_SERVER  + 'management/info')
-            resp = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
-            if(resp.status_code<210 and resp.status_code>199):
-                info=json.loads(resp.text)['build']
-                myinfo={}
-                myinfo['openehr_sdk']=info['openEHR_SDK']['version']
-                myinfo['ehrbase_version']=info['version']
-                myinfo['archie']=info['archie']['version']
-                myresp['info']=myinfo
-                myurl=url_normalize(EHR_SERVER  + 'management/env')
-                resp2 = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
-                if(resp2.status_code<210 and resp2.status_code>199):
-                    env=json.loads(resp2.text)
-                    myenv={}
-                    myenv["activeProfiles"]=env["activeProfiles"]    
-                    myenv['Java']= env["propertySources"][2]["properties"]["java.specification.vendor"]["value"] + " " \
-                                 + env["propertySources"][2]['properties']["java.home"]["value"] 
-                    myenv['JavaVM']=   env["propertySources"][2]['properties']["java.vm.name"]["value"]+ \
-                                " "+ env["propertySources"][2]['properties']['java.vm.vendor']['value'] + \
-                                " " + env["propertySources"][2]['properties']["java.vm.version"]["value"]                                
-                    myenv["OS"]=env["propertySources"][2]['properties']['os.name']['value'] +  \
-                            " "+ env["propertySources"][2]['properties']["os.arch"]["value"]+ \
-                            " "+  env["propertySources"][2]['properties']["os.version"]["value"] 
-                    myresp['env']=myenv
-                    gen_properties={}
-                    end_properties={}
-                    gen_properties["CACHE_ENABLED"]=env["propertySources"][3]["properties"]["CACHE_ENABLED"]["value"]
-                    end_properties["MANAGEMENT_ENDPOINTS_WEB_EXPOSURE"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINTS_WEB_EXPOSURE"]
-                    end_properties["MANAGEMENT_ENDPOINTS_WEB_BASEPATH"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINTS_WEB_BASEPATH"]
-                    end_properties["MANAGEMENT_ENDPOINT_INFO_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_INFO_ENABLED"]
-                    end_properties["MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED"]
-                    end_properties["MANAGEMENT_ENDPOINT_HEALTH_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_HEALTH_ENABLED"]
-                    end_properties["MANAGEMENT_ENDPOINT_METRICS_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_METRICS_ENABLED"]
-                    end_properties["MANAGEMENT_ENDPOINT_ENV_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_ENV_ENABLED"]
-                    end_properties["MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED"]
-                    end_properties["MANAGEMENT_ENDPOINT_HEALTH_DATASOURCE_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_HEALTH_DATASOURCE_ENABLED"]
-                    myresp['end_properties']=end_properties
-                    db={}
-                    db["username"]=env["propertySources"][3]["properties"]["DB_USER"]["value"]
-                    db["password"]=env["propertySources"][3]["properties"]["DB_PASS"]["value"]
-                    db["url"]=env["propertySources"][3]["properties"]["DB_URL"]["value"]
-                    myresp["db"]=db
-                    aql={}
-                    aql["ENV_AQL_ARRAY_DEPTH"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_DEPTH"]["value"]
-                    aql["ENV_AQL_ARRAY_IGNORE_NODE"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_IGNORE_NODE"]["value"]
-                    aql["ENV_AQL_ARRAY_DEPTH"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_DEPTH"]["value"]
-                    aql["ENV_AQL_ARRAY_IGNORE_NODE"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_IGNORE_NODE"]["value"]
-                    aql["server.aqlConfig.useJsQuery"]=env["propertySources"][4]["properties"]["server.aqlConfig.useJsQuery"]["value"]
-                    aql["server.aqlConfig.ignoreIterativeNodeList"]=env["propertySources"][4]['properties']["server.aqlConfig.ignoreIterativeNodeList"]["value"]
-                    aql["server.aqlConfig.iterationScanDepth"]=env["propertySources"][4]['properties']["server.aqlConfig.iterationScanDepth"]["value"]
-                    myresp["aqlinfo"]=aql
-                    gen_properties["SERVER_NODENAME"]=env["propertySources"][3]['properties']["SERVER_NODENAME"]["value"]
-                    gen_properties["HOSTNAME"]=env["propertySources"][3]['properties']["HOSTNAME"]["value"]
-                    gen_properties["LANG"]=env["propertySources"][3]['properties']["LANG"]["value"]
-                    gen_properties["SECURITY_AUTHTYPE"]=env["propertySources"][3]['properties']["SECURITY_AUTHTYPE"]["value"]
-                    gen_properties["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]=env["propertySources"][3]['properties']["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]["value"]
-                    myresp["gen_properties"]=gen_properties
-                    terminology={}
-                    terminology["validation.external-terminology.enabled"]=env["propertySources"][5]['properties']["validation.external-terminology.enabled"]["value"]
-                    terminology["validation.external-terminology.provider.fhir.type"]=env["propertySources"][5]['properties']["validation.external-terminology.provider.fhir.type"]["value"]
-                    terminology["validation.external-terminology.provider.fhir.url"]=env["propertySources"][5]['properties']["validation.external-terminology.provider.fhir.url"]["value"]
-                    myresp["terminology"]=terminology
-                    plugin={}
-                    plugin["plugin-manager.plugin-dir"]=env["propertySources"][5]['properties']["plugin-manager.plugin-dir"]["value"]
-                    plugin["plugin-manager.plugin-config-dir"]=env["propertySources"][5]['properties']["plugin-manager.plugin-config-dir"]["value"]
-                    plugin["plugin-manager.enable"]=env["propertySources"][5]['properties']["plugin-manager.enable"]["value"]
-                    plugin["plugin-manager.plugin-context-path"]=env["propertySources"][5]['properties']["plugin-manager.plugin-context-path"]["value"]
-                    myresp['plugin']=plugin   
-                    myurl=url_normalize(EHR_SERVER  + 'management/health')
-                    resp3 = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
-                    if(resp3.status_code<210 and resp3.status_code>199):
-                        health=json.loads(resp3.text)
-                        myresp["db"]["db"]=health["components"]["db"]["details"]["database"]
-                        disk={}
-                        disk["total_space"]=health["components"]["diskSpace"]["details"]["total"]
-                        disk["free_space"]=health["components"]["diskSpace"]["details"]["free"]
-                        myresp["disk"]=disk
-                        myresp['status']='success'
-        return myresp
-    else:
-        myresp["status"]="failure"
-        myresp['text']=response.text
-        myresp["headers"]=response.headers
+    if(adusername!=""):        
+        client.auth = (adusername,adpassword)
+        EHR_SERVER = "http://"+hostname+":"+port+"/ehrbase/"
+        myurl=url_normalize(EHR_SERVER  + 'management/info')
+        resp = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
+        print(resp.url)
+        print(resp.text)
+        print(resp.status_code)
+        print(resp.headers)        
+        if(resp.status_code<210 and resp.status_code>199):
+            myresp['status']='success5'
+            info=json.loads(resp.text)['build']
+            myinfo={}
+            myinfo['openehr_sdk']=info['openEHR_SDK']['version']
+            myinfo['ehrbase_version']=info['version']
+            myinfo['archie']=info['archie']['version']
+            myresp['info']=myinfo
+        else:
+            myresp['text']=resp.text
+            myresp['headers']=resp.headers
+            return myresp 
+    
+        myurl=url_normalize(EHR_SERVER  + 'management/env')
+        resp2 = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
+        print(resp2.url)
+        print(resp2.text)
+        print(resp2.status_code)
+        print(resp2.headers)           
+        if(resp2.status_code<210 and resp2.status_code>199):
+            env=json.loads(resp2.text)
+            myresp['status']='success6'
+            myenv={}
+            myenv["activeProfiles"]=env["activeProfiles"]    
+            myenv['Java']= env["propertySources"][2]["properties"]["java.specification.vendor"]["value"] + " " \
+                            + env["propertySources"][2]['properties']["java.home"]["value"] 
+            myenv['JavaVM']=   env["propertySources"][2]['properties']["java.vm.name"]["value"]+ \
+                        " "+ env["propertySources"][2]['properties']['java.vm.vendor']['value'] + \
+                        " " + env["propertySources"][2]['properties']["java.vm.version"]["value"]                                
+            myenv["OS"]=env["propertySources"][2]['properties']['os.name']['value'] +  \
+                    " "+ env["propertySources"][2]['properties']["os.arch"]["value"]+ \
+                    " "+  env["propertySources"][2]['properties']["os.version"]["value"] 
+            myresp['env']=myenv
+            gen_properties={}
+            end_properties={}
+            gen_properties["CACHE_ENABLED"]=env["propertySources"][3]["properties"]["CACHE_ENABLED"]["value"]
+            end_properties["MANAGEMENT_ENDPOINTS_WEB_EXPOSURE"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINTS_WEB_EXPOSURE"]
+            end_properties["MANAGEMENT_ENDPOINTS_WEB_BASEPATH"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINTS_WEB_BASEPATH"]
+            end_properties["MANAGEMENT_ENDPOINT_INFO_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_INFO_ENABLED"]
+            end_properties["MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED"]
+            end_properties["MANAGEMENT_ENDPOINT_HEALTH_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_HEALTH_ENABLED"]
+            end_properties["MANAGEMENT_ENDPOINT_METRICS_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_METRICS_ENABLED"]
+            end_properties["MANAGEMENT_ENDPOINT_ENV_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_ENV_ENABLED"]
+            end_properties["MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED"]
+            end_properties["MANAGEMENT_ENDPOINT_HEALTH_DATASOURCE_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_HEALTH_DATASOURCE_ENABLED"]
+            myresp['end_properties']=end_properties
+            db={}
+            db["username"]=env["propertySources"][3]["properties"]["DB_USER"]["value"]
+            db["password"]=env["propertySources"][3]["properties"]["DB_PASS"]["value"]
+            db["url"]=env["propertySources"][3]["properties"]["DB_URL"]["value"]
+            myresp["db"]=db
+            aql={}
+            aql["ENV_AQL_ARRAY_DEPTH"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_DEPTH"]["value"]
+            aql["ENV_AQL_ARRAY_IGNORE_NODE"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_IGNORE_NODE"]["value"]
+            aql["ENV_AQL_ARRAY_DEPTH"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_DEPTH"]["value"]
+            aql["ENV_AQL_ARRAY_IGNORE_NODE"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_IGNORE_NODE"]["value"]
+            aql["server.aqlConfig.useJsQuery"]=env["propertySources"][4]["properties"]["server.aqlConfig.useJsQuery"]["value"]
+            aql["server.aqlConfig.ignoreIterativeNodeList"]=env["propertySources"][4]['properties']["server.aqlConfig.ignoreIterativeNodeList"]["value"]
+            aql["server.aqlConfig.iterationScanDepth"]=env["propertySources"][4]['properties']["server.aqlConfig.iterationScanDepth"]["value"]
+            myresp["aqlinfo"]=aql
+            gen_properties["SERVER_NODENAME"]=env["propertySources"][3]['properties']["SERVER_NODENAME"]["value"]
+            gen_properties["HOSTNAME"]=env["propertySources"][3]['properties']["HOSTNAME"]["value"]
+            gen_properties["LANG"]=env["propertySources"][3]['properties']["LANG"]["value"]
+            gen_properties["SECURITY_AUTHTYPE"]=env["propertySources"][3]['properties']["SECURITY_AUTHTYPE"]["value"]
+            gen_properties["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]=env["propertySources"][3]['properties']["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]["value"]
+            myresp["gen_properties"]=gen_properties
+            terminology={}
+            terminology["validation.external-terminology.enabled"]=env["propertySources"][5]['properties']["validation.external-terminology.enabled"]["value"]
+            terminology["validation.external-terminology.provider.fhir.type"]=env["propertySources"][5]['properties']["validation.external-terminology.provider.fhir.type"]["value"]
+            terminology["validation.external-terminology.provider.fhir.url"]=env["propertySources"][5]['properties']["validation.external-terminology.provider.fhir.url"]["value"]
+            myresp["terminology"]=terminology
+            plugin={}
+            plugin["plugin-manager.plugin-dir"]=env["propertySources"][5]['properties']["plugin-manager.plugin-dir"]["value"]
+            plugin["plugin-manager.plugin-config-dir"]=env["propertySources"][5]['properties']["plugin-manager.plugin-config-dir"]["value"]
+            plugin["plugin-manager.enable"]=env["propertySources"][5]['properties']["plugin-manager.enable"]["value"]
+            plugin["plugin-manager.plugin-context-path"]=env["propertySources"][5]['properties']["plugin-manager.plugin-context-path"]["value"]
+            myresp['plugin']=plugin   
+        else:
+            myresp['text']=resp2.text
+            myresp['headers']=resp2.headers
+            return myresp 
+    
+
+
+        myurl=url_normalize(EHR_SERVER  + 'management/health')
+        resp3 = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
+        print(resp3.url)
+        print(resp3.text)
+        print(resp3.status_code)
+        print(resp3.headers)          
+        if(resp3.status_code<210 and resp3.status_code>199):
+            health=json.loads(resp3.text)
+            myresp["db"]["db"]=health["components"]["db"]["details"]["database"]
+            disk={}
+            disk["total_space"]=health["components"]["diskSpace"]["details"]["total"]
+            disk["free_space"]=health["components"]["diskSpace"]["details"]["free"]
+            myresp["disk"]=disk
+            myresp['status']='success7'
+        else:
+            myresp['text']=resp3.text
+            myresp['headers']=resp3.headers
+            return myresp             
         return myresp
 
 
