@@ -181,7 +181,7 @@ if (window.innerWidth < 992) {
   </div>
   <div class="row">
     {{errors}}
-  </div>
+    </div>
   <div class="row">
       <!-- Earnings (Monthly) Card Example -->
       <div class="col-xl-3 col-md-6 mb-4">
@@ -318,13 +318,17 @@ if (window.innerWidth < 992) {
       </div>
 
 </div>
+
+
+<div class="loader"></div> 
+
 <div class="row">
   <div class="col browser">
       <div class="top text-primary">
         EHRBase
       </div>
       <div class="content text-gray-800" >
-        {{info|tojson}}
+        {{info}}
       </div>
   </div>
   <div class="col browser">
@@ -332,7 +336,7 @@ if (window.innerWidth < 992) {
       Disk
     </div>
     <div class="content">
-      {{disk|tojson}}
+      {{disk}}
     </div>
   </div>
   <div class="col browser">
@@ -340,7 +344,7 @@ if (window.innerWidth < 992) {
       AQL
     </div>
     <div class="content">
-      {{aql|tojson}}
+      {{aql}}
     </div>
   </div>
   <div class="col browser">
@@ -348,7 +352,7 @@ if (window.innerWidth < 992) {
       DB
     </div>
     <div class="content">
-      {{db|tojson}}
+      {{db}}
     </div>
   </div>
 </div>
@@ -358,7 +362,7 @@ if (window.innerWidth < 992) {
       EHRBase Gen Properties
     </div>
     <div class="content text-gray-800">
-      {{gen_properties|tojson}}
+      {{gen_properties}}
     </div>
   </div> 
   <div class="col browser">
@@ -366,7 +370,7 @@ if (window.innerWidth < 992) {
       EHRBase Endpoint Properties
     </div>
     <div class="content text-gray-800">
-      {{end_properties|tojson}}
+      {{end_properties}}
     </div>
   </div>    
   <div class="col browser">
@@ -374,7 +378,7 @@ if (window.innerWidth < 992) {
       Terminology
     </div>
     <div class="content">
-      {{terminology|tojson}}
+      {{terminology}}
     </div>
   </div>
   <div class="col browser">
@@ -382,7 +386,7 @@ if (window.innerWidth < 992) {
       Plugin
     </div>
     <div class="content">
-      {{plugin|tojson}}
+      {{plugin}}
     </div>
   </div>
   <div class="col browser">
@@ -390,7 +394,7 @@ if (window.innerWidth < 992) {
       Env
     </div>
     <div class="content">
-      {{env|tojson}}
+      {{env}}
     </div>
   </div>
  
@@ -412,6 +416,25 @@ if (window.innerWidth < 992) {
     padding: 0;
     background: #e4ece6
 }
+
+.loader {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  border-top: 16px solid blue;
+  border-right: 16px solid green;
+  border-bottom: 16px solid red;
+  border-left: 16px solid pink;
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 
 </style>
 
@@ -498,13 +521,13 @@ var ctx = document.getElementById("myBarChart");
 var myBarChart = new Chart(ctx, {
   type: 'bar',
   data: {
-    labels: {{bar_labels| tojson}},
+    labels: {{bar_labels}},
     datasets: [{
       label: "#EHRs",
       backgroundColor: "#4e73df",
       hoverBackgroundColor: "#2e59d9",
       borderColor: "#4e73df",
-      data: {{bar_values| tojson}},
+      data: {{bar_values}},
     }],
   },
   options: {
@@ -534,7 +557,7 @@ var myBarChart = new Chart(ctx, {
       yAxes: [{
         ticks: {
           min: 0,
-          max: {{bar_max | tojson}},
+          max: {{bar_max }},
           maxTicksLimit: 20,
           padding: 10,
           callback: function(value) {if (value % 1 === 0) {return number_format(value);}}
@@ -589,9 +612,9 @@ var ctx = document.getElementById("myPieChart");
 var myPieChart = new Chart(ctx, {
   type: 'doughnut',
   data: {
-    labels: {{pie_labels|tojson}},
+    labels: {{pie_labels}},
     datasets: [{
-      data: {{pie_values|tojson}},
+      data: {{pie_values}},
       backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
       hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf'],
       hoverBorderColor: "rgba(234, 236, 244, 1)",
@@ -621,7 +644,9 @@ var myPieChart = new Chart(ctx, {
 
 
 
-
+<script>
+  window.location.replace('/dashboard_final.html'); 
+</script>
 
 
 
