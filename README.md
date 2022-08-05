@@ -19,7 +19,7 @@ openEHRTool settings can be written in a file named openehrtool.cfg in the confi
 As an alternative, settings can be written at runtime in the application. Note that after rebooting ot stopping the app they are lost. 
 
 ### Available Settings
-For the ehrbase server the following properties are needed:
+For the EHRBase server the following properties are needed:
 * hostname : hostname or ip where the instance of ehrbase is running
 * port : port of the running instance of ehrbase
 * nodename : name given to the ehrbase instance following Java package naming
@@ -27,9 +27,10 @@ For the ehrbase server the following properties are needed:
 * password : password for the user to authenticate with basic authentication on ehrbase
 * (Optional) adusername : username for the admin user to authenticate with basic authentication on ehrbase
 * (Optional) adpassword : password for the admin user to authenticate with basic authentication on ehrbase
+
 The last two are optional but the "update template" method and the "dashboard" will not work properly if not set.
 
-For the redis server:
+For the Redis server:
 * hostname : hostname or ip where the instance of redis is running
 * port : port of the running instance of redis
 * eventsrecorded : max number of events recorded during a session in the log accessible via "Session log" menu item.
