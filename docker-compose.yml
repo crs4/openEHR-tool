@@ -1,6 +1,6 @@
-version: '2'
+version: '3'
 services:
-    web:
+    openehrtool:
         build: 
           context: .
           dockerfile: ./Dockerfile
@@ -10,3 +10,13 @@ services:
         network_mode: host
         env_file:
             - ./.env.dev
+        depends_on:
+            - "redis"        
+
+    redis:
+        image: redis:alpine
+        ports:
+        - 6379:6379
+        command:  redis-server  /redis.conf
+        volumes:
+        - ./redis.conf:/redis.conf

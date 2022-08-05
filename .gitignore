@@ -1,3 +1,5 @@
 /TMP
 __pycache__/
 templates/gtemp.html
+templates/form.html
+config/openehrtool.cfg
