@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>openEHR Tool</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- <link href="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" > -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+
+
+<nav class="navbar  navbar-dark bg-dark">
+  <div class="container-fluid">
+    <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main_nav" aria-expanded="false" aria-label="Toggle navigation" >
+        <span class="navbar-toggler-icon float-start"></span><h4>openEHR Tool</h4>
+      </button>
+      
+    <div class="collapse navbar-collapse" id="main_nav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" aria-current="page" href="about.html">Home</a>
+        </li>
+        <li class="nav-item dropdown dropend">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
+            Settings
+          </a>
+          <ul class="dropdown-menu " >
+            <li><a class="dropdown-item" href="settings.html">Define/See Settings</a></li>
+            <li><a class="dropdown-item" href="fsettings.html">Reload Settings</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="dashboard.html">Dashboard</a>
+        </li>        
+        <li class="nav-item dropdown dropend">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
+            Template
+          </a>
+          <ul class="dropdown-menu " >
+            <li><a class="dropdown-item" href="gtemp.html">Get Template</a></li>
+            <li><a class="dropdown-item" href="ptemp.html">Post Template</a></li>
+            <li><a class="dropdown-item" href="utemp.html">Update Template</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
+              EHR
+            </a>
+            <ul class="dropdown-menu" >
+              <li><a class="dropdown-item" href="gehr.html">Get EHR</a></li>
+              <li><a class="dropdown-item" href="pehr.html">Post EHR</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
+              Composition
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="gcomp.html">Get Composition</a></li>
+              <li><a class="dropdown-item" href="pcomp.html">Post Composition</a></li>
+              <li><a class="dropdown-item" href="ecomp.html">Example Composition</a></li>
+              <li><a class="dropdown-item" href="#" > Batch Compositions &#9656; </a>
+              <ul class="submenu dropdown-menu">
+                  <li><a class="dropdown-item second" href="pbatch1.html">Post Batch Compositions different ehrid</a></li>
+                  <li><a class="dropdown-item second" href="pbatch2.html">Post Batch Compositions same ehrid</a></li>
+              </ul>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#"  data-bs-toggle="dropdown" >
+              Form
+            </a>
+            <ul class="dropdown-menu" >
+              <li><a class="dropdown-item" href="cform.html">Create Form</a></li>
+              <li><a class="dropdown-item" href="lform.html">Load Form</a></li>
+           </ul>
+          </li>
+
+          <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#"  data-bs-toggle="dropdown" >
+              AQL Query
+            </a>
+            <ul class="dropdown-menu" >
+              <li><a class="dropdown-item" href="gaql.html">Get AQL Query</a></li>
+              <li><a class="dropdown-item" href="paql.html">Post AQL Query</a></li>
+              <li><a class="dropdown-item" href="raql.html">Run AQL Query</a></li>
+           </ul>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="slog.html">Session log</a>
+          </li> 
+    </div>
+  </div>
+</nav>
+
+<script>
+     document.addEventListener("DOMContentLoaded", function(){
+// make it as accordion for smaller screens
+if (window.innerWidth < 992) {
+
+  // close all inner dropdowns when parent is closed
+  document.querySelectorAll('.navbar .dropdown').forEach(function(everydropdown){
+    everydropdown.addEventListener('hidden.bs.dropdown', function () {
+      // after dropdown is hidden, then find all submenus
+        this.querySelectorAll('.submenu').forEach(function(everysubmenu){
+          // hide every submenu as well
+          everysubmenu.style.display = 'none';
+        });
+    })
+  });
+
+  document.querySelectorAll('.dropdown-menu a').forEach(function(element){
+    element.addEventListener('click', function (e) {
+        let nextEl = this.nextElementSibling;
+        if(nextEl && nextEl.classList.contains('submenu')) {	
+          // prevent opening link if link needs to open dropdown
+          e.preventDefault();
+          if(nextEl.style.display == 'block'){
+            nextEl.style.display = 'none';
+          } else {
+            nextEl.style.display = 'block';
+          }
+
+        }
+    });
+  })
+}
+// end if innerWidth
+}); 
+// DOMContentLoaded  end
+
+</script>
+ <style>
+  /* ============ desktop view ============ */
+@media all and (min-width: 992px) {
+	.dropdown-menu li{ position: relative; 	}
+	.nav-item .submenu{ 
+		display: none;
+    /* position:relative;
+    left:100%; top: -7px; */
+		/* position: absolute;
+		left:100%; top:-7px; */
+	}
+
+  .dropdown-item {
+    position: relative;
+    top: 0%; left: 2%;
+  }
+
+  .second {
+    position: relative;
+    top: 0%; left: 6%;
+  }
+
+
+	.nav-item .submenu-right{ 
+		right:auto; left:auto;
+	}
+	.dropdown-menu > li:hover{ background-color: #262626 }
+	.dropdown-menu > li:hover > .submenu{ display: block; }
+ 
+}	
+/* ============ desktop view .end// ============ */
+
+/* ============ small devices ============ */
+/* @media (max-width: 991px) {
+  .dropdown-menu .dropdown-menu{
+      margin-left:0.7rem; margin-right:0.7rem; margin-bottom: .5rem;
+  } 
+}	 */
+/* ============ small devices .end// ============ */
+</style>
+
+ 
+<div class="container">
+  <h1>Session Activities</h1>
+ Showing last {{rediseventsrecorded}} session operations. Tweak the "eventsrecorded" number to your satisfaction in settings.
+ <p>Filter your logs with predefined keyword (lefthandside) or use yours(righthandside).</p>
+            <br><br><br>
+          
+            <form id="form0">
+           
+              <div class="row">
+                  <div class="col">
+                    <input type="radio" class="btn-check" name="search" id="b" value='structured' autocomplete="off" checked>
+                    <label class="btn btn-outline-dark" for="b">Structured Filter</label>
+                  </div>
+                  <div class="col">
+                    <input type="radio" class="btn-check" name="search" id="mySwitch" value='custom' autocomplete="off" >
+                    <label class="btn btn-outline-danger" for="mySwitch">Search for keywords</label>
+                  </div>
+              </div>
+              <div class="row">
+                  <div class="col">
+                      <div class="btn-group" id="buttons">
+                        <input type="radio" class="btn-check" name="methods" id="a" value='a' autocomplete="off" disabled>
+                        <label class="btn btn-outline-dark" for="a">METHOD</label>
+                        <input type="radio" class="btn-check" name="methods" id="all" value='all' autocomplete="off" checked>
+                        <label class="btn btn-outline-dark" for="all">ALL</label>
+                        <input type="radio" class="btn-check" name="methods" id="post" value='post' autocomplete="off" >
+                        <label class="btn btn-outline-danger" for="post">POST</label>
+                        <input type="radio" class="btn-check" name="methods" id="get" value='get' autocomplete="off" >
+                        <label class="btn btn-outline-primary" for="get">GET</label>
+                        <input type="radio" class="btn-check" name="methods" id="put" value='put' autocomplete="off" >
+                        <label class="btn btn-outline-secondary" for="put">PUT</label>
+                        <input type="radio" class="btn-check" name="methods" id="run" value='run' autocomplete="off" >
+                        <label class="btn btn-outline-warning" for="run">RUN</label>                   
+                      </div>
+                  </div>
+                  <div class="col">
+                    <div class="btn-group" id="buttons1bis">
+                      <input type="radio" class="btn-check" name="order2" id="f2" value='first' autocomplete="off" disabled >
+                      <label class="btn btn-outline-dark" for="f2">ORDER</label>
+                      <input type="radio" class="btn-check" name="order2" id="first2" value='first' autocomplete="off" checked >
+                      <label class="btn btn-outline-dark" for="first2">Oldest First</label>
+                      <input type="radio" class="btn-check" name="order2" id="last2" value='last' autocomplete="off" >
+                      <label class="btn btn-outline-danger" for="last2">Oldest Last</label>
+                      </div>
+                  </div>
+              </div>
+                
+              <div class="row">
+                <div class="col">
+                  <div class="btn-group" id="buttons2">
+                    <input type="radio" class="btn-check" name="type" id="a2" value='all' autocomplete="off" disabled>
+                    <label class="btn btn-outline-dark" for="a2">TYPE</label>
+                    <input type="radio" class="btn-check" name="type" id="all2" value='all' autocomplete="off" checked>
+                    <label class="btn btn-outline-dark" for="all2">ALL</label>
+                    <input type="radio" class="btn-check" name="type" id="template" value='template' autocomplete="off" >
+                    <label class="btn btn-outline-danger" for="template">Template</label>
+                    <input type="radio" class="btn-check" name="type" id="ehr" value='ehr' autocomplete="off" >
+                    <label class="btn btn-outline-primary" for="ehr">EHR</label>
+                    <input type="radio" class="btn-check" name="type" id="composition" value='composition' autocomplete="off" >
+                    <label class="btn btn-outline-secondary" for="composition">Composition</label>
+                    <input type="radio" class="btn-check" name="type" id="query" value='query' autocomplete="off" >
+                    <label class="btn btn-outline-warning" for="query">Query</label>
+                    <input type="radio" class="btn-check" name="type" id="form" value='form' autocomplete="off" >
+                    <label class="btn btn-outline-info" for="form">Form</label>
+                  </div>
+                  </div>     
+                  <div class="col">
+                    <div id="searchid" style="display:block;">
+                      <input class="form-control"  type="text" id="logsearch" name="logsearch" placeholder="Keywords to search for in log" >      
+                      
+                  </div>          
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col">
+                    <div class="btn-group" id="buttons3">
+                      <input type="radio" class="btn-check" name="outcome" id="a3" value='all' autocomplete="off" disabled >
+                      <label class="btn btn-outline-dark" for="a3">OUTCOME</label>
+                      <input type="radio" class="btn-check" name="outcome" id="all3" value='all' autocomplete="off" checked >
+                      <label class="btn btn-outline-dark" for="all3">ALL</label>
+                      <input type="radio" class="btn-check" name="outcome" id="successful" value="successful" autocomplete="off" >
+                      <label class="btn btn-outline-danger" for="successful">Successful</label>
+                      <input type="radio" class="btn-check" name="outcome" id="unsuccessful" value='unsuccessful' autocomplete="off" >
+                      <label class="btn btn-outline-primary" for="unsuccessful">Unsuccessful</label>
+                    </div>  
+                  </div>
+                  <div class="col">
+                    <div class="btn-group" id="buttons3bis">
+                      <input type="radio" class="btn-check" name="andornot" id="a0" value='and' autocomplete="off" disabled >
+                    <label class="btn btn-outline-dark" for="a0">OPERATORS (not is for all keywords)</label>
+                    <input type="radio" class="btn-check" name="andornot" id="and" value='and' autocomplete="off" checked >
+                    <label class="btn btn-outline-dark" for="and">AND</label>
+                    <input type="radio" class="btn-check" name="andornot" id="or" value='or' autocomplete="off"  >
+                    <label class="btn btn-outline-danger" for="or">OR</label>
+                    <input type="radio" class="btn-check" name="andornot" id="not" value='not' autocomplete="off"  >
+                    <label class="btn btn-outline-primary" for="not">NOT</label>
+                    </div>  
+    
+                  </div>
+                </div>
+                
+                 <div class="row">
+                  <div class="col">
+                    <div class="btn-group" id="buttons4">
+                    <input type="radio" class="btn-check" name="order" id="f4" value='first' autocomplete="off" disabled >
+                    <label class="btn btn-outline-dark" for="f4">ORDER</label>
+                    <input type="radio" class="btn-check" name="order" id="first" value='first' autocomplete="off" checked >
+                    <label class="btn btn-outline-dark" for="first">Oldest First</label>
+                    <input type="radio" class="btn-check" name="order" id="last" value='last' autocomplete="off" >
+                    <label class="btn btn-outline-danger" for="last">Oldest Last</label>
+                 </div> 
+                 </div> 
+                 <div class="col">
+                 
+                 </div>
+                 </div>
+        
+              <div class="container">
+                <br><br>
+                <div class="row">
+                  <div class="col">
+
+                  </div>
+                  <div class="col">
+                        <input class="btn btn-primary" name="pippolippo" type="submit" value="SUBMIT YOUR CHOICE">
+                  </div>
+                  <div class="col">
+
+                  </div>
+                </div> 
+                  </form>
+
+                <br><br><br>
+
+              <div id="results">
+                {% macro linebreaks_for_string( the_string ) -%}
+                {% if the_string %}
+                {% for line in the_string.split('\n') %}
+                <br />
+                {{ line }}
+                {% endfor %}
+                {% else %}
+                {{ the_string }}
+                {% endif %}
+                {%- endmacro %}
+                {{ linebreaks_for_string( yourresults ) }} 
+                    
+              </div> 
+
+    </div>
+<!-- <script>
+const checkbox = document.getElementById('mySwitch')
+const path = document.getElementById("searchid")
+checkbox.addEventListener('change', (event) => {
+  if (event.currentTarget.checked) {
+    path.style.display = "block";
+  } else {
+    path.style.display = "none";
+  }
+})
+
+</script> -->
+
+
+
+
+  <style>
+    body{
+ background-image: url('/static/img/Medicine-icons2.png');
+ background-size: auto;
+   }
+ </style>
+
+
+
+<style>
+
+.custom-toggler.navbar-toggler {
+            border-color: lightgreen;
+        }
+        /* Setting the stroke to green using rgb values (0, 128, 0) */
+          
+.custom-toggler .navbar-toggler-icon {
+            background-image: url(
+"data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(0, 128, 0, 0.8)' stroke-width='4' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+        }
+
+    
+        .dropdown-item {
+            color: white; 
+        }   
+        .dropdown-item:focus,
+        .dropdown-item:hover{
+      background-color:#FFACB7;
+      color: #262626;
+        }
+
+.dropdown-menu {
+background-color: #262626;
+color:white;
+}
+
+.navbar .navbar-nav .nav-link {
+    color: #fff;
+    font-size: 1.1em;
+}
+.navbar .navbar-nav .nav-link:hover {
+  background-color: #FFACB7;
+  color: #fff;
+}
+
+</style>
+
+</body>
+</html>
+    
+    
+    
+    

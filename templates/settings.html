@@ -90,6 +90,9 @@
               <li><a class="dropdown-item" href="raql.html">Run AQL Query</a></li>
            </ul>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="slog.html">Session log</a>
+          </li> 
     </div>
   </div>
 </nav>
@@ -174,16 +177,17 @@ if (window.innerWidth < 992) {
 
  
 <div class="container">
-  <h1>EHRBase Settings</h1>
+  <h1>openEHRTool Settings</h1>
 
-            <p>Specify the main parameters of your EHRBase server. Basic Authentication is used.</p>
+            <p>Specify the main parameters of your EHRBase and Redis server. Basic Authentication is used.</p>
 
-
+<br><br>
             <div class="container-fluid">
             <!-- <div class="position-relative">
                 <div id="forms" class="position-absolute" data-tor="place.top(30px)">
                  -->
                     <form id="form1">
+                      <h2>EHRBase Settings</h2>
                       <div class="row">
                         <div class="col">
                           <label class="form-label" for="hostname">Address or Hostname <br>(Leave empty for localhost):</label><br>
@@ -209,17 +213,17 @@ if (window.innerWidth < 992) {
                           <input  class="form-control" type="text" id="pword" name="pword">
                         </div>
                       </div>
-                      <br><br>
+                      <br>
 
                       <div class="form-check form-switch">
-                        <h2>Parameters:</h2>
                           <form id="form1">
                             <br><br>
                             <input class="form-check-input" type="checkbox" autocomplete="off" id="mySwitch" name="admin" value="yes" checked>
                             <label class="form-check-label" for="mySwitch">Admin Settings</label><br><br>
                       </div> 
 
-                      <div class="row" style="display:block;" id="path">
+                      <div class="boh" style="display:block;" id="path">
+                        <div class="row">
                         <div class="col">
                           <label class="form-label" for="username">Admin Username <br>(Leave empty for default username):</label><br>
                           <input  class="form-control" type="text" id="aduname" name="aduname">
@@ -228,9 +232,31 @@ if (window.innerWidth < 992) {
                           <label class="form-label" for="port">Admin Password <br>(Leave empty for default password):</label><br>
                           <input  class="form-control" type="text" id="adpword" name="adpword">
                         </div>
-                       </div> 
-                      <br> 
-
+                      </div>
+                      </div>
+                      <br> <br>
+                      <h2>Redis Settings</h2>
+                      <div class="row">
+                        <div class="col">
+                          <label class="form-label" for="hostname">Address or Hostname <br>(Leave empty for localhost):</label><br>
+                          <input  class="form-control" type="text" id="rhname" name="rhname">
+                        </div>
+                        <div class="col">
+                          <label class="form-label" for="rport">Port <br>(Leave empty for 6379):</label><br>
+                          <input  class="form-control" type="text" id="rport" name="rport">    
+                        </div>
+                      </div>  
+                      <br>
+                      <div class="row">
+                        <div class="col">
+                          <label class="form-label" for="hostname">Number of events recorded (in session) <br>(Leave empty for 100):</label><br>
+                          <input  class="form-control" type="text" id="revents" name="revents">
+                        </div>
+                        <div class="col">
+                             
+                        </div>
+                      </div>  
+                      <br>
                       <input class="btn btn-primary" type="submit" id='pippo' name="pippo" value="Submit">
                     </form>
                 <br><br>
@@ -262,6 +288,8 @@ if (window.innerWidth < 992) {
                         <div class="col">
                           nodename={{no}} 
                         </div>
+                        <div class="col">
+                        </div>
                       </div>
                       <div class="row">
                         <div class="col">
@@ -271,19 +299,25 @@ if (window.innerWidth < 992) {
                           password={{pas}}  
                         </div>
                         <div class="col">
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="col">
                           admin_username={{adus}}
                         </div>
                         <div class="col">
                           admin_password={{adpas}}  
                         </div>
+                      </div>                       
+                      <div class="row">
+                        <div class="col">
+                          redishostname={{rho}} 
+                        </div>
+                        <div class="col">
+                          redisport={{rpo}}
+                        </div>
+                        <div class="col">
+                          rediseventsrecorded={{rr}}
+                        </div>
                         <div class="col">
                         </div>
-                      </div>                       
-                        
+                      </div>                          
                   </div>
                 </div>
               </div>
