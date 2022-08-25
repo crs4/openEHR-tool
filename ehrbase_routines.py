@@ -11,9 +11,7 @@ from myutils import myutils
 
 client=requests.Session()
 
-
-
-def creategtemp(auth,hostname,port,username,password):
+def createPageFromBase4templatelist(auth,hostname,port,username,password,basefile,targetfile):
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)
     myresp={}
@@ -39,9 +37,9 @@ def creategtemp(auth,hostname,port,username,password):
         drm=[]
         drm=drmstart+drmoptions+drmstop
         drmstring='\n'.join(drm)
-        with open('./templates/gtempbase.html','r') as ff:
+        with open('./templates/'+basefile,'r') as ff:
             lines=ff.readlines()
-        with open('templates/gtemp.html','w') as fg:
+        with open('./templates/'+targetfile,'w') as fg:
             docopy=True
             for line in lines:
                 if('<!--dropdownmenustart-->' in line):
@@ -817,7 +815,7 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
         #fill bar and pie variables
         myresp['bar_label']=list(cpe.keys())
         myresp['bar_value']=list(cpe.values())  
-        myresp['bar_max']=max(myresp['bar_value'])      
+        myresp['bar_max']=max(myresp['bar_value'],default=0)      
         myresp['pie_label']=list(d.keys())
         myresp['pie_value']=list(d.values())
     else:

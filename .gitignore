@@ -3,3 +3,6 @@ __pycache__/
 templates/gtemp.html
 templates/form.html
 config/openehrtool.cfg
+templates/ecomp.html
+templates/cform.html
+.vscode/

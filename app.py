@@ -159,7 +159,7 @@ def gtemp():
     yourtemp=""
     tempjson=""
     yourjson='{}'
-    mymsg=ehrbase_routines.creategtemp(auth,hostname,port,username,password)
+    mymsg=ehrbase_routines.createPageFromBase4templatelist(auth,hostname,port,username,password,'gtempbase.html','gtemp.html')
     if(mymsg['status']=='failure'):
         return redirect(url_for("ehrbase"))
     if request.args.get("pippo")=="Get Template": 
@@ -875,7 +875,9 @@ def excomp():
     yourresults=""
     success='false'
     yourjson='{}'
-    print(request.args)
+    mymsg=ehrbase_routines.mymsg=ehrbase_routines.createPageFromBase4templatelist(auth,hostname,port,username,password,'ecompbase.html','ecomp.html')
+    if(mymsg['status']=='failure'):
+        return redirect(url_for("ehrbase"))
     if request.args.get("pippo")=="Submit": 
         template_name=request.args.get("tname","")
         print(f'template={template_name}')
@@ -904,6 +906,9 @@ def cform():
     if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
         return redirect(url_for("ehrbase"))
     yourresults=""
+    mymsg=ehrbase_routines.createPageFromBase4templatelist(auth,hostname,port,username,password,'cformbase.html','cform.html')
+    if(mymsg['status']=='failure'):
+        return redirect(url_for("ehrbase"))
     if request.args.get("pippo")=="Submit": 
         template_name=request.args.get("tname","")
         print(f'template={template_name}')
