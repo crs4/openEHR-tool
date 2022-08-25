@@ -5,4 +5,5 @@ templates/form.html
 config/openehrtool.cfg
 templates/ecomp.html
 templates/cform.html
+templates/utemp.html
 .vscode/
