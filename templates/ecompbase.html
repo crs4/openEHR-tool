@@ -177,18 +177,27 @@ if (window.innerWidth < 992) {
 
  
 <div class="container">
-  <h1>Create a Form</h1>
+  <h1>Get an example Composition from a template</h1>
 
             
             <div class="position-relative">
                 <div id="forms" class="position-absolute" data-tor="place.top(30px)">
                 
                   <form id="form1">
-                    <label  class="form-label" for="template">Name of the template to be used:</label><br>
-                    <input  class="form-control" type="text" id="tname" name="tname"><br><br>
+                    <label  class="form-label" for="template">Name of the template</label><br>
+                     <!--dropdownmenustart-->
+                     <select  class="form-select" type="text" id="tname" name="tname">
+                      <option>1</option>
+                      <option>2</option>
+                      <option>3</option>
+                      <option>4</option>
+                    </select> 
+                    <!--dropdownmenustop-->
+                
 
                     <br>
-      
+
+
                     <input   id='pippo' name='pippo' class="btn btn-primary" type="submit" value="Submit">
                   </form>
                 <br><br><br><br><br>
@@ -196,42 +205,34 @@ if (window.innerWidth < 992) {
      
                   <div id="results">
                     <h2>Results</h2>
-<!-- 
+
                     <div id="save" style="display:none;">
                       <br><br>
-                      <a class="btn btn-danger" role="button" href="data:application/html;charset=utf-8,{{temp}}"
-                         download="Form.html">
+                      <a class="btn btn-danger" role="button" href="data:application/json;charset=utf-8,{{yourjson}}"
+                         download="composition_flat.json">
                          Save to file
                        </a>
                        <br><br>
                    </div>
-  -->
+ 
 
                     {{yourresults}}
                     <br>
-                    <!-- {% macro linebreaks_for_string( the_string ) -%}
-                    {% if the_string %}
-                    {% for line in the_string.split('\n') %}
-                    <br />
-                    {{ line }}
-                    {% endfor %}
-                    {% else %}
-                    {{ the_string }}
-                    {% endif %}
-                    {%- endmacro %}
-                    {{linebreaks_for_string(yourtemp) if yourtemp!= ''}}
-                    {{yourtemp}} -->
-                    <!-- <pre id="json">{{yourjson if yourjson!=''}}</pre>
-                   -->
+                    <pre id="json">{{yourjson if yourjson!=''}}</pre>
                     
-          
-                     
-                      
-        
+                  
         
   </div>
 
 
+
+
+<script type="text/javascript">
+    if ( {{success|tojson}} == "true" ) {
+      document.getElementById("save").style.display = 'block';}
+      else {   
+      document.getElementById("save").style.display = 'none';}
+  </script> 
 
   <style>
     body{
@@ -239,7 +240,6 @@ if (window.innerWidth < 992) {
  background-size: auto;
    }
  </style>
-
 
 <style>
 
