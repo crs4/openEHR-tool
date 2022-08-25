@@ -244,6 +244,9 @@ def pupdate():
     if(adusername=="" or adpassword==""):
         return render_template('/utemp.html',warning='WARNING: NO ADMIN CREDENTIALS PROVIDED '), {"Refresh": "3; url="+url_for('ehrbase') }
     yourresults=""
+    mymsg=ehrbase_routines.createPageFromBase4templatelist(auth,hostname,port,username,password,'utempbase.html','utemp.html')
+    if(mymsg['status']=='failure'):
+        return redirect(url_for("ehrbase"))
     if request.method == 'POST':
         uploaded_file = request.files['file']
         tempname=uploaded_file.filename
