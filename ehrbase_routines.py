@@ -913,7 +913,10 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
             gen_properties["HOSTNAME"]=env["propertySources"][3]['properties']["HOSTNAME"]["value"]
             gen_properties["LANG"]=env["propertySources"][3]['properties']["LANG"]["value"]
             gen_properties["SECURITY_AUTHTYPE"]=env["propertySources"][3]['properties']["SECURITY_AUTHTYPE"]["value"]
-            gen_properties["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]=env["propertySources"][3]['properties']["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]["value"]
+            if( "SYSTEM_ALLOW_TEMPLATE_OVERWRITE") in env["propertySources"][3]['properties']:
+                gen_properties["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]=env["propertySources"][3]['properties']["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]["value"]
+            else:
+                gen_properties["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]='Unknown'
             myresp["gen_properties"]=gen_properties
             terminology={}
             terminology["validation.external-terminology.enabled"]=env["propertySources"][5]['properties']["validation.external-terminology.enabled"]["value"]
