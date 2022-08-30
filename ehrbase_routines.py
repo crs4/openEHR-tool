@@ -9,9 +9,12 @@ import sys
 from flask import request
 from myutils import myutils
 
-client=requests.Session()
+def init_ehrbase():
+    client=requests.Session()
+    return client
 
-def createPageFromBase4templatelist(auth,hostname,port,username,password,basefile,targetfile):
+
+def createPageFromBase4templatelist(client,auth,hostname,port,username,password,basefile,targetfile):
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)
     myresp={}
@@ -58,7 +61,7 @@ def createPageFromBase4templatelist(auth,hostname,port,username,password,basefil
         myresp['status_code']=  response.status_code   
         return myresp    
 
-def gettemp(auth,hostname,port,username,password,tformat,template):
+def gettemp(client,auth,hostname,port,username,password,tformat,template):
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)
     myresp={}
@@ -96,7 +99,7 @@ def gettemp(auth,hostname,port,username,password,tformat,template):
         myresp['status_code']=  response.status_code   
         return myresp
 
-def posttemp(auth,hostname,port,username,password,uploaded_template):
+def posttemp(client,auth,hostname,port,username,password,uploaded_template):
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)
     root=etree.fromstring(uploaded_template)
@@ -117,7 +120,7 @@ def posttemp(auth,hostname,port,username,password,uploaded_template):
         myresp['status']='failure'
     return myresp
 
-def updatetemp(adauth,hostname,port,adusername,adpassword,uploaded_template,templateid):
+def updatetemp(client,adauth,hostname,port,adusername,adpassword,uploaded_template,templateid):
     EHR_SERVER_URL = "http://"+hostname+":"+port+"/ehrbase/"
     client.auth = (adusername,adpassword)
     root=etree.fromstring(uploaded_template)
@@ -140,7 +143,7 @@ def updatetemp(adauth,hostname,port,adusername,adpassword,uploaded_template,temp
         return myresp
 
 
-def createehrid(auth,hostname,port,username,password,eid):
+def createehrid(client,auth,hostname,port,username,password,eid):
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)
     print("launched createehrid")
@@ -176,7 +179,7 @@ def createehrid(auth,hostname,port,username,password,eid):
     print(myresp)
     return myresp
 
-def createehrsub(auth,hostname,port,username,password,sid,sna,eid):
+def createehrsub(client,auth,hostname,port,username,password,sid,sna,eid):
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)
     print("launched createehrsub")
@@ -246,7 +249,7 @@ def createehrsub(auth,hostname,port,username,password,sid,sna,eid):
     myresp['status_code']=response.status_code 
     return myresp
 
-def getehrid(auth,hostname,port,username,password,ehrid):
+def getehrid(client,auth,hostname,port,username,password,ehrid):
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)
     print("launched getehr")
@@ -269,7 +272,7 @@ def getehrid(auth,hostname,port,username,password,ehrid):
     #print(myresp)
     return myresp
 
-def getehrsub(auth,hostname,port,username,password,sid,sna):
+def getehrsub(client,auth,hostname,port,username,password,sid,sna):
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)
     print("launched getehrsub")
@@ -296,7 +299,7 @@ def getehrsub(auth,hostname,port,username,password,sid,sna):
 
 
 
-def postcomp(auth,hostname,port,username,password,composition,eid,tid,filetype,check):
+def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,filetype,check):
     client.auth = (username,password)
     print('inside post_composition')
     if(filetype=="XML"):
@@ -315,7 +318,7 @@ def postcomp(auth,hostname,port,username,password,composition,eid,tid,filetype,c
             myresp["status"]="success"
             myresp['compositionid']=response.headers['Location'].split("composition/")[1]
             if(check=="Yes"):
-                checkinfo= compcheck(auth,hostname,port,composition,eid,filetype,myresp['compositionid'])
+                checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,myresp['compositionid'])
                 if(checkinfo==None):
                     myresp['check']='Retrieved and posted Compositions match'
                     myresp['checkinfo']=""
@@ -343,7 +346,7 @@ def postcomp(auth,hostname,port,username,password,composition,eid,tid,filetype,c
             myresp["status"]="success"
             myresp['compositionid']=response.headers['Location'].split("composition/")[1]
             if(check=="Yes"):
-                checkinfo= compcheck(auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
                 if(checkinfo==None):
                     myresp['check']='Retrieved and posted Compositions match'
                     myresp['checkinfo']=""
@@ -374,7 +377,7 @@ def postcomp(auth,hostname,port,username,password,composition,eid,tid,filetype,c
             myresp["status"]="success"
             myresp['compositionid']=response.headers['Location'].split("composition/")[1]
             if(check=="Yes"):
-                checkinfo= compcheck(auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
                 if(checkinfo==None):
                     myresp['check']='Retrieved and posted Compositions match'
                     myresp['checkinfo']=""
@@ -387,7 +390,7 @@ def postcomp(auth,hostname,port,username,password,composition,eid,tid,filetype,c
         myresp["headers"]=response.headers
         return myresp
 
-def getcomp(auth,hostname,port,username,password,compid,eid,filetype):
+def getcomp(client,auth,hostname,port,username,password,compid,eid,filetype):
     client.auth = (username,password)
     print('inside get_composition')
     if(filetype=="XML"):
@@ -456,7 +459,7 @@ def getcomp(auth,hostname,port,username,password,compid,eid,filetype):
         return myresp
 
 
-def postaql(auth,hostname,port,username,password,aqltext,qname,version,qtype):
+def postaql(client,auth,hostname,port,username,password,aqltext,qname,version,qtype):
     print('inside post_aql')
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)
@@ -483,7 +486,7 @@ def postaql(auth,hostname,port,username,password,aqltext,qname,version,qtype):
         myresp["headers"]=response.headers
     return myresp
 
-def getaql(auth,hostname,port,username,password,qname,version):
+def getaql(client,auth,hostname,port,username,password,qname,version):
     client.auth = (username,password)
     print('inside get_aql')
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
@@ -514,7 +517,7 @@ def getaql(auth,hostname,port,username,password,qname,version):
         myresp["headers"]=response.headers
     return myresp  
 
-def runaql(auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam,qname,version):
+def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam,qname,version):
     print('inside run_aql')
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)
@@ -660,7 +663,7 @@ def runaql(auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam
         return myresp  
 
 
-def compcheck(auth,hostname,port,composition,eid,filetype,compid):
+def compcheck(client,auth,hostname,port,composition,eid,filetype,compid):
     if(filetype=="XML"):
         EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
         myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition/'+compid)
@@ -712,7 +715,7 @@ def compcheck(auth,hostname,port,composition,eid,filetype,compid):
             
     
     
-def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,adpassword):
+def get_dashboard_info(client,auth,hostname,port,username,password,adauth,adusername,adpassword):
     print('inside dashboard info')
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)            
@@ -957,7 +960,7 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
         return myresp
 
 
-def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sidpath,snamespace,filetype,myrandom,comps,inlist):
+def postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,check,sidpath,snamespace,filetype,myrandom,comps,inlist):
     client.auth = (username,password)
     print('inside post_batch composition1')
     ehrslist=[]
@@ -1012,7 +1015,7 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
                     return myresp
             eid=""
             if(inlist==False):
-                resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+                resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
                 if(resp10['status']!='success'):
                     if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                         #get ehr summary by subject_id , subject_namespace
@@ -1040,7 +1043,7 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
                 cid=response.headers['Location'].split("composition/")[1]
                 compids.append(cid)
                 if(check=="Yes"):
-                    checkinfo= compcheck(auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
                     else:
@@ -1099,7 +1102,7 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
                     return myresp
             eid=""
             if(inlist==False):            
-                resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+                resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
                 if(resp10['status']!='success'):
                     if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                         #get ehr summary by subject_id , subject_namespace
@@ -1126,7 +1129,7 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
                 cid=response.headers['Location'].split("composition/")[1]
                 compids.append(cid)
                 if(check=="Yes"):
-                    checkinfo= compcheck(auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
                     else:
@@ -1188,7 +1191,7 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
                     return myresp
             eid=""
             if(inlist==False):
-                resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+                resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
                 if(resp10['status']!='success'):
                     if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                         #get ehr summary by subject_id , subject_namespace
@@ -1219,7 +1222,7 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
                 cid=response.headers['Location'].split("composition/")[1]
                 compids.append(cid)
                 if(check=="Yes"):
-                    checkinfo= compcheck(auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
                     else:
@@ -1392,7 +1395,7 @@ def randomstring(N=10,chars=string.ascii_letters+string.digits):
     return ''.join(random.choice(chars) for _ in range(N))
 
 
-def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid,filetype,random,comps):
+def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,check,eid,filetype,random,comps):
     client.auth = (username,password)
     print('inside post_batch composition1')
     if(filetype=="XML"):
@@ -1408,7 +1411,7 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
             sid=randomstring()
             sna='fakenamespace'
             eid=""
-            resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+            resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
             if(resp10['status']!='success'):
                 if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                     #get ehr summary by subject_id , subject_namespace
@@ -1420,7 +1423,7 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
             else:
                 eid=resp10['ehrid']
         else:
-            resp10=createehrid(auth,hostname,port,username,password,eid)
+            resp10=createehrid(client,auth,hostname,port,username,password,eid)
             if(resp10['status']!='success'):
                 myerror="couldn't create ehrid="+eid+" "+resp10['status_code']+"\n"+ resp10['headers']+"\n"+resp10['text']
                 print(myerror)
@@ -1451,7 +1454,7 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
                 cid=response.headers['Location'].split("composition/")[1]
                 compids.append(cid)
                 if(check=="Yes"):
-                    checkinfo= compcheck(auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
                     else:
@@ -1489,7 +1492,7 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
             sid=randomstring()
             sna='fakenamespace'
             eid=""
-            resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+            resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
             if(resp10['status']!='success'):
                 if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                     #get ehr summary by subject_id , subject_namespace
@@ -1501,7 +1504,7 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
             else:
                 eid=resp10['ehrid']
         else:
-            resp10=createehrid(auth,hostname,port,username,password,eid)
+            resp10=createehrid(client,auth,hostname,port,username,password,eid)
             if(resp10['status']!='success'):
                 myerror=f"couldn't create ehrid={eid}"+" "+resp10['status_code']+"\n"+ resp10['headers']+"\n"+resp10['text']
                 print(myerror)
@@ -1534,7 +1537,7 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
                 cid=response.headers['Location'].split("composition/")[1]
                 compids.append(cid)
                 if(check=="Yes"):
-                    checkinfo= compcheck(auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
                     else:
@@ -1575,7 +1578,7 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
             sid=randomstring()
             sna='fakenamespace'
             eid=""
-            resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+            resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
             if(resp10['status']!='success'):
                 if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                     #get ehr summary by subject_id , subject_namespace
@@ -1587,7 +1590,7 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
             else:
                 eid=resp10['ehrid']
         else:
-            resp10=createehrid(auth,hostname,port,username,password,eid)
+            resp10=createehrid(client,auth,hostname,port,username,password,eid)
             if(resp10['status']!='success'):
                 if(resp10['status_code']==409 and 'EHR with this ID already exists' in json.loads(resp10['text'])['message']):
                     pass
@@ -1625,7 +1628,7 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
                 cid=response.headers['Location'].split("composition/")[1]
                 compids.append(cid)
                 if(check=="Yes"):
-                    checkinfo= compcheck(auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
                     else:
@@ -1652,7 +1655,7 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
         return myresp
 
 
-def examplecomp(auth,hostname,port,username,password,template_name):
+def examplecomp(client,auth,hostname,port,username,password,template_name):
     client.auth = (username,password)
     print('inside example_composition')
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
@@ -1676,8 +1679,8 @@ def examplecomp(auth,hostname,port,username,password,template_name):
     return myresp
 
 
-def createform(auth,hostname,port,username,password,template_name):
-    resp=examplecomp(auth,hostname,port,username,password,template_name)
+def createform(client,auth,hostname,port,username,password,template_name):
+    resp=examplecomp(client,auth,hostname,port,username,password,template_name)
     if(resp['status']=='failure'):
         return resp
     else:
@@ -1846,7 +1849,7 @@ def readform():
     #     pl.write(formstring)
     return formstring
 
-def postform(auth,hostname,port,username,password,formname):
+def postform(client,auth,hostname,port,username,password,formname):
     #retrieve var and path
     tid=formname
     formname=formname.lower()
@@ -2018,7 +2021,7 @@ def postform(auth,hostname,port,username,password,formname):
     checkresults=""
     checkinfo=""
     comp=json.dumps(composition)
-    myresp=postcomp(auth,hostname,port,username,password,comp,eid,tid,filetype,check)
+    myresp=postcomp(client,auth,hostname,port,username,password,comp,eid,tid,filetype,check)
     return myresp       
  
 def two_at_a_time(iterable):

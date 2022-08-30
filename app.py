@@ -49,7 +49,7 @@ def insertlogline(line):
     r.set(mykey,line)
     currentposition+=1
     sessiontotalevents+=1
-    
+
 
 settingsfile='./config/openehrtool.cfg'
 if (path.exists(settingsfile)):
@@ -58,14 +58,16 @@ if (path.exists(settingsfile)):
         hostname,port,nodename,username,password,adusername,adpassword,redishostname,redisport,reventsrecorded=varset        
         reventsrecorded=int(reventsrecorded)
         global adauth
-        adauth= myutils.getauth(adusername,adpassword)
+        adauth= myutils.getauth(adusername,adpassword)  
     else:
         hostname,port,nodename,username,password,redishostname,redisport,reventsrecorded=varset  
         reventsrecorded=int(reventsrecorded)      
     auth = myutils.getauth(username,password)
     r=init_redis(redishostname,redisport)
+    client=ehrbase_routines.init_ehrbase()
 else:
     r=""
+    client=""
 
 @app.route("/")
 @app.route('/about.html')
@@ -88,6 +90,7 @@ def fset():
         global auth,r
         auth = myutils.getauth(username,password)  
         r=init_redis(redishostname,redisport)
+        client=ehrbase_routines.init_ehrbase()
         result='Settings Reloaded Successfully'
     else:
         result='Settings File "config/openehrtool.cfg" not found'
@@ -159,14 +162,14 @@ def gtemp():
     yourtemp=""
     tempjson=""
     yourjson='{}'
-    mymsg=ehrbase_routines.createPageFromBase4templatelist(auth,hostname,port,username,password,'gtempbase.html','gtemp.html')
+    mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'gtempbase.html','gtemp.html')
     if(mymsg['status']=='failure'):
         return redirect(url_for("ehrbase"))
     if request.args.get("pippo")=="Get Template": 
         template_name=request.args.get("tname","")
         #print(f'template={template_name}')
         tformat=request.args.get("format","")
-        msg=ehrbase_routines.gettemp(auth,hostname,port,username,password,tformat,template_name)
+        msg=ehrbase_routines.gettemp(client,auth,hostname,port,username,password,tformat,template_name)
         if(msg['status']=="success"):
             
             if(tformat=='OPT'):
@@ -222,7 +225,7 @@ def pwrite():
             # print(type(template))
             # print(type(template.decode("utf-8")))
             # print(template[-10:])
-            msg=ehrbase_routines.posttemp(auth,hostname,port,username,password,template)
+            msg=ehrbase_routines.posttemp(client,auth,hostname,port,username,password,template)
             yourresults=str(msg['status'])+" "+str(msg['status_code'])+ "\n"+ \
                 str(msg['headers'])+"\n"+ \
                     str(msg['text'])           
@@ -244,7 +247,7 @@ def pupdate():
     if(adusername=="" or adpassword==""):
         return render_template('/utemp.html',warning='WARNING: NO ADMIN CREDENTIALS PROVIDED '), {"Refresh": "3; url="+url_for('ehrbase') }
     yourresults=""
-    mymsg=ehrbase_routines.createPageFromBase4templatelist(auth,hostname,port,username,password,'utempbase.html','utemp.html')
+    mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'utempbase.html','utemp.html')
     if(mymsg['status']=='failure'):
         return redirect(url_for("ehrbase"))
     if request.method == 'POST':
@@ -291,7 +294,7 @@ def pehr():
     global lastehrid
     if request.args.get("sform1")=="Submit": #EHRID specified or not
         ehrid=request.args.get("ehrtext","")
-        msg=ehrbase_routines.createehrid(auth,hostname,port,username,password,ehrid)
+        msg=ehrbase_routines.createehrid(client,auth,hostname,port,username,password,ehrid)
         print(f"back to function {msg}")
         if(msg['status']=="success"):
             ehrid=msg["ehrid"]
@@ -310,7 +313,7 @@ def pehr():
         sna=request.args.get("sna","")
         if(sid=="" or sna==""):
             return render_template('pehr.html')        
-        msg=ehrbase_routines.createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+        msg=ehrbase_routines.createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
         if(msg['status']=="success"):
             print(f'msg={msg}')
             ehrid=msg["ehrid"]
@@ -339,7 +342,7 @@ def gehr():
         if(ehrid==""):
             return render_template('gehr.html',lastehr=lastehrid)
         print(f'ehrid={ehrid}')
-        msg=ehrbase_routines.getehrid(auth,hostname,port,username,password,ehrid)
+        msg=ehrbase_routines.getehrid(client,auth,hostname,port,username,password,ehrid)
         if(msg['status']=="success"):
             ehrid=msg["ehrid"]
             yourresults=f"EHR retrieved successfully. status_code={msg['status_code']} EHRID={msg['ehrid']}"
@@ -358,7 +361,7 @@ def gehr():
         print(f"sid={sid} sna={sna}")
         if(sid=="" or sna==""):
             return render_template('gehr.html',lastehr=lastehrid)
-        msg=ehrbase_routines.getehrsub(auth,hostname,port,username,password,sid,sna)
+        msg=ehrbase_routines.getehrsub(client,auth,hostname,port,username,password,sid,sna)
         if(msg['status']=="success"):
             ehrid=msg["ehrid"]
             yourresults=f"EHR retrieved successfully. status_code={msg['status_code']} EHRID={msg['ehrid']}"
@@ -403,7 +406,7 @@ def pcomp():
             checkinfo=""
             if(eid=="" or tid==""):
                 return render_template('pcomp.html',yourfile=f"you have chosen {filename}",last=lastehrid)
-            msg=ehrbase_routines.postcomp(auth,hostname,port,username,password,comp,eid,tid,filetype,check)
+            msg=ehrbase_routines.postcomp(client,auth,hostname,port,username,password,comp,eid,tid,filetype,check)
             if(msg['status']=="success"):
                 yourresults=f"Composition inserted successfully.\n status_code={msg['status_code']} VersionUID={msg['compositionid']}\n text={msg['text']}\n headers={msg['headers']}"
                 lastcompositionid=msg['compositionid']
@@ -442,7 +445,7 @@ def gcomp():
         if(compid=="" or eid==""):
             return render_template('gcomp.html',last=lastcompositionid,lastehr=lastehrid,compflat=compflat)
         print(f'compid={compid}')
-        msg=ehrbase_routines.getcomp(auth,hostname,port,username,password,compid,eid,filetype)
+        msg=ehrbase_routines.getcomp(client,auth,hostname,port,username,password,compid,eid,filetype)
         # compjson=""
         # compxml=""
         if(msg['status']=="success"):
@@ -499,7 +502,7 @@ def paql():
         reversed_nodename=".".join(reversed(nodename.split(".")))
         qname=reversed_nodename+"::"+qname+"/"
         print(myaqltext)
-        msg=ehrbase_routines.postaql(auth,hostname,port,username,password,myaqltext,qname,version,qtype)
+        msg=ehrbase_routines.postaql(client,auth,hostname,port,username,password,myaqltext,qname,version,qtype)
         if(msg['status']=="success"):
             insertlogline('Post AQL Query: query '+qname+' version='+version+' type='+qtype+' posted successfully')
             yourresults=f"Query inserted successfully.\n status_code={msg['status_code']}\n text={msg['text']}\n headers={msg['headers']}"
@@ -523,7 +526,7 @@ def gaql():
         reversed_nodename=".".join(reversed(nodename.split(".")))
         if(qname != "" and "::" not in qname):
             qname=reversed_nodename+"::"+qname+"/"
-        msg=ehrbase_routines.getaql(auth,hostname,port,username,password,qname,version)
+        msg=ehrbase_routines.getaql(client,auth,hostname,port,username,password,qname,version)
         if(msg['status']=="success"):
             insertlogline('Get AQL Query: query '+qname+' version'+version+' retrieved successfully')
             yourresults=f"Query retrieved successfully.\n status_code={msg['status_code']}\n text={msg['text']}\n headers={msg['headers']}"
@@ -557,8 +560,8 @@ def runaql():
             print("no text in aql")
             render_template('raql.html',lastehr=lastehrid)
         print(aqltext)
-#        msg=ehrbase_routines.runaql(auth,hostname,port,username,password,aqltext,qmethod,offset,fetch,eid,qparam,qname,version)
-        msg=ehrbase_routines.runaql(auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam,qname,version)
+#        msg=ehrbase_routines.runaql(client,auth,hostname,port,username,password,aqltext,qmethod,offset,fetch,eid,qparam,qname,version)
+        msg=ehrbase_routines.runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam,qname,version)
         if(msg['status']=="success"):
             insertlogline('Run AQL Query: pasted query run successfully')
             yourresults=f"Query run successfully.\n status_code={msg['status_code']}\n text={msg['text']}\n headers={msg['headers']}"
@@ -581,8 +584,8 @@ def runaql():
             return render_template('raql.html',lastehr=lastehrid)
         if(qname != "" and "::" not in qname):
             qname=reversed_nodename+"::"+qname+"/"
-#        msg=ehrbase_routines.runaql(auth,hostname,port,username,password,aqltext,qmethod,offset,fetch,eid,qparam,qname,version)
-        msg=ehrbase_routines.runaql(auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam,qname,version)
+#        msg=ehrbase_routines.runaql(client,auth,hostname,port,username,password,aqltext,qmethod,offset,fetch,eid,qparam,qname,version)
+        msg=ehrbase_routines.runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam,qname,version)
         if(msg['status']=="success"):
             insertlogline('Run AQL Query: query '+qname+' version'+version+' run successfully')
             yourresults=f"Query run successfully.\n status_code={msg['status_code']}\n text={msg['text']}\n headers={msg['headers']}"
@@ -604,7 +607,7 @@ def dashboard():
     if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
         return redirect(url_for("ehrbase"))
 #    if request.args.get("pippo")=="Update":
-    msg=ehrbase_routines.get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,adpassword)
+    msg=ehrbase_routines.get_dashboard_info(client,auth,hostname,port,username,password,adauth,adusername,adpassword)
 
     if('success' in msg['status']):
         print(f"status={msg['status']}")
@@ -740,7 +743,7 @@ def pbatch():
                 myformat='json'
             else:
                 myformat='flat'    
-            msg=ehrbase_routines.postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sidpath,snamespace,filetype,random,comps,inlist)
+            msg=ehrbase_routines.postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,check,sidpath,snamespace,filetype,random,comps,inlist)
             if(msg['status']=="success"):
                 yourresults=str(msg['nsuccess'])+"/"+str(numberoffiles)+" Compositions inserted successfully.\n" \
                     +"EHRIDs=" +str(msg['ehrid'])+"\n"  \
@@ -829,7 +832,7 @@ def pbatchsameehr():
                 myformat='json'
             else:
                 myformat='flat'               
-            msg=ehrbase_routines.postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid,filetype,random,comps)
+            msg=ehrbase_routines.postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,check,eid,filetype,random,comps)
             if(msg['status']=="success"):
                 yourresults=str(msg['nsuccess'])+"/"+str(numberoffiles)+" Compositions inserted successfully.\n" \
                     +"EHRID=" +str(msg['ehrid'])+"\n"  \
@@ -878,13 +881,13 @@ def excomp():
     yourresults=""
     success='false'
     yourjson='{}'
-    mymsg=ehrbase_routines.mymsg=ehrbase_routines.createPageFromBase4templatelist(auth,hostname,port,username,password,'ecompbase.html','ecomp.html')
+    mymsg=ehrbase_routines.mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'ecompbase.html','ecomp.html')
     if(mymsg['status']=='failure'):
         return redirect(url_for("ehrbase"))
     if request.args.get("pippo")=="Submit": 
         template_name=request.args.get("tname","")
         print(f'template={template_name}')
-        msg=ehrbase_routines.examplecomp(auth,hostname,port,username,password,template_name)
+        msg=ehrbase_routines.examplecomp(client,auth,hostname,port,username,password,template_name)
 
         if(msg['status']=="success"):
             success='true'
@@ -909,13 +912,13 @@ def cform():
     if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
         return redirect(url_for("ehrbase"))
     yourresults=""
-    mymsg=ehrbase_routines.createPageFromBase4templatelist(auth,hostname,port,username,password,'cformbase.html','cform.html')
+    mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'cformbase.html','cform.html')
     if(mymsg['status']=='failure'):
         return redirect(url_for("ehrbase"))
     if request.args.get("pippo")=="Submit": 
         template_name=request.args.get("tname","")
         print(f'template={template_name}')
-        msg=ehrbase_routines.createform(auth,hostname,port,username,password,template_name)
+        msg=ehrbase_routines.createform(client,auth,hostname,port,username,password,template_name)
 
         if(msg['status']=="success"):    
             insertlogline('Form Creation:form from template '+template_name+' creation successful')                
@@ -943,7 +946,7 @@ def form(formname):
     checkresults=""
     checkinfo=""
     if request.args.get("pippo")=="Submit Composition": 
-        msg=ehrbase_routines.postform(auth,hostname,port,username,password,formname)
+        msg=ehrbase_routines.postform(client,auth,hostname,port,username,password,formname)
         if(msg['status']=="success"):
             yourresults=f"Composition inserted successfully.\n status_code={msg['status_code']} VersionUID={msg['compositionid']}\n text={msg['text']}\n headers={msg['headers']}"
             lastcompositionid=msg['compositionid']
