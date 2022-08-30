@@ -383,6 +383,9 @@ def pcomp():
         return redirect(url_for("ehrbase"))  
     yourresults=""  
     global lastehrid,lastcompositionid,filename,uploaded_file,comp
+    mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'pcompbase.html','pcomp.html')
+    if(mymsg['status']=='failure'):
+        return redirect(url_for("ehrbase"))
     if request.method == 'POST':
         uploaded_file = request.files['file']
         filename=uploaded_file.filename
@@ -697,6 +700,9 @@ def pbatch():
         return redirect(url_for("ehrbase"))  
     yourresults=""  
     global lastehrid,lastcompositionid,numberoffiles,uploaded_files,filenames,comps
+    mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'pbatch1base.html','pbatch1.html')
+    if(mymsg['status']=='failure'):
+        return redirect(url_for("ehrbase"))    
     if request.method == 'POST':
         uploaded_files = request.files.getlist('file')
         comps=[]
@@ -791,6 +797,9 @@ def pbatchsameehr():
         return redirect(url_for("ehrbase"))  
     yourresults=""  
     global lastehrid,lastcompositionid,numberoffiles,uploaded_files,filenames,comps
+    mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'pbatch2base.html','pbatch2.html')
+    if(mymsg['status']=='failure'):
+        return redirect(url_for("ehrbase"))    
     if request.method == 'POST':
         uploaded_files = request.files.getlist('file')
         comps=[]
