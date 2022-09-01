@@ -270,7 +270,7 @@ def pupdate():
         if (request.args.get("pippo")=="Update Template"):
             templateid=request.args.get("tname","")
             if(templateid != "" and template):
-                msg=ehrbase_routines.updatetemp(adauth,hostname,port,adusername,adpassword,template,templateid)
+                msg=ehrbase_routines.updatetemp(client,adauth,hostname,port,adusername,adpassword,template,templateid)
                 yourresults="you uploaded "+secure_filename(uploaded_file.filename)+"\n"
                 
                 if(msg['status']=='success'):
