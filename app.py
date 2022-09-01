@@ -9,6 +9,7 @@ from config import readconfig
 from myutils import myutils
 import sys
 import redis
+import json
 
 default_hostname="localhost"
 default_port="8080"
@@ -549,6 +550,7 @@ def runaql():
     if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
         return redirect(url_for("ehrbase"))
     global lastehrid
+    temp=""
     if request.args.get("pippo")=="Run pasted query": 
         aqltext=request.args.get("aqltext","")
         qmethod=request.args.get("qmethod","")
@@ -557,47 +559,61 @@ def runaql():
         # fetch=request.args.get("fetch","")
         eid=request.args.get("ehrid","") 
         qparam=request.args.get("qparam","")
+        resultsave='false'
         qname=""
         version=""
         if(aqltext==""):
             print("no text in aql")
-            render_template('raql.html',lastehr=lastehrid)
+            render_template('raql.html',lastehr=lastehrid,resultsave=resultsave,temp=temp)
         print(aqltext)
 #        msg=ehrbase_routines.runaql(client,auth,hostname,port,username,password,aqltext,qmethod,offset,fetch,eid,qparam,qname,version)
         msg=ehrbase_routines.runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam,qname,version)
         if(msg['status']=="success"):
             insertlogline('Run AQL Query: pasted query run successfully')
+            msgtext=json.loads(msg['text'])
+            if('rows' in msgtext):
+                temp=msgtext['rows']
+                if(len(temp)>0):
+                    resultsave='true'            
             yourresults=f"Query run successfully.\n status_code={msg['status_code']}\n text={msg['text']}\n headers={msg['headers']}"
         else:
             insertlogline('Run AQL Query: pasted query run failure')
+            resultsave='false'
             yourresults=f"Query run failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
-        return render_template('raql.html',yourresults=yourresults,aqltext=aqltext,lastehr=lastehrid)
+        return render_template('raql.html',yourresults=yourresults,aqltext=aqltext,lastehr=lastehrid,resultsave=resultsave,temp=temp)
     elif(request.args.get("pippo2")=="Run stored query"):
         qname=request.args.get("nquery","")
         qmethod=request.args.get("qmethod","")
         version=request.args.get("version","")
         limit=request.args.get("limit","")
         aqltext=""
+        resultsave='false'
         # offset=request.args.get("offset","")
         # fetch=request.args.get("fetch","")
         eid=request.args.get("ehrid","") 
         qparam=request.args.get("qparam","")
         reversed_nodename=".".join(reversed(nodename.split(".")))
         if(qname==""):
-            return render_template('raql.html',lastehr=lastehrid)
+            return render_template('raql.html',lastehr=lastehrid,resultsave=resultsave,temp=temp)
         if(qname != "" and "::" not in qname):
             qname=reversed_nodename+"::"+qname+"/"
 #        msg=ehrbase_routines.runaql(client,auth,hostname,port,username,password,aqltext,qmethod,offset,fetch,eid,qparam,qname,version)
         msg=ehrbase_routines.runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam,qname,version)
         if(msg['status']=="success"):
             insertlogline('Run AQL Query: query '+qname+' version'+version+' run successfully')
+            msgtext=json.loads(msg['text'])
+            if('rows' in msgtext):
+                temp=msgtext['rows']
+                if(len(temp)>0):
+                    resultsave='true'          
             yourresults=f"Query run successfully.\n status_code={msg['status_code']}\n text={msg['text']}\n headers={msg['headers']}"
         else:
             insertlogline('Run AQL Query: query '+qname+' version'+version+' run failure')
+            resultsave='false'
             yourresults=f"Query run failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
-        return render_template('raql.html',yourresults=yourresults,lastehr=lastehrid,aqltext={})
+        return render_template('raql.html',yourresults=yourresults,lastehr=lastehrid,aqltext={},resultsave=resultsave,temp=temp)
     else:
-        return render_template('raql.html',lastehr=lastehrid,aqltext={})
+        return render_template('raql.html',lastehr=lastehrid,aqltext={},resultsave=resultsave,temp=temp)
 
 
 @app.route("/dashboard.html",methods=["GET"])
