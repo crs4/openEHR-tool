@@ -550,6 +550,7 @@ def runaql():
     if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
         return redirect(url_for("ehrbase"))
     global lastehrid
+    resultsave='false'
     temp=""
     if request.args.get("pippo")=="Run pasted query": 
         aqltext=request.args.get("aqltext","")
