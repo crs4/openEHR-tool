@@ -1030,13 +1030,13 @@ def slog():
 
             fv2=fv1
             if(meth=='get'):
-                fv2=[f for f in fvalues if f.startswith("Get ")]
+                fv2=[f for f in fv1 if f.startswith("Get ")]
             elif(meth=="post"):
-                fv2=[f for f in fvalues if f.startswith("Post ")]
+                fv2=[f for f in fv1 if f.startswith("Post ")]
             elif(meth=='put'):
-                fv2=[f for f in fvalues if f.startswith("Put ")]
+                fv2=[f for f in fv1 if f.startswith("Put ")]
             elif(meth=='run'):
-                fv2=[f for f in fvalues if f.startswith("Run ")]
+                fv2=[f for f in fv1 if f.startswith("Run ")]
 
             fv3=fv2
             if(typ=='template'):
@@ -1052,9 +1052,9 @@ def slog():
 
             fv4=fv3
             if(out=='successful'):
-                fv4=[f for f in fv2 if 'successful' in f]
+                fv4=[f for f in fv3 if 'successful' in f]
             elif(out=='unsuccessful'):
-                fv4=[f for f in fv2 if 'failure' in f]
+                fv4=[f for f in fv3 if 'failure' in f]
             
             results='\n'.join(fv4)
             return  render_template('showlog.html',yourresults=results,rediseventsrecorded=reventsrecorded)
