@@ -1,0 +1,23 @@
+version: '3'
+services:
+    openehrtool:
+        build: 
+          context: .
+          dockerfile: ./Dockerfile
+        image: surfercrs4/openehrtool
+        volumes:
+            - .:/code
+        env_file:
+            - ./.env.dev
+        depends_on:
+            - redis
+        ports:
+            - 9000:9000        
+
+    redis:
+        image: redis:alpine
+        ports:
+        - 6379:6379
+        command:  redis-server  /redis.conf
+        volumes:
+        - ./redis.conf:/redis.conf
