@@ -4,7 +4,7 @@ from flask import request,render_template,redirect,url_for
 from requests import session
 import ehrbase_routines
 from werkzeug.utils import secure_filename
-from os import path
+import os
 from config import readconfig
 from myutils import myutils
 import sys
@@ -37,7 +37,15 @@ currentposition=0
 sessiontotalevents=0
 
 app = Flask(__name__)
-
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+running_env=os.getenv('FLASK_ENV')
+if(running_env == 'development'):
+    os.environ['DEBUG']='True'
+else:
+    os.environ['DEBUG']='False'
+running_debug=os.getenv('DEBUG')
+print(f'Running with FLASK_ENV={running_env}')
+print(f'Running with DEBUG={running_debug}')
 def init_redis(redishostname,redisport):
     r = redis.Redis(host=redishostname, port=redisport,db=0,decode_responses=True)
     return r
@@ -53,7 +61,7 @@ def insertlogline(line):
 
 
 settingsfile='./config/openehrtool.cfg'
-if (path.exists(settingsfile)):
+if (os.path.exists(settingsfile)):
     varset=readconfig.readconfigfromfile(settingsfile)
     if(len(varset)==10):
         hostname,port,nodename,username,password,adusername,adpassword,redishostname,redisport,reventsrecorded=varset        
@@ -78,7 +86,7 @@ def about():
 @app.route("/fsettings.html",methods=["GET"])
 def fset():
     global hostname,port,username,password,nodename,adusername,adpassword,redishostname,redisport,reventsrecorded
-    if (path.exists(settingsfile)):
+    if (os.path.exists(settingsfile)):
         varset=readconfig.readconfigfromfile(settingsfile)
         if(len(varset)==10):
             hostname,port,nodename,username,password,adusername,adpassword,redishostname,redisport,reventsrecorded=varset        
@@ -1077,6 +1085,7 @@ def slog():
             return  render_template('showlog.html',yourresults=results,rediseventsrecorded=reventsrecorded)
     else:
         return  render_template('showlog.html',yourresults=results,rediseventsrecorded=reventsrecorded)
+
 
 
 if __name__ == "__main__":

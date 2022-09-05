@@ -28,7 +28,6 @@ def createPageFromBase4templatelist(client,auth,hostname,port,username,password,
         myresp['status']='success'
         myresp['headers']=response.headers
         myresp['status_code']=  response.status_code
-        # print(myresp['text'])
         results=json.loads(response.text)
         templates=[r['template_id'] for r in results]
         if(len(templates)==0):
