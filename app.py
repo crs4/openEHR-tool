@@ -5,7 +5,7 @@ from requests import session
 import ehrbase_routines
 from werkzeug.utils import secure_filename
 import os
-from config import readconfig
+from config import readconfig,logging_configurations
 from myutils import myutils
 import sys
 import redis
@@ -44,8 +44,8 @@ if(running_env == 'development'):
 else:
     os.environ['DEBUG']='False'
 running_debug=os.getenv('DEBUG')
-print(f'Running with FLASK_ENV={running_env}')
-print(f'Running with DEBUG={running_debug}')
+app.logger.info(f'Running with FLASK_ENV={running_env}')
+app.logger.info(f'Running with DEBUG={running_debug}')
 def init_redis(redishostname,redisport):
     r = redis.Redis(host=redishostname, port=redisport,db=0,decode_responses=True)
     return r
@@ -101,8 +101,10 @@ def fset():
         r=init_redis(redishostname,redisport)
         client=ehrbase_routines.init_ehrbase()
         result='Settings Reloaded Successfully'
+        app.logger.info("Settings reloaded from file")
     else:
         result='Settings File "config/openehrtool.cfg" not found'
+        app.logger.warning(result)
     return render_template('about.html',result=result)
 
 
@@ -111,7 +113,6 @@ def ehrbase():
     global hostname,port,username,password,nodename,lastehrid,lastcompositionid
     global adusername,adpassword,redishostname,redisport,reventsrecorded
 
-    #print(request.args.keys())
     if request.args.get("pippo")=="Submit":
         hostname=request.args.get("hname","")
         port=request.args.get("port","")
@@ -140,21 +141,19 @@ def ehrbase():
             reventsrecorded=default_reventsrecorded   
         else:
             reventsrecorded=int(reventsrecorded)  
-        print(f'hostname={hostname} port={port} username={username} password={password} nodename={nodename} redishostname={redishostname} redisport={redisport} reventsrecorder={reventsrecorded}')            
-        print(request.args)
         if(request.args.get('admin')=='yes'):
             adusername=request.args.get("aduname")
             adpassword=request.args.get("adpword","")        
             if(adusername==""):
                 adusername=default_adusername 
             if(adpassword==""):
-                adpassword=default_adpassword  
-            print(f'adusername={adusername} adpassword={adpassword}')            
+                adpassword=default_adpassword           
             global adauth
             adauth= myutils.getauth(adusername,adpassword)
         global auth,r
         auth = myutils.getauth(username,password)
         r=init_redis(redishostname,redisport)
+        app.logger.info("settings changed from within app")
         return render_template('settings.html',ho=hostname,po=port,us=username,pas=password,no=nodename,
                     adus=adusername,adpas=adpassword,rho=redishostname,rpo=redisport,rr=reventsrecorded)
     return render_template('settings.html',ho=hostname,po=port,us=username,pas=password,no=nodename,
@@ -176,11 +175,9 @@ def gtemp():
         return redirect(url_for("ehrbase"))
     if request.args.get("pippo")=="Get Template": 
         template_name=request.args.get("tname","")
-        #print(f'template={template_name}')
         tformat=request.args.get("format","")
         msg=ehrbase_routines.gettemp(client,auth,hostname,port,username,password,tformat,template_name)
-        if(msg['status']=="success"):
-            
+        if(msg['status']=="success"):            
             if(tformat=='OPT'):
                 singletemplate='true'
                 singletemplate2='false'
@@ -229,11 +226,7 @@ def pwrite():
         if uploaded_file.filename != '':
             render_template('ptemp.html',yourfile="you uploaded "+secure_filename(uploaded_file.filename))
             uploaded_file.stream.seek(0) # seek to the beginning of file
-          #  myfile = uploaded_file.file # will point to tempfile itself
             template=uploaded_file.read()
-            # print(type(template))
-            # print(type(template.decode("utf-8")))
-            # print(template[-10:])
             msg=ehrbase_routines.posttemp(client,auth,hostname,port,username,password,template)
             yourresults=str(msg['status'])+" "+str(msg['status_code'])+ "\n"+ \
                 str(msg['headers'])+"\n"+ \
@@ -262,20 +255,12 @@ def pupdate():
     if request.method == 'POST':
         uploaded_file = request.files['file']
         tempname=uploaded_file.filename
-        if uploaded_file.filename != '':
-           
+        if uploaded_file.filename != '':           
             uploaded_file.stream.seek(0) # seek to the beginning of file
-          #  myfile = uploaded_file.file # will point to tempfile itself
             template=uploaded_file.read()
-            # print(type(template))
-            # print(type(template.decode("utf-8")))
-            # print(template[-10:])
- #           print(msg)
             yourresults="you chose "+secure_filename(uploaded_file.filename)+"\n"
             return render_template('utemp.html',yourresults=yourresults)
     else :
-        print(request.args)
-        print(request.args.get("pippo"))
         if (request.args.get("pippo")=="Update Template"):
             templateid=request.args.get("tname","")
             if(templateid != "" and template):
@@ -304,7 +289,6 @@ def pehr():
     if request.args.get("sform1")=="Submit": #EHRID specified or not
         ehrid=request.args.get("ehrtext","")
         msg=ehrbase_routines.createehrid(client,auth,hostname,port,username,password,ehrid)
-        print(f"back to function {msg}")
         if(msg['status']=="success"):
             ehrid=msg["ehrid"]
             yourresults=f"EHR created successfully. status_code={msg['status_code']} EHRID={msg['ehrid']}"
@@ -324,7 +308,6 @@ def pehr():
             return render_template('pehr.html')        
         msg=ehrbase_routines.createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
         if(msg['status']=="success"):
-            print(f'msg={msg}')
             ehrid=msg["ehrid"]
             yourresults=f"EHR created successfully. status_code={msg['status_code']} EHRID={msg['ehrid']}"
             lastehrid=ehrid
@@ -336,7 +319,6 @@ def pehr():
             insertlogline('Post EHR: ehr posting failure')
         return render_template('pehr.html',yourresults=yourresults,ehr=ehr)
     else:
-        print(request.args.keys())
         return render_template('pehr.html')  
 
 @app.route("/gehr.html",methods=["GET"])
@@ -350,7 +332,6 @@ def gehr():
         ehrid=request.args.get("ename","") 
         if(ehrid==""):
             return render_template('gehr.html',lastehr=lastehrid)
-        print(f'ehrid={ehrid}')
         msg=ehrbase_routines.getehrid(client,auth,hostname,port,username,password,ehrid)
         if(msg['status']=="success"):
             ehrid=msg["ehrid"]
@@ -367,7 +348,6 @@ def gehr():
     elif request.args.get("fform2")=="Submit": 
         sid=request.args.get("sid","") 
         sna=request.args.get("sna","")
-        print(f"sid={sid} sna={sna}")
         if(sid=="" or sna==""):
             return render_template('gehr.html',lastehr=lastehrid)
         msg=ehrbase_routines.getehrsub(client,auth,hostname,port,username,password,sid,sna)
@@ -398,12 +378,11 @@ def pcomp():
     if request.method == 'POST':
         uploaded_file = request.files['file']
         filename=uploaded_file.filename
-        print(filename)
+        app.logger.debug(f'uploaded filename={filename}')
         if filename != '':
             filename=secure_filename(filename)
             uploaded_file.stream.seek(0)
             comp=uploaded_file.read()
-            print(filename)
             return render_template('pcomp.html',yourfile=f"you have chosen {filename}",last=lastehrid)
     else:
         if request.args.get("fform1")=="POST THE COMPOSITION":
@@ -453,10 +432,9 @@ def gcomp():
         filetype=request.args.get("filetype","") 
         compid=request.args.get("cname","") 
         eid=request.args.get("ename","") 
-        print(filetype,compid,eid)
+        app.logger.debug(f'filetype={filetype} compid={compid} eid={eid}')
         if(compid=="" or eid==""):
             return render_template('gcomp.html',last=lastcompositionid,lastehr=lastehrid,compflat=compflat)
-        print(f'compid={compid}')
         msg=ehrbase_routines.getcomp(client,auth,hostname,port,username,password,compid,eid,filetype)
         # compjson=""
         # compxml=""
@@ -506,14 +484,14 @@ def paql():
         version=request.args.get("version","")
         qtype=request.args.get("qtype","")
         qname=request.args.get("nquery","")
-        print(f'aqltext={aqltext} ') 
+        app.logger.debug(f'aqltext={aqltext} ') 
         if(aqltext=="" or qname==""):
-            print("no text in aql")
+            app.logger.warning("no text in aql")
             render_template('paql.html')
         myaqltext="{'q':'"+aqltext+"'}"
         reversed_nodename=".".join(reversed(nodename.split(".")))
         qname=reversed_nodename+"::"+qname+"/"
-        print(myaqltext)
+        app.logger.info(myaqltext)
         msg=ehrbase_routines.postaql(client,auth,hostname,port,username,password,myaqltext,qname,version,qtype)
         if(msg['status']=="success"):
             insertlogline('Post AQL Query: query '+qname+' version='+version+' type='+qtype+' posted successfully')
@@ -572,9 +550,9 @@ def runaql():
         qname=""
         version=""
         if(aqltext==""):
-            print("no text in aql")
+            app.logger.info("no text in aql")
             render_template('raql.html',lastehr=lastehrid,resultsave=resultsave,temp=temp)
-        print(aqltext)
+        app.logger.info(aqltext)
 #        msg=ehrbase_routines.runaql(client,auth,hostname,port,username,password,aqltext,qmethod,offset,fetch,eid,qparam,qname,version)
         msg=ehrbase_routines.runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam,qname,version)
         if(msg['status']=="success"):
@@ -638,7 +616,6 @@ def dashboard():
     msg=ehrbase_routines.get_dashboard_info(client,auth,hostname,port,username,password,adauth,adusername,adpassword)
 
     if('success' in msg['status']):
-        print(f"status={msg['status']}")
         info=disk=aql=db=gen_properties=end_properties=terminology=plugin=env={}
         if(msg['status']=='success1'):#only AQL queries stored
             total_aql_queries=msg['aql']
@@ -731,17 +708,15 @@ def pbatch():
     if request.method == 'POST':
         uploaded_files = request.files.getlist('file')
         comps=[]
-        print(uploaded_files)
         filenameslist=[]
         for uf in uploaded_files:
-            print(uf.filename)
+            app.logger.info(f'Uploaded file: {uf.filename}')
             filenameslist.append(uf.filename)
             uf.stream.seek(0)
             composition=uf.read()
             comps.append(composition)
         filenames=",".join(filenameslist)
-        numberoffiles=len(uploaded_files) 
-        print(len(comps))   
+        numberoffiles=len(uploaded_files)    
         return render_template('pbatch1.html',yourfile=f"you have chosen {numberoffiles} files")
     else:
         if request.args.get("pippolippo")=="POST THE COMPOSITIONS":
@@ -757,16 +732,16 @@ def pbatch():
                 sidpath=request.args.get("sidpath","")
                 snamespace=request.args.get("snamespace","")
                 if(sidpath=="" or snamespace==""):
-                    print("path to id or namespace not given")
+                    app.logger.warning("path to id or namespace not given")
                     return render_template('pbatch1.html')
             tid=request.args.get("tname","")
             filetype=request.args.get("filetype","")
             check=request.args.get("check","")  
             if(tid==""):
-                print("Template id not given")
+                app.logger.warning("Template id not given")
                 return render_template('pbatch1.html')
             if('comps' not in locals() and 'comps' not in globals()):
-                print("Compositions not loaded")
+                app.logger.warning("Compositions not loaded")
                 return render_template('pbatch1.html')
             if(filetype=='XML'):
                 myformat='xml'
@@ -828,17 +803,15 @@ def pbatchsameehr():
     if request.method == 'POST':
         uploaded_files = request.files.getlist('file')
         comps=[]
-        print(uploaded_files)
         filenameslist=[]
         for uf in uploaded_files:
-            print(uf.filename)
+            app.logger.info(f'Uploaded file: {uf.filename}')
             filenameslist.append(uf.filename)
             uf.stream.seek(0)
             composition=uf.read()
             comps.append(composition)
         filenames=",".join(filenameslist)
-        numberoffiles=len(uploaded_files) 
-        print(len(comps))   
+        numberoffiles=len(uploaded_files)   
         return render_template('pbatch2.html',yourfile=f"you have chosen {numberoffiles} files")
     else:
         if request.args.get("pippolippo")=="POST THE COMPOSITIONS":
@@ -849,16 +822,16 @@ def pbatchsameehr():
             else:
                 eid=request.args.get("eid","")
                 if(eid==""):
-                    print("ehrid not given")
+                    app.logger.warning("ehrid not given")
                     return render_template('pbatch2.html')
             tid=request.args.get("tname","")
             filetype=request.args.get("filetype","")
             check=request.args.get("check","")  
             if(tid==""):
-                print("Template id not given")
+                app.logger.warning("Template id not given")
                 return render_template('pbatch2.html')
             if('comps' not in locals() and 'comps' not in globals()):
-                print("Compositions not loaded")
+                app.logger.warning("Compositions not loaded")
                 return render_template('pbatch2.html')
             if(filetype=='XML'):
                 myformat='xml'
@@ -920,7 +893,6 @@ def excomp():
         return redirect(url_for("ehrbase"))
     if request.args.get("pippo")=="Submit": 
         template_name=request.args.get("tname","")
-        print(f'template={template_name}')
         msg=ehrbase_routines.examplecomp(client,auth,hostname,port,username,password,template_name)
 
         if(msg['status']=="success"):
@@ -951,7 +923,6 @@ def cform():
         return redirect(url_for("ehrbase"))
     if request.args.get("pippo")=="Submit": 
         template_name=request.args.get("tname","")
-        print(f'template={template_name}')
         msg=ehrbase_routines.createform(client,auth,hostname,port,username,password,template_name)
 
         if(msg['status']=="success"):    
