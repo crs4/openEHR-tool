@@ -7,11 +7,12 @@ services:
         image: surfercrs4/openehrtool
         volumes:
             - .:/code
-        network_mode: host
         env_file:
             - ./.env.dev
         depends_on:
-            - redis        
+            - redis
+        ports:
+            - 9000:9000        
 
     redis:
         image: redis:alpine

@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+  ehrbase:
+    image: ehrbase/ehrbase:next
+    ports:
+      - 8080:8080
+    networks:
+      - ehrbase-net
+    env_file:
+      - .env.ehrbase
+    environment:
+      DB_URL: jdbc:postgresql://ehrdb:5432/ehrbase
+      DB_USER: ehrbase
+      DB_PASS: ehrbase
+
+  ehrdb:
+    image: ehrbase/ehrbase-postgres:latest
+    ports:
+      - 5432:5432
+    networks:
+      - ehrbase-net
+    volumes:
+      - ./.pgdata:/var/lib/postgresql/pgdata
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      EHRBASE_USER: ehrbase
+      EHRBASE_PASSWORD: ehrbase
+
+  openehrtool:
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+    image: surfercrs4/openehrtool
+    volumes:
+        - .:/code
+    env_file:
+        - ./.env.dev
+    depends_on:
+        - redis
+        - ehrbase
+    ports:
+        - 9000:9000
+    networks:
+      - ehrbase-net                  
+
+  redis:
+    image: redis:alpine
+    ports:
+    - 6379:6379
+    command:  redis-server  /redis.conf
+    volumes:
+    - ./redis.conf:/redis.conf
+    networks:
+      - ehrbase-net    
+
+networks:
+  ehrbase-net: {}

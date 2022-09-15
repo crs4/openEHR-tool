@@ -6,12 +6,13 @@ services:
           dockerfile: ./Dockerfile.prod
         image: surfercrs4/openehrtoolprod
         volumes:
-            - .:/code
-        network_mode: host                  
+            - .:/code                 
         env_file:
             - ./.env.prod
         depends_on:
             - redis    
+        ports:
+            - 9000:9000               
 
     redis:
         image: redis:alpine

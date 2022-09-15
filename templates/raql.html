@@ -243,11 +243,19 @@ if (window.innerWidth < 992) {
               {{ the_string }}
               {% endif %}
               {%- endmacro %}
+              <pre id="aqlt"></pre>
               <pre id="result">{{ linebreaks_for_string( yourresults ) }}</pre> 
 
-              <pre id="aqlt"></pre>
-
                </div>
+               <div id="boh" style="display:none;">
+                <br><br>
+                <a class="btn btn-danger" role="button" href="data:application/json;charset=utf-8,{{temp}}"
+                   download="queryresult.json">
+                   Save results to file
+                 </a>
+                 <br><br>
+             </div>
+
    </div>
    
 </div>
@@ -256,6 +264,12 @@ if (window.innerWidth < 992) {
 <script type="text/javascript">
   if ( {{aqltext|tojson}} !== '{}' ) {
     document.getElementById("aqlt").innerHTML = 'Query: {{aqltext|tojson}}';}
+
+    if ( {{resultsave|tojson}} == "true" ) {
+      document.getElementById("boh").style.display = 'block';}
+      else {   
+      document.getElementById("boh").style.display = 'none';}
+
 </script> 
 
 <style>

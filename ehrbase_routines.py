@@ -1,3 +1,4 @@
+from re import U
 import requests
 
 from url_normalize import url_normalize
@@ -9,23 +10,36 @@ import sys
 from flask import request
 from myutils import myutils
 
-client=requests.Session()
 
-def createPageFromBase4templatelist(auth,hostname,port,username,password,basefile,targetfile):
+def init_ehrbase():
+    from app import app
+    app.logger.debug('inside init_ehrbase')
+    client=requests.Session()
+    return client
+
+
+def createPageFromBase4templatelist(client,auth,hostname,port,username,password,basefile,targetfile):
+    from app import app
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    app.logger.debug('inside createPageFromBase4templatelist')
     client.auth = (username,password)
     myresp={}
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4')
     response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'})
-    print(response.status_code)
-    print(response.text)
-    print(response.headers)
+    app.logger.debug('Get list templates')
+    app.logger.debug('Response Url')
+    app.logger.debug(response.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response.headers)
     if(response.status_code<210 and response.status_code>199):
         myresp['text']=response.text
         myresp['status']='success'
         myresp['headers']=response.headers
         myresp['status_code']=  response.status_code
-        # print(myresp['text'])
         results=json.loads(response.text)
         templates=[r['template_id'] for r in results]
         if(len(templates)==0):
@@ -56,30 +70,35 @@ def createPageFromBase4templatelist(auth,hostname,port,username,password,basefil
         myresp['status']='failure'
         myresp['headers']=response.headers  
         myresp['status_code']=  response.status_code   
+        app.logger.warning("GET templates for createPageFromBase4templatelist failure")
         return myresp    
 
-def gettemp(auth,hostname,port,username,password,tformat,template):
+def gettemp(client,auth,hostname,port,username,password,tformat,template):
+    from app import app
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)
     myresp={}
+    app.logger.debug('inside gettemp')
+    app.logger.info(f'Get Template: template={template} format={tformat}')
     if(tformat=="OPT"):
         myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4/'+template)
         response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'})
     else: #format webtemplate
-        #print(format)
         EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
         myurl=url_normalize(EHR_SERVER_BASE_URL+'template/'+template+'/example')
         response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/JSON'})
-    print(response.status_code)
-    print(response.text)
-    print(response.headers)
+    app.logger.debug('Response Url')
+    app.logger.debug(response.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response.headers)
     if(response.status_code<210 and response.status_code>199):
         if(tformat=="OPT"):
-    #           responsexml = minidom.parseString(response.text).toprettyxml(indent="   ")
             root = etree.fromstring(response.text)
-#           root.indent(tree, space="\t", level=0)
             responsexml = etree.tostring(root,  encoding='unicode', method='xml', pretty_print=True)
-            #responsexml=responsexml.replace("&#13","").replace("#","%23")
             responsexml=responsexml.replace("#","%23")
             myresp['template']=responsexml
         else:
@@ -88,98 +107,141 @@ def gettemp(auth,hostname,port,username,password,tformat,template):
         myresp['status']='success'
         myresp['headers']=response.headers
         myresp['status_code']=  response.status_code  
+        app.logger.info(f'GET success for template={template} in format={tformat}')
         return myresp
     else:
         myresp['text']=response.text
         myresp['status']='failure'
         myresp['headers']=response.headers  
-        myresp['status_code']=  response.status_code   
+        myresp['status_code']=  response.status_code  
+        app.logger.warning(f'GET Template failure for template={template} in format={tformat}') 
         return myresp
 
-def posttemp(auth,hostname,port,username,password,uploaded_template):
+def posttemp(client,auth,hostname,port,username,password,uploaded_template):
+    from app import app
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    app.logger.debug('inside posttemp')
     client.auth = (username,password)
     root=etree.fromstring(uploaded_template)
+    telement=root.find("{http://schemas.openehr.org/v1}template_id")
+    template_name=""
+    if(telement):   
+        for i in telement:
+            template_name=i.text
+        app.logger.info(f'POST Template : template={template_name}')
+    else:
+        app.logger.info('POST Template')
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4/')
     response=client.post(myurl,params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/XML'},
         data=etree.tostring(root))
-    print(response.text)
-    print(response.status_code)
-    print(response.headers)
-    print(type(response.status_code))
+    app.logger.debug('Response Url')
+    app.logger.debug(response.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response.headers)
     myresp={}
     myresp['headers']=response.headers
     myresp['status_code']=response.status_code
     myresp['text']=response.text
     if(response.status_code<210 and response.status_code>199):
         myresp['status']='success'
+        app.logger.info(f'Template POST template={template_name} success')
     else:
         myresp['status']='failure'
+        app.logger.warning(f'POST Template failure for template={template_name}')
     return myresp
 
-def updatetemp(adauth,hostname,port,adusername,adpassword,uploaded_template,templateid):
+def updatetemp(client,adauth,hostname,port,adusername,adpassword,uploaded_template,templateid):
+    from app import app
+    app.logger.debug('inside updatetemp')
+    app.logger.info(f'Updating template: template={templateid}')
     EHR_SERVER_URL = "http://"+hostname+":"+port+"/ehrbase/"
     client.auth = (adusername,adpassword)
-    root=etree.fromstring(uploaded_template)
+    root=etree.fromstring(uploaded_template)    
     myurl=url_normalize(EHR_SERVER_URL  + 'rest/admin/template/'+templateid)
     response=client.put(myurl,params={'format': 'XML'},headers={'Authorization':adauth,'Content-Type':'application/xml',
                  'prefer':'return=minimal','accept':'application/xml' },
                  data=etree.tostring(root))
-    print(response.text)
-    print(response.status_code)
-    print(response.headers)
-    print(type(response.status_code))
+    app.logger.debug('Response Url')
+    app.logger.debug(response.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response.headers)
     myresp={}
     myresp['headers']=response.headers
     myresp['status_code']=response.status_code
     if(response.status_code<210 and response.status_code>199):
-        myresp['status']='success'        
+        myresp['status']='success'
+        app.logger.info(f'Update PUT success for template={templateid}')        
         return myresp
     else:
         myresp['status']='failure'
+        app.logger.warning(f'Update Template PUT failure for template={templateid}')    
         return myresp
 
 
-def createehrid(auth,hostname,port,username,password,eid):
+def createehrid(client,auth,hostname,port,username,password,eid):
+    from app import app
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)
-    print("launched createehrid")
+    app.logger.debug('inside createehrid')
     withehrid=True
     if(eid==""):
         withehrid=False    
     if(not withehrid):
         myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr')
+        app.logger.info("Create ehr without ehrid")
         response=client.post(myurl, params={},headers={'Authorization':auth, \
             'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'})
     else:
         myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid)
+        app.logger.info(f"Create ehr with ehrid: ehrid={eid}")
         response=client.put(myurl, params={},headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'})
-    print(response.text)
-    print(response.status_code)
-    print(response.headers)
+    app.logger.debug('Response Url')
+    app.logger.debug(response.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response.headers)
     myresp={}
     if(response.status_code<210 and response.status_code>199):
         myresp['status']="success"
         if(withehrid):
             ehrid=response.headers['Location'].split("ehr/")[4]
+            app.logger.info(f'EHR creation PUT success with given ehrid={eid}')
             if(eid != ehrid):
-                print('ehrid given and obtain do not match')
+                app.logger.debug('ehrid given and obtained do not match')
         else:
             ehrid=response.headers['Location'].split("ehr/")[4]
+            app.logger.info(f'EHR creation POST success with ehrid={ehrid}')
         myresp["ehrid"]=ehrid
         myresp['text']=response.text
     else:
         myresp['status']="failure"
         myresp['text']=response.text   
-        myresp['headers']=response.headers         
+        myresp['headers']=response.headers
+        if(withehrid):
+            ministr=' PUT with ehrid='+eid
+        else:
+            ministr=" POST"     
+        app.logger.warning('EHR creation"+ministr+" failure')    
     myresp['status_code']=response.status_code 
-    print(myresp)
+    app.logger.debug(myresp)
     return myresp
 
-def createehrsub(auth,hostname,port,username,password,sid,sna,eid):
+def createehrsub(client,auth,hostname,port,username,password,sid,sna,eid):
+    from app import app
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    app.logger.debug('inside createehrsub')
     client.auth = (username,password)
-    print("launched createehrsub")
     body1='''
     {
     "_type" : "EHR_STATUS",
@@ -210,7 +272,7 @@ def createehrsub(auth,hostname,port,username,password,sid,sna,eid):
     }
     '''
     body=body1+body2+body3+body4+body5
-    print(body)
+    app.logger.debug(body)
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr')
     withehrid=True
     if(eid==""):
@@ -225,80 +287,108 @@ def createehrsub(auth,hostname,port,username,password,sid,sna,eid):
         response=client.put(myurl, params={},headers={'Authorization':auth, \
                 'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'},
                 data=body)       
-    print(response.text)
-    print(response.status_code)
-    print(response.headers)
+    app.logger.debug('Response Url')
+    app.logger.debug(response.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response.headers)
     myresp={}
     if(response.status_code<210 and response.status_code>199):
         myresp['status']="success"
         if(withehrid):
             ehrid=response.headers['Location'].split("ehr/")[4]
+            app.logger.info(f'EHR creation PUT success with given ehrid={eid}')
             if(eid != ehrid):
-                print('ehrid given and obtain do not match')
-        else:
+                app.logger.debug('ehrid given and obtain do not match')
+        else:            
             ehrid=response.headers['Location'].split("ehr/")[4]
+            app.logger.info(f'EHR creation POST success with ehrid={ehrid}')
         myresp["ehrid"]=ehrid
         myresp['text']=response.text
     else:
         myresp['status']="failure"
         myresp['headers']=response.headers
         myresp['text']=response.text
+        if(withehrid):
+            ministr=' PUT with ehrid='+eid
+        else:
+            ministr=" POST"     
+        app.logger.warning('EHR creation"+ministr+" failure')    
     myresp['status_code']=response.status_code 
     return myresp
 
-def getehrid(auth,hostname,port,username,password,ehrid):
+def getehrid(client,auth,hostname,port,username,password,ehrid):
+    from app import app
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    app.logger.debug('inside getehrid')
     client.auth = (username,password)
-    print("launched getehr")
+    app.logger.debug("launched getehr")
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+ehrid)
     response=client.get(myurl, params={},headers={'Authorization':auth, \
             'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'})
-    print(response.text)
-    print(response.status_code)
-    print(response.headers)
+    app.logger.debug('Response Url')
+    app.logger.debug(response.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response.headers)
     myresp={}
     if(response.status_code<210 and response.status_code>199):
         myresp['status']="success"
         myresp["ehrid"]=ehrid
         myresp['text']=response.text
+        app.logger.info(f"EHR GET success for ehrid={ehrid}")
     else:
         myresp['status']="failure"
         myresp['text']=response.text   
-        myresp['headers']=response.headers         
+        myresp['headers']=response.headers     
+        app.logger.warning(f"EHR GET failure for ehrid={ehrid}")
     myresp['status_code']=response.status_code 
-    #print(myresp)
     return myresp
 
-def getehrsub(auth,hostname,port,username,password,sid,sna):
+def getehrsub(client,auth,hostname,port,username,password,sid,sna):
+    from app import app
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    app.logger.debug('inside getehrsub')
     client.auth = (username,password)
-    print("launched getehrsub")
-    print(f'sid={sid} sna={sna}')
+    app.logger.debug(f'sid={sid} sna={sna}')
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr')
     response=client.get(myurl, params={'subject_id':sid,'subject_namespace':sna},headers={'Authorization':auth, \
             'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'})
-    print(response.text)
-    print(response.status_code)
-    print(response.headers)
+    app.logger.debug('Response Url')
+    app.logger.debug(response.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response.headers)
     myresp={}
     if(response.status_code<210 and response.status_code>199):
         myresp['status']="success"
         ehrid=response.headers['Location'].split("ehr/")[3]
         myresp["ehrid"]=ehrid
         myresp['text']=response.text
+        app.logger.info(f"EHR GET success for subject_id={sid} subject_namespace={sna} => ehrid={ehrid}")
     else:
         myresp['status']="failure"
         myresp['text']=response.text   
-        myresp['headers']=response.headers         
+        myresp['headers']=response.headers       
+        app.logger.warning(f"EHR GET failure for subject_id={sid} subject_namespace={sna}")  
     myresp['status_code']=response.status_code 
-    print(myresp)
     return myresp
 
 
 
-def postcomp(auth,hostname,port,username,password,composition,eid,tid,filetype,check):
+def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,filetype,check):
+    from app import app
     client.auth = (username,password)
-    print('inside post_composition')
+    app.logger.debug('inside postcomp')
     if(filetype=="XML"):
         EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
         myurl=url_normalize(EHR_SERVER_BASE_URL + 'ehr/'+eid+'/composition')
@@ -306,23 +396,32 @@ def postcomp(auth,hostname,port,username,password,composition,eid,tid,filetype,c
         response = client.post(myurl,
                        params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml', \
                            'accept':'application/xml'}, data=etree.tostring(root)) 
-        print(response.text)
-        print(response.status_code)
-        print(response.headers)
+        app.logger.debug('Response Url')
+        app.logger.debug(response.url)
+        app.logger.debug('Response Status Code')
+        app.logger.debug(response.status_code)
+        app.logger.debug('Response Text')
+        app.logger.debug(response.text)
+        app.logger.debug('Response Headers')
+        app.logger.debug(response.headers)
         myresp={}
         myresp["status_code"]=response.status_code
         if(response.status_code<210 and response.status_code>199):
             myresp["status"]="success"
             myresp['compositionid']=response.headers['Location'].split("composition/")[1]
+            app.logger.info(f"POST composition success. format={filetype} template={tid}  ehr={eid}")
             if(check=="Yes"):
-                checkinfo= compcheck(auth,hostname,port,composition,eid,filetype,myresp['compositionid'])
+                checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,myresp['compositionid'])
                 if(checkinfo==None):
                     myresp['check']='Retrieved and posted Compositions match'
                     myresp['checkinfo']=""
+                    app.logger.info(f"check success. Retrieved and posted Compositions match")
                 else:
                     myresp['check']='WARNING: Retrieved different from posted Composition'
-                    myresp['checkinfo']=checkinfo          
+                    myresp['checkinfo']=checkinfo 
+                    app.logger.warning(f"check failure. Retrieved and posted Compositions do not match")  
         else:
+            app.logger.warning(f"POST composition failure. format={filetype} template={tid}  ehr={eid}")
             myresp["status"]="failure"
         myresp['text']=response.text
         myresp["headers"]=response.headers
@@ -334,24 +433,33 @@ def postcomp(auth,hostname,port,username,password,composition,eid,tid,filetype,c
         compositionjson=json.dumps(comp)
         response = client.post(myurl,params={'format': 'RAW'},headers={'Authorization':auth,'Content-Type':'application/json', \
              'accept':'application/json'}, data=compositionjson) 
-        print(response.text)
-        print(response.status_code)
-        print(response.headers)
+        app.logger.debug('Response Url')
+        app.logger.debug(response.url)
+        app.logger.debug('Response Status Code')
+        app.logger.debug(response.status_code)
+        app.logger.debug('Response Text')
+        app.logger.debug(response.text)
+        app.logger.debug('Response Headers')
+        app.logger.debug(response.headers)
         myresp={}
         myresp["status_code"]=response.status_code
         if(response.status_code<210 and response.status_code>199):
             myresp["status"]="success"
             myresp['compositionid']=response.headers['Location'].split("composition/")[1]
+            app.logger.info(f"POST composition success. format={filetype} template={tid}  ehr={eid}")
             if(check=="Yes"):
-                checkinfo= compcheck(auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
                 if(checkinfo==None):
                     myresp['check']='Retrieved and posted Compositions match'
                     myresp['checkinfo']=""
+                    app.logger.info(f"check success. Retrieved and posted Compositions match")
                 else:
                     myresp['check']='WARNING: Retrieved different from posted Composition'
                     myresp['checkinfo']=checkinfo
+                    app.logger.warning(f"check failure. Retrieved and posted Compositions do not match")
         else:
             myresp["status"]="failure"
+            app.logger.warning(f"POST composition failure. format={filetype} template={tid}  ehr={eid}")
         myresp['text']=response.text
         myresp["headers"]=response.headers
         return myresp       
@@ -365,39 +473,54 @@ def postcomp(auth,hostname,port,username,password,composition,eid,tid,filetype,c
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
                        data=compositionjson
                       )           
-        print(response.text)
-        print(response.status_code)
-        print(response.headers)
+        app.logger.debug('Response Url')
+        app.logger.debug(response.url)
+        app.logger.debug('Response Status Code')
+        app.logger.debug(response.status_code)
+        app.logger.debug('Response Text')
+        app.logger.debug(response.text)
+        app.logger.debug('Response Headers')
+        app.logger.debug(response.headers)
         myresp={}
         myresp["status_code"]=response.status_code
         if(response.status_code<210 and response.status_code>199):
             myresp["status"]="success"
             myresp['compositionid']=response.headers['Location'].split("composition/")[1]
+            app.logger.info(f"POST composition success. format={filetype} template={tid}  ehr={eid}")
             if(check=="Yes"):
-                checkinfo= compcheck(auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
                 if(checkinfo==None):
                     myresp['check']='Retrieved and posted Compositions match'
                     myresp['checkinfo']=""
+                    app.logger.info(f"check success. Retrieved and posted Compositions match")
                 else:
                     myresp['check']='WARNING: Retrieved different from posted Composition'
                     myresp['checkinfo']=checkinfo
+                    app.logger.warning(f"check failure. Retrieved and posted Compositions do not match")
         else:
             myresp["status"]="failure"
+            app.logger.warning(f"POST composition failure. format={filetype} template={tid}  ehr={eid}")
         myresp['text']=response.text
         myresp["headers"]=response.headers
         return myresp
 
-def getcomp(auth,hostname,port,username,password,compid,eid,filetype):
+def getcomp(client,auth,hostname,port,username,password,compid,eid,filetype):
+    from app import app
     client.auth = (username,password)
-    print('inside get_composition')
+    app.logger.debug('inside getcomp')
     if(filetype=="XML"):
         EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
         myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition/'+compid)
         #root=etree.fromstring(composition)
         response=client.get(myurl,params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml','accept':'application/xml'})
-        print(response.text)
-        print(response.status_code)
-        print(response.headers)
+        app.logger.debug('Response Url')
+        app.logger.debug(response.url)
+        app.logger.debug('Response Status Code')
+        app.logger.debug(response.status_code)
+        app.logger.debug('Response Text')
+        app.logger.debug(response.text)
+        app.logger.debug('Response Headers')
+        app.logger.debug(response.headers)
         myresp={}
         myresp["status_code"]=response.status_code
         myresp['compositionid']=compid
@@ -407,9 +530,10 @@ def getcomp(auth,hostname,port,username,password,compid,eid,filetype):
  #          root.indent(tree, space="\t", level=0)
             myresp['xml'] = etree.tostring(root,  encoding='unicode', method='xml', pretty_print=True)
             myresp["status"]="success"
-            #myresp['xml']=response.text
+            app.logger.info(f"Composition GET success compositionid={compid} ehrid={eid} format={filetype}")
         else:
             myresp["status"]="failure"
+            app.logger.warning(f"Composition GET failure compositionid={compid} ehrid={eid} format={filetype}")
         myresp['text']=response.text
         myresp["headers"]=response.headers
         return myresp
@@ -417,9 +541,14 @@ def getcomp(auth,hostname,port,username,password,compid,eid,filetype):
         EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
         myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition/'+compid)
         response = client.get(myurl, params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/json'} )
-        print(response.text)
-        print(response.status_code)
-        print(response.headers)
+        app.logger.debug('Response Url')
+        app.logger.debug(response.url)
+        app.logger.debug('Response Status Code')
+        app.logger.debug(response.status_code)
+        app.logger.debug('Response Text')
+        app.logger.debug(response.text)
+        app.logger.debug('Response Headers')
+        app.logger.debug(response.headers)
         myresp={}
         myresp["status_code"]=response.status_code
         myresp['compositionid']=compid
@@ -427,8 +556,10 @@ def getcomp(auth,hostname,port,username,password,compid,eid,filetype):
         if(response.status_code<210 and response.status_code>199):
             myresp["status"]="success"
             myresp['json']=response.text
+            app.logger.info(f"GET Composition success for compositionid={compid} ehrid={eid} format={filetype}")
         else:
             myresp["status"]="failure"
+            app.logger.info(f"GET Composition failure for compositionid={compid} ehrid={eid} format={filetype}")
         myresp['text']=response.text
         myresp["headers"]=response.headers
         return myresp
@@ -439,9 +570,14 @@ def getcomp(auth,hostname,port,username,password,compid,eid,filetype):
                        params={'ehrId':eid,'format':'FLAT'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
                       )           
-        print(response.text)
-        print(response.status_code)
-        print(response.headers)
+        app.logger.debug('Response Url')
+        app.logger.debug(response.url)
+        app.logger.debug('Response Status Code')
+        app.logger.debug(response.status_code)
+        app.logger.debug('Response Text')
+        app.logger.debug(response.text)
+        app.logger.debug('Response Headers')
+        app.logger.debug(response.headers)
         myresp={}
         myresp["status_code"]=response.status_code
         myresp['compositionid']=compid
@@ -449,15 +585,18 @@ def getcomp(auth,hostname,port,username,password,compid,eid,filetype):
         if(response.status_code<210 and response.status_code>199):
             myresp["status"]="success"
             myresp['flat']=json.dumps(json.loads(response.text)['composition'],sort_keys=True, indent=4, separators=(',', ': '))
+            app.logger.info(f"GET Composition success for compositionid={compid} ehrid={eid} format={filetype}")
         else:
             myresp["status"]="failure"
+            app.logger.warning(f"GET Composition failure for compositionid={compid} ehrid={eid} format={filetype}")
         myresp['text']=response.text
         myresp["headers"]=response.headers
         return myresp
 
 
-def postaql(auth,hostname,port,username,password,aqltext,qname,version,qtype):
-    print('inside post_aql')
+def postaql(client,auth,hostname,port,username,password,aqltext,qname,version,qtype):
+    from app import app
+    app.logger.debug('inside postaql')
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)
     if(qtype==""):
@@ -466,36 +605,48 @@ def postaql(auth,hostname,port,username,password,aqltext,qname,version,qtype):
         version="1.0.0"
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/query/'+qname+"/"+version)
     response = client.put(myurl,params={'type':qtype,'format':'RAW'},headers={'Authorization':auth,'Content-Type':'text/plain'},data=aqltext)
-    print(response.url)
-    print(response.text)
-    print(response.status_code)
-    print(response.headers)
+    app.logger.debug('Response Url')
+    app.logger.debug(response.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response.headers)
+    app.logger.debug(f"aqltext={aqltext} qname={qname} qtype={qtype} version={version}")
     myresp={}
     myresp["status_code"]=response.status_code
     if(response.status_code<210 and response.status_code>199):
         myresp["status"]="success"
         myresp['text']=response.text
         myresp["headers"]=response.headers
-        #myresp['compositionid']=response.headers['Location'].split("composition/")[1]
+        app.logger.info(f"AQL POST success")
     else:
         myresp["status"]="failure"
         myresp['text']=response.text
         myresp["headers"]=response.headers
+        app.logger.warning("AQL POST failure")
     return myresp
 
-def getaql(auth,hostname,port,username,password,qname,version):
+def getaql(client,auth,hostname,port,username,password,qname,version):
+    from app import app
     client.auth = (username,password)
-    print('inside get_aql')
+    app.logger.debug('inside getaql')
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     if(version!=""):
         myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/query/'+qname+"/"+version)
     else:
         myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/query/'+qname)
     response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'})
-    print(response.url)
-    print(response.text)
-    print(response.status_code)
-    print(response.headers)
+    app.logger.debug('Response Url')
+    app.logger.debug(response.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response.headers)
+    app.logger.debug(f"qname={qname} version={version}")
     myresp={}
     myresp["status_code"]=response.status_code
     textok=True
@@ -508,15 +659,19 @@ def getaql(auth,hostname,port,username,password,qname,version):
         myresp["headers"]=response.headers
         if ('q' in myresp['text']):
             myresp['aql']=json.loads(myresp['text'])['q']
+        app.logger.info("AQL GET success")
     else:
         myresp["status"]="failure"
         myresp['text']=response.text
         myresp["headers"]=response.headers
+        app.logger.warning("AQL GET failure")
     return myresp  
 
-def runaql(auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam,qname,version):
-    print('inside run_aql')
+def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam,qname,version):
+    from app import app
+    app.logger.debug('inside runaql')
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    app.logger.debug(f"aqltext={qmethod} qmethod={qmethod} limit={limit} ehrid={eid} qparam={qparam} qname={qname} version={version}")
     client.auth = (username,password)
     if(aqltext !=""): #PASTED QUERY
         if(qmethod=="GET"):    
@@ -543,7 +698,7 @@ def runaql(auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam
                         val=value
                     myqp[key]=val
                 params["query_parameters"]=myqp
-            print(f"params={params}")
+            app.logger.debug(f"params={params}")
             response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
                 params=params)
         else: #POST
@@ -571,23 +726,29 @@ def runaql(auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam
                             val=value
                             qv[key]=val
                 data["query_parameters"]=qv
-            print(f"data={data}")
+            app.logger.debug(f"data={data}")
             response = client.post(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
                 data=json.dumps(data) )
-        print(response.url)
-        print(response.text)
-        print(response.status_code)
-        print(response.headers)
+        app.logger.debug('Response Url')
+        app.logger.debug(response.url)
+        app.logger.debug('Response Status Code')
+        app.logger.debug(response.status_code)
+        app.logger.debug('Response Text')
+        app.logger.debug(response.text)
+        app.logger.debug('Response Headers')
+        app.logger.debug(response.headers)
         myresp={}
         myresp["status_code"]=response.status_code
         if(response.status_code<210 and response.status_code>199):
             myresp["status"]="success"
             myresp['text']=response.text
             myresp["headers"]=response.headers
+            app.logger.info(f"RUN AQL success. qmethod={qmethod}")
         else:
             myresp["status"]="failure"
             myresp['text']=response.text
             myresp["headers"]=response.headers
+            app.logger.info(f"RUN AQL failure. qmethod={qmethod}")
         return myresp  
     else: #STORED QUERY
         if(qmethod=="GET"):  
@@ -613,7 +774,7 @@ def runaql(auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam
                         val=value
                     myqp[key]=val
                 params["query_parameters"]=myqp
-            print(f"params={params}")
+            app.logger.debug(f"params={params}")
             response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
                 params=params)
         else: #POST
@@ -640,27 +801,35 @@ def runaql(auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam
                             val=value
                             qv[key]=val
                 data["query_parameters"]=qv
-            print(f"data={data}")
+            app.logger.debug(f"data={data}")
             response = client.post(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
                 data=json.dumps(data) )
-        print(response.url)
-        print(response.text)
-        print(response.status_code)
-        print(response.headers)
+        app.logger.debug('Response Url')
+        app.logger.debug(response.url)
+        app.logger.debug('Response Status Code')
+        app.logger.debug(response.status_code)
+        app.logger.debug('Response Text')
+        app.logger.debug(response.text)
+        app.logger.debug('Response Headers')
+        app.logger.debug(response.headers)
         myresp={}
         myresp["status_code"]=response.status_code
         if(response.status_code<210 and response.status_code>199):
             myresp["status"]="success"
             myresp['text']=response.text
             myresp["headers"]=response.headers
+            app.logger.info(f"RUN stored AQL success. qmethod={qmethod} qname={qname} version={version}")
         else:
             myresp["status"]="failure"
             myresp['text']=response.text
             myresp["headers"]=response.headers
+            app.logger.warning(f"RUN stored AQL failure. qmethod={qmethod} qname={qname} version={version}")
         return myresp  
 
 
-def compcheck(auth,hostname,port,composition,eid,filetype,compid):
+def compcheck(client,auth,hostname,port,composition,eid,filetype,compid):
+    from app import app
+    app.logger.debug('      inside compcheck')
     if(filetype=="XML"):
         EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
         myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition/'+compid)
@@ -681,7 +850,6 @@ def compcheck(auth,hostname,port,composition,eid,filetype,compid):
         origcomposition=json.loads(composition)
         if(response.status_code<210 and response.status_code>199):       
             retrievedcomposition=json.loads(response.text)
-            print(retrievedcomposition) 
             origchanged=myutils.change_naming(origcomposition)
             retrchanged=myutils.change_naming(retrievedcomposition)
             comparison_results=myutils.compare_jsons(origchanged,retrchanged)
@@ -700,7 +868,6 @@ def compcheck(auth,hostname,port,composition,eid,filetype,compid):
         origcomposition=json.loads(composition)
         if(response.status_code<210 and response.status_code>199):
             retrievedcomposition=json.loads(response.text)['composition']
-            print(retrievedcomposition)
             origchanged=myutils.change_naming(origcomposition)
             retrchanged=myutils.change_naming(retrievedcomposition)
             comparison_results=myutils.compare_jsons(origchanged,retrchanged)
@@ -712,8 +879,9 @@ def compcheck(auth,hostname,port,composition,eid,filetype,compid):
             
     
     
-def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,adpassword):
-    print('inside dashboard info')
+def get_dashboard_info(client,auth,hostname,port,username,password,adauth,adusername,adpassword):
+    from app import app
+    app.logger.debug('inside get_dashboard info')
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     client.auth = (username,password)            
     #get aql stored
@@ -721,18 +889,24 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
     myresp['status']='failure'
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/query/')
     responseaql = client.get(myurl, headers={'Authorization':auth,'Content-Type': 'application/json'})                     
-    print (responseaql.url)
-    print (responseaql.status_code)
-    print (responseaql.text)
-    print (responseaql.headers)
-    print(type(responseaql.text))
+    app.logger.debug('Get AQL stored')
+    app.logger.debug('Response Url')
+    app.logger.debug(responseaql.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(responseaql.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(responseaql.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(responseaql.headers)
     if(responseaql.status_code<210 and responseaql.status_code>199):
         resultsaql=json.loads(responseaql.text)['versions']
         myresp['aql']=len(resultsaql) 
         myresp['status']='success1'
+        app.logger.debug('Dashboard: GET AQL stored success')
     else:
         myresp['text']=responseaql.text
         myresp['headers']=responseaql.headers
+        app.logger.warning("Dashboard: GET AQL failure")
         return myresp
     # get total ehrs  
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/aql')
@@ -741,18 +915,23 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
     data['q']=aqltext
     response = client.post(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
                 data=json.dumps(data) )
-    print(response.url)
-    print(response.text)
-    print(response.status_code)
-    print(response.headers)
-  
+    app.logger.debug('Response Url')
+    app.logger.debug(response.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response.headers)  
     if(response.status_code<210 and response.status_code>199):
         results=json.loads(response.text)['rows']
         myresp['ehr']=len(results) 
         myresp['status']='success2'
+        app.logger.debug('Dashboard: GET list ehrs success')
     else:
         myresp['text']=response.text
         myresp['headers']=response.headers
+        app.logger.warning('Dashboard: GET list ehrs failure')
         return myresp
 
     #get ehrid,compid, templateid list
@@ -762,18 +941,24 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
     data['q']=aqltext
     response = client.post(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
                 data=json.dumps(data) )
-    print(response.url)
-   # print(response.text)
-    print(response.status_code)
-    print(response.headers)
+    app.logger.debug('Response Url')
+    app.logger.debug(response.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response.headers)
   
     if(response.status_code<210 and response.status_code>199):
         results=json.loads(response.text)['rows']
         myresp['composition']=len(results)
         myresp['status']='success3'
+        app.logger.debug('Dashboard: GET list ehrs,compositions,templates used success')
     else:
         myresp['text']=response.text
         myresp['headers']=response.headers
+        app.logger.warning('Dashboard: GET list ehrs,compositions,templates used failure')
         return myresp 
     #calculate total ehr in use    
     ehr=set(r[0] for r in results)
@@ -784,12 +969,17 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
     #get templates
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4')
     response2=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'})
-    print(response2.url)
-    print(response2.text)
-    print(response2.status_code)
-    print(response2.headers)
+    app.logger.debug('Response Url')
+    app.logger.debug(response2.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response2.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response2.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response2.headers)
   
     if(response2.status_code<210 and response2.status_code>199):
+        app.logger.debug(f"Dashboard: GET all templates success")
         resultstemp=json.loads(response2.text)
         myresp['template']=len(resultstemp)
         templates=[rt['template_id'] for rt in resultstemp]
@@ -819,6 +1009,7 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
         myresp['pie_label']=list(d.keys())
         myresp['pie_value']=list(d.values())
     else:
+        app.logger.warning(f"Dashboard: Get all templates failure")
         myresp['text']=response2.text
         myresp['headers']=response2.headers
         return myresp               
@@ -838,11 +1029,16 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
         EHR_SERVER = "http://"+hostname+":"+port+"/ehrbase/"
         myurl=url_normalize(EHR_SERVER  + 'management/info')
         resp = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
-        print(resp.url)
-        print(resp.text)
-        print(resp.status_code)
-        print(resp.headers)        
+        app.logger.debug('Response Url')
+        app.logger.debug(resp.url)
+        app.logger.debug('Response Status Code')
+        app.logger.debug(resp.status_code)
+        app.logger.debug('Response Text')
+        app.logger.debug(resp.text)
+        app.logger.debug('Response Headers')
+        app.logger.debug(resp.headers)     
         if(resp.status_code<210 and resp.status_code>199):
+            app.logger.debug("Dashboard: GET management info success")
             myresp['status']='success5'
             info=json.loads(resp.text)['build']
             myinfo={}
@@ -851,17 +1047,23 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
             myinfo['archie']=info['archie']['version']
             myresp['info']=myinfo
         else:
+            app.logger.warning("Dashboard: GET management info failure")
             myresp['text']=resp.text
             myresp['headers']=resp.headers
             return myresp 
     
         myurl=url_normalize(EHR_SERVER  + 'management/env')
         resp2 = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
-        print(resp2.url)
-        print(resp2.text)
-        print(resp2.status_code)
-        print(resp2.headers)           
+        app.logger.debug('Response Url')
+        app.logger.debug(resp2.url)
+        app.logger.debug('Response Status Code')
+        app.logger.debug(resp2.status_code)
+        app.logger.debug('Response Text')
+        app.logger.debug(resp2.text)
+        app.logger.debug('Response Headers')
+        app.logger.debug(resp2.headers)         
         if(resp2.status_code<210 and resp2.status_code>199):
+            app.logger.debug("Dashboard: GET management env success")
             env=json.loads(resp2.text)
             myresp['status']='success6'
             myenv={}
@@ -894,10 +1096,17 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
             db["url"]=env["propertySources"][3]["properties"]["DB_URL"]["value"]
             myresp["db"]=db
             aql={}
-            aql["ENV_AQL_ARRAY_DEPTH"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_DEPTH"]["value"]
-            aql["ENV_AQL_ARRAY_IGNORE_NODE"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_IGNORE_NODE"]["value"]
-            aql["ENV_AQL_ARRAY_DEPTH"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_DEPTH"]["value"]
-            aql["ENV_AQL_ARRAY_IGNORE_NODE"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_IGNORE_NODE"]["value"]
+            if "ENV_AQL_ARRAY_DEPTH" in env["propertySources"][3]["properties"]:
+                aql["ENV_AQL_ARRAY_DEPTH"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_DEPTH"]["value"]
+                aql["ENV_AQL_ARRAY_IGNORE_NODE"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_IGNORE_NODE"]["value"]
+                aql["ENV_AQL_ARRAY_DEPTH"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_DEPTH"]["value"]
+                aql["ENV_AQL_ARRAY_IGNORE_NODE"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_IGNORE_NODE"]["value"]
+            else:
+                aql["ENV_AQL_ARRAY_DEPTH"]='Unknown'
+                aql["ENV_AQL_ARRAY_IGNORE_NODE"]='Unknown'
+                aql["ENV_AQL_ARRAY_DEPTH"]='Unknown'
+                aql["ENV_AQL_ARRAY_IGNORE_NODE"]='Unknown'
+
             aql["server.aqlConfig.useJsQuery"]=env["propertySources"][4]["properties"]["server.aqlConfig.useJsQuery"]["value"]
             aql["server.aqlConfig.ignoreIterativeNodeList"]=env["propertySources"][4]['properties']["server.aqlConfig.ignoreIterativeNodeList"]["value"]
             aql["server.aqlConfig.iterationScanDepth"]=env["propertySources"][4]['properties']["server.aqlConfig.iterationScanDepth"]["value"]
@@ -906,7 +1115,10 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
             gen_properties["HOSTNAME"]=env["propertySources"][3]['properties']["HOSTNAME"]["value"]
             gen_properties["LANG"]=env["propertySources"][3]['properties']["LANG"]["value"]
             gen_properties["SECURITY_AUTHTYPE"]=env["propertySources"][3]['properties']["SECURITY_AUTHTYPE"]["value"]
-            gen_properties["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]=env["propertySources"][3]['properties']["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]["value"]
+            if( "SYSTEM_ALLOW_TEMPLATE_OVERWRITE") in env["propertySources"][3]['properties']:
+                gen_properties["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]=env["propertySources"][3]['properties']["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]["value"]
+            else:
+                gen_properties["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]='Unknown'
             myresp["gen_properties"]=gen_properties
             terminology={}
             terminology["validation.external-terminology.enabled"]=env["propertySources"][5]['properties']["validation.external-terminology.enabled"]["value"]
@@ -920,19 +1132,23 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
             plugin["plugin-manager.plugin-context-path"]=env["propertySources"][5]['properties']["plugin-manager.plugin-context-path"]["value"]
             myresp['plugin']=plugin   
         else:
+            app.logger.warning(f"Dashboard: GET management env failure")
             myresp['text']=resp2.text
             myresp['headers']=resp2.headers
             return myresp 
     
-
-
         myurl=url_normalize(EHR_SERVER  + 'management/health')
         resp3 = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
-        print(resp3.url)
-        print(resp3.text)
-        print(resp3.status_code)
-        print(resp3.headers)          
+        app.logger.debug('Response Url')
+        app.logger.debug(resp3.url)
+        app.logger.debug('Response Status Code')
+        app.logger.debug(resp3.status_code)
+        app.logger.debug('Response Text')
+        app.logger.debug(resp3.text)
+        app.logger.debug('Response Headers')
+        app.logger.debug(resp3.headers)       
         if(resp3.status_code<210 and resp3.status_code>199):
+            app.logger.info("Dashboard: GET management health success")
             health=json.loads(resp3.text)
             myresp["db"]["db"]=health["components"]["db"]["details"]["database"]
             disk={}
@@ -941,16 +1157,19 @@ def get_dashboard_info(auth,hostname,port,username,password,adauth,adusername,ad
             myresp["disk"]=disk
             myresp['status']='success7'
         else:
+            app.logger.warning("Dashboard: GET management health failure")
             myresp['text']=resp3.text
             myresp['headers']=resp3.headers
             return myresp             
         return myresp
 
 
-def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sidpath,snamespace,filetype,myrandom,comps,inlist):
+def postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,check,sidpath,snamespace,filetype,myrandom,comps,inlist):
+    from app import app
     client.auth = (username,password)
-    print('inside post_batch composition1')
+    app.logger.debug('inside postbatch1')
     ehrslist=[]
+    number_of_files=len(uploaded_files)
     if(inlist==True):
         EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
         client.auth = (username,password)            
@@ -960,11 +1179,16 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
         data['q']=aqltext
         response = client.post(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
                 data=json.dumps(data) )
-        print(response.url)
-        print(response.text)
-        print(response.status_code)
-        print(response.headers)
+        app.logger.debug('Response Url')
+        app.logger.debug(response.url)
+        app.logger.debug('Response Status Code')
+        app.logger.debug(response.status_code)
+        app.logger.debug('Response Text')
+        app.logger.debug(response.text)
+        app.logger.debug('Response Headers')
+        app.logger.debug(response.headers)
         if(response.status_code<210 and response.status_code>199):
+            app.logger.debug("Postbatch1: get all Ehrs success")
             results=json.loads(response.text)['rows']
             ehrslist=[r[0] for r in results]       
             if len(ehrslist)==0:
@@ -979,8 +1203,6 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
         filenamefailed=[]
         filenamecheckfailed=[]
         for uf,composition in zip(uploaded_files,comps):
-#            uf.stream.seek(0)
-#            composition=uf.read()
             root=etree.fromstring(composition)
             #create EHRID
             if(myrandom):
@@ -989,8 +1211,9 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
             else:
                 sna=snamespace
                 sid=findpath(filetype,sidpath,composition)
-                print(f'sid found={sid}')
+                app.logger.debug(f'sid found={sid}')
                 if(sid==-1):
+                    app.logger.warning(f"Chosen field={sidpath} not found in file. Couldn't obtain a valid subject_id")
                     myresp['status']='failed'
                     myresp['error']='Error while getting the SubjectID. Chosen Field not found in file' + uf.filename
                     myresp['success']=succ
@@ -1002,16 +1225,16 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
                     return myresp
             eid=""
             if(inlist==False):
-                resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+                resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
                 if(resp10['status']!='success'):
                     if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                         #get ehr summary by subject_id , subject_namespace
                         payload = {'subject_id':sid,'subject_namespace':sna}
                         ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
-                        print('ehr already existent')
                         eid=json.loads(ehrs.text)["ehr_id"]["value"]
+                        app.logger.debug('ehr already existent')
                         eids.append(eid)
-                        print(f'Patient {sid}: retrieved ehrid={eid}')
+                        app.logger.debug(f'Patient {sid}: retrieved ehrid={eid}')
                 else:
                     eid=resp10['ehrid']
                     eids.append(eid)
@@ -1022,28 +1245,39 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
             response = client.post(myurl,
                        params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml', \
                            'accept':'application/xml'}, data=etree.tostring(root)) 
-            print(response.text)
-            print(response.status_code)
-            print(response.headers)
+            app.logger.debug('Response Url')
+            app.logger.debug(response.url)
+            app.logger.debug('Response Status Code')
+            app.logger.debug(response.status_code)
+            app.logger.debug('Response Text')
+            app.logger.debug(response.text)
+            app.logger.debug('Response Headers')
+            app.logger.debug(response.headers)
             if(response.status_code<210 and response.status_code>199):
                 succ+=1
                 cid=response.headers['Location'].split("composition/")[1]
                 compids.append(cid)
+                app.logger.info(f'postbatch1: POST success composition={cid} format={filetype} filename={uf.filename} ehrid={eid}')
                 if(check=="Yes"):
-                    checkinfo= compcheck(auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
+                        app.logger.info(f'postbatch1: successfully checked composition={cid} filename={uf.filename} ehrid={eid}')
                     else:
                         filenamecheckfailed.append(uf.filename)
+                        app.logger.warning(f'postbatch1: unsuccessfully checked composition={cid} filename={uf.filename} ehrid={eid}')
             else:
                 filenamefailed.append(uf.filename)
+                app.logger.warning(f'postbatch1: POST failure filename={uf.filename} ehrid={eid}')
         if(check=='Yes'):
-            if(csucc!=0):
+            app.logger.info(f"{csucc}/{number_of_files} files successfully POSTed and checked")
+            if(csucc==number_of_files):
                 myresp['status']='success'
             else:
                 myresp['status']='failure'
         else:
-            if(succ!=0):
+            app.logger.info(f"{succ}/{number_of_files} files successfully POSTed")
+            if(succ==number_of_files):
                 myresp['status']='success'
             else:
                 myresp['status']='failure'
@@ -1076,8 +1310,9 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
             else:
                 sna=snamespace
                 sid=findpath(filetype,sidpath,comp)
-                print(f'sid found={sid}')
+                app.logger.debug(f'sid found={sid}')
                 if(sid==-1):
+                    app.logger.warning(f"Chosen field={sidpath} not found in file. Couldn't obtain a valid subject_id")
                     myresp['status']='failed'
                     myresp['error']='Error while getting the SubjectID. Chosen Field not found in file' + uf.filename
                     myresp['nsuccess']=succ
@@ -1089,16 +1324,16 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
                     return myresp
             eid=""
             if(inlist==False):            
-                resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+                resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
                 if(resp10['status']!='success'):
                     if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                         #get ehr summary by subject_id , subject_namespace
                         payload = {'subject_id':sid,'subject_namespace':sna}
                         ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
-                        print('ehr already existent')
                         eid=json.loads(ehrs.text)["ehr_id"]["value"]
+                        app.logger.debug('ehr already existent')
                         eids.append(eid)
-                        print(f'Patient {sid}: retrieved ehrid={eid}')
+                        app.logger.debug(f'Patient {sid}: retrieved ehrid={eid}')
                 else:
                     eid=resp10['ehrid']
                     eids.append(eid)
@@ -1108,27 +1343,38 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
             myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition')
             response = client.post(myurl,params={'format': 'RAW'},headers={'Authorization':auth,'Content-Type':'application/json', \
              'accept':'application/json'}, data=compositionjson)   
-            print(response.text)
-            print(response.status_code)
-            print(response.headers)
+            app.logger.debug('Response Url')
+            app.logger.debug(response.url)
+            app.logger.debug('Response Status Code')
+            app.logger.debug(response.status_code)
+            app.logger.debug('Response Text')
+            app.logger.debug(response.text)
+            app.logger.debug('Response Headers')
+            app.logger.debug(response.headers)
             if(response.status_code<210 and response.status_code>199):
                 succ+=1
                 cid=response.headers['Location'].split("composition/")[1]
                 compids.append(cid)
+                app.logger.info(f'postbatch1: POST success composition={cid} format={filetype} filename={uf.filename} ehrid={eid}')
                 if(check=="Yes"):
-                    checkinfo= compcheck(auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
+                        app.logger.info(f'postbatch1: successfully checked composition={cid} filename={uf.filename} ehrid={eid}')
                     else:
                         filenamecheckfailed.append(uf.filename)
+                        app.logger.warning(f'postbatch1: unsuccessfully checked composition={cid} filename={uf.filename} ehrid={eid}')
             else:
                 filenamefailed.append(uf.filename)
+                app.logger.warning(f'postbatch1: POST failure filename={uf.filename} ehrid={eid}')
         if(check=='Yes'):
+            app.logger.info(f"{csucc}/{number_of_files} files successfully POSTed and checked")
             if(csucc!=0):
                 myresp['status']='success'
             else:
                 myresp['status']='failure'
         else:
+            app.logger.info(f"{succ}/{number_of_files} files successfully POSTed")
             if(succ!=0):
                 myresp['status']='success'
             else:
@@ -1151,11 +1397,7 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
         myresp={}
         filenamefailed=[]
         filenamecheckfailed=[]
-        print(type(uploaded_files))
         for uf,composition in zip(uploaded_files,comps):
-#            print(type(uf))
-#            uf.stream.seek(0)
-#            composition=uf.read()
             comp = json.loads(composition)
             compositionjson=json.dumps(comp) 
             #create EHRID
@@ -1165,8 +1407,9 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
             else:
                 sna=snamespace
                 sid=findpath(filetype,sidpath,comp)
-                print(f'sid found={sid}')
+                app.logger.debug(f'sid found={sid}')
                 if(sid==-1):
+                    app.logger.warning(f"Chosen field={sidpath} not found in file. Couldn't obtain a valid subject_id")
                     myresp['status']='failed'
                     myresp['error']='Error while getting the SubjectID. Chosen Field not found in file' + uf.filename
                     myresp['nsuccess']=succ
@@ -1178,16 +1421,16 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
                     return myresp
             eid=""
             if(inlist==False):
-                resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+                resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
                 if(resp10['status']!='success'):
                     if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                         #get ehr summary by subject_id , subject_namespace
                         payload = {'subject_id':sid,'subject_namespace':sna}
                         ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
-                        print('ehr already existent')
                         eid=json.loads(ehrs.text)["ehr_id"]["value"]
+                        app.logger.debug('ehr already existent')
                         eids.append(eid)
-                        print(f'Patient {sid}: retrieved ehrid={eid}')
+                        app.logger.debug(f'Patient {sid}: retrieved ehrid={eid}')
                 else:
                     eid=resp10['ehrid']
                     eids.append(eid)
@@ -1201,27 +1444,38 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=minimal'},
                        data=compositionjson
                       )
-            print(response.text)
-            print(response.status_code)
-            print(response.headers)
+            app.logger.debug('Response Url')
+            app.logger.debug(response.url)
+            app.logger.debug('Response Status Code')
+            app.logger.debug(response.status_code)
+            app.logger.debug('Response Text')
+            app.logger.debug(response.text)
+            app.logger.debug('Response Headers')
+            app.logger.debug(response.headers)
             if(response.status_code<210 and response.status_code>199):
                 succ+=1
                 cid=response.headers['Location'].split("composition/")[1]
                 compids.append(cid)
+                app.logger.info(f'postbatch1: POST success composition={cid} format={filetype} filename={uf.filename} ehrid={eid}')                
                 if(check=="Yes"):
-                    checkinfo= compcheck(auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
+                        app.logger.info(f'postbatch1: successfully checked composition={cid} filename={uf.filename} ehrid={eid}')
                     else:
                         filenamecheckfailed.append(uf.filename)
+                        app.logger.warning(f'postbatch1: unsuccessfully checked composition={cid} filename={uf.filename} ehrid={eid}')
             else:
                 filenamefailed.append(uf.filename)
+                app.logger.warning(f'postbatch1: POST failure filename={uf.filename} ehrid={eid}')
         if(check=='Yes'):
+            app.logger.info(f"{csucc}/{number_of_files} files successfully POSTed and checked")
             if(csucc!=0):
                 myresp['status']='success'
             else:
                 myresp['status']='failure'
         else:
+            app.logger.info(f"{succ}/{number_of_files} files successfully POSTed and checked")
             if(succ!=0):
                 myresp['status']='success'
             else:
@@ -1237,6 +1491,8 @@ def postbatch1(auth,hostname,port,username,password,uploaded_files,tid,check,sid
 
 
 def findpath(filetype,sidpath,composition):
+    from app import app
+    app.logger.debug('      inside findpath')
     elements=sidpath.split("/")
     elements=[el.lower().replace("_"," ") for el in elements]
     if(filetype=="XML"):
@@ -1267,9 +1523,6 @@ def findpath(filetype,sidpath,composition):
             return -1
     elif(filetype=="JSON"):
         matches=[]
-        # print("before findjson")
-        # print(composition)
-        print(elements[-1])
         findjson("value", elements[-1], composition, "", matches) 
         if(len(matches)==1):
             elm=matches[0].split('/')
@@ -1314,12 +1567,8 @@ def findpath(filetype,sidpath,composition):
             return -1
     else:#FLAT JSON
         matches=[]
-        #print(composition)
         for c in composition:
-            #print(c.lower().replace("_"," "),elements[-1])
             if(elements[-1] in c.lower().replace("_"," ")):
-                    # print("found")
-                    # print(composition[c])
                     matches.append(c)
         if(len(matches)==1):
             return composition[matches[0]]
@@ -1340,40 +1589,18 @@ def findpath(filetype,sidpath,composition):
             return -1
 
 def findjson(keytofind, valuetofind, JSON, path, all_paths):
-    # print("------------------------------------------") 
-    # print("findjson called")
-    # print(JSON)
-    # if(type(JSON)==dict):
-        # print(keytofind,JSON.keys())
-        # print(JSON.values())
-        # print(keytofind in JSON)
-        # if(keytofind in JSON):
-        #     print(valuetofind in JSON[keytofind])
-        #     print(type(JSON[keytofind]))
-        #     if(type(JSON[keytofind])==str):
-        #         print(JSON[keytofind].lower())
+    from app import app
+    app.logger.debug('      inside findjson')
     if keytofind in JSON and type(JSON[keytofind])==str and valuetofind in JSON[keytofind].lower():
         path = path + keytofind 
         all_paths.append(path)
-        print('FOUND')
-        print(JSON)
-        #print(keytofind,JSON[keytofind],path)
-    # print("JSON PRIMA")
-    # print(type(JSON))
-    #print(JSON)
     for i,key in enumerate(JSON):
-        # print("key")
-        # print(key)
         if(type(JSON) is list):
-            # print("JSON is list")
             findjson(keytofind, valuetofind, key, path + '['+str(i)+']/',all_paths)
         else:
             if isinstance(JSON[key], dict):
-                # print("json[key] is dict")
-                # print(JSON[key])
                 findjson(keytofind, valuetofind, JSON[key], path + key + '/',all_paths)
             elif(type(JSON[key]) is list):
-                # print("json[key] is list")
                 findjson(keytofind, valuetofind, JSON[key], path + key,all_paths)
 
 
@@ -1382,9 +1609,11 @@ def randomstring(N=10,chars=string.ascii_letters+string.digits):
     return ''.join(random.choice(chars) for _ in range(N))
 
 
-def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid,filetype,random,comps):
+def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,check,eid,filetype,random,comps):
+    from app import app
     client.auth = (username,password)
-    print('inside post_batch composition1')
+    app.logger.debug('inside postbatch2')
+    number_of_files=len(uploaded_files)
     if(filetype=="XML"):
         EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"  
         succ=0
@@ -1392,28 +1621,27 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
         compids=[]
         filenamefailed=[]
         filenamecheckfailed=[]
-
         #create EHRID
         if(random):
             sid=randomstring()
             sna='fakenamespace'
             eid=""
-            resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+            resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
             if(resp10['status']!='success'):
                 if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                     #get ehr summary by subject_id , subject_namespace
                     payload = {'subject_id':sid,'subject_namespace':sna}
                     ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
-                    print('ehr already existent')
+                    app.logger.debug('ehr already existent')
                     eid=json.loads(ehrs.text)["ehr_id"]["value"]
-                    print(f'Patient {sid}: retrieved ehrid={eid}')
+                    app.logger.debug(f'Patient {sid}: retrieved ehrid={eid}')
             else:
                 eid=resp10['ehrid']
         else:
-            resp10=createehrid(auth,hostname,port,username,password,eid)
+            resp10=createehrid(client,auth,hostname,port,username,password,eid)
             if(resp10['status']!='success'):
                 myerror="couldn't create ehrid="+eid+" "+resp10['status_code']+"\n"+ resp10['headers']+"\n"+resp10['text']
-                print(myerror)
+                app.logger.debug(myerror)
                 myresp['error']=myerror
                 myresp['status']='failed'
                 myresp['success']=succ
@@ -1433,22 +1661,27 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
             response = client.post(myurl,
                        params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml', \
                            'accept':'application/xml'}, data=etree.tostring(root)) 
-            print(response.text)
-            print(response.status_code)
-            print(response.headers)
+            app.logger.debug(response.text)
+            app.logger.debug(response.status_code)
+            app.logger.debug(response.headers)
             if(response.status_code<210 and response.status_code>199):
                 succ+=1
                 cid=response.headers['Location'].split("composition/")[1]
+                app.logger.info(f'postbatch2: POST success composition={cid} format={filetype} filename={uf.filename} ehrid={eid}')
                 compids.append(cid)
                 if(check=="Yes"):
-                    checkinfo= compcheck(auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
+                        app.logger.info(f'postbatch2: successfully checked composition={cid} filename={uf.filename} ehrid={eid}')
                     else:
                         filenamecheckfailed.append(uf.filename)
+                        app.logger.warning(f'postbatch2: unsuccessfully checked composition={cid} filename={uf.filename} ehrid={eid}')
             else:
                 filenamefailed.append(uf.filename)
+                app.logger.warning(f'postbatch2: POST failure filename={uf.filename} ehrid={eid}')
         if(check=='Yes'):
+            app.logger.info(f"{csucc}/{number_of_files} files successfully POSTed and checked")
             if(csucc!=0):
                 myresp['status']='success'
             else:
@@ -1473,28 +1706,27 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
         myresp={}
         filenamefailed=[]
         filenamecheckfailed=[]
-
         #create EHRID
         if(random):
             sid=randomstring()
             sna='fakenamespace'
             eid=""
-            resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+            resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
             if(resp10['status']!='success'):
                 if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                     #get ehr summary by subject_id , subject_namespace
                     payload = {'subject_id':sid,'subject_namespace':sna}
                     ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
-                    print('ehr already existent')
+                    app.logger.debug('ehr already existent')
                     eid=json.loads(ehrs.text)["ehr_id"]["value"]
-                    print(f'Patient {sid}: retrieved ehrid={eid}')
+                    app.logger.debug(f'Patient {sid}: retrieved ehrid={eid}')
             else:
                 eid=resp10['ehrid']
         else:
-            resp10=createehrid(auth,hostname,port,username,password,eid)
+            resp10=createehrid(client,auth,hostname,port,username,password,eid)
             if(resp10['status']!='success'):
                 myerror=f"couldn't create ehrid={eid}"+" "+resp10['status_code']+"\n"+ resp10['headers']+"\n"+resp10['text']
-                print(myerror)
+                app.logger.debug(myerror)
                 myresp['error']=myerror
                 myresp['status']='failed'
                 myresp['success']=succ
@@ -1506,8 +1738,6 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
             else:
                 eid=resp10['ehrid']
 
-
-
         for uf,composition in zip(uploaded_files,comps):
 #            uf.stream.seek(0)
 #            composition=uf.read()
@@ -1516,27 +1746,38 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
             myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition')
             response = client.post(myurl,params={'format': 'RAW'},headers={'Authorization':auth,'Content-Type':'application/json', \
              'accept':'application/json'}, data=compositionjson)   
-            print(response.text)
-            print(response.status_code)
-            print(response.headers)
+            app.logger.debug('Response Url')
+            app.logger.debug(response.url)
+            app.logger.debug('Response Status Code')
+            app.logger.debug(response.status_code)
+            app.logger.debug('Response Text')
+            app.logger.debug(response.text)
+            app.logger.debug('Response Headers')
+            app.logger.debug(response.headers)
             if(response.status_code<210 and response.status_code>199):
                 succ+=1
                 cid=response.headers['Location'].split("composition/")[1]
+                app.logger.info(f'postbatch2: POST success composition={cid} format={filetype} filename={uf.filename} ehrid={eid}')
                 compids.append(cid)
                 if(check=="Yes"):
-                    checkinfo= compcheck(auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
+                        app.logger.info(f'postbatch2: successfully checked composition={cid} filename={uf.filename} ehrid={eid}')
                     else:
                         filenamecheckfailed.append(uf.filename)
-            else:
+                        app.logger.warning(f'postbatch2: unsuccessfully checked composition={cid} filename={uf.filename} ehrid={eid}')
+            else:       
                 filenamefailed.append(uf.filename)
+                app.logger.warning(f'postbatch2: POST failure filename={uf.filename} ehrid={eid}')
         if(check=='Yes'):
+            app.logger.info(f"{csucc}/{number_of_files} files successfully POSTed and checked")
             if(csucc!=0):
                 myresp['status']='success'
             else:
                 myresp['status']='failure'
         else:
+            app.logger.info(f"{succ}/{number_of_files} files successfully POSTed")
             if(succ!=0):
                 myresp['status']='success'
             else:
@@ -1549,7 +1790,6 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
         myresp['filenamecheckfailed']=filenamecheckfailed
         myresp['error']=""
         return myresp
-
     else:#FLAT JSON
         EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
         succ=0
@@ -1559,31 +1799,30 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
         filenamefailed=[]
         filenamecheckfailed=[]
         EHR_SERVER_BASE_URL_FLAT = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"    
-
         #create EHRID
         if(random):
             sid=randomstring()
             sna='fakenamespace'
             eid=""
-            resp10=createehrsub(auth,hostname,port,username,password,sid,sna,eid)
+            resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
             if(resp10['status']!='success'):
                 if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                     #get ehr summary by subject_id , subject_namespace
                     payload = {'subject_id':sid,'subject_namespace':sna}
                     ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
-                    print('ehr already existent')
+                    app.logger.debug('ehr already existent')
                     eid=json.loads(ehrs.text)["ehr_id"]["value"]
-                    print(f'Patient {sid}: retrieved ehrid={eid}')
+                    app.logger.debug(f'Patient {sid}: retrieved ehrid={eid}')
             else:
                 eid=resp10['ehrid']
         else:
-            resp10=createehrid(auth,hostname,port,username,password,eid)
+            resp10=createehrid(client,auth,hostname,port,username,password,eid)
             if(resp10['status']!='success'):
                 if(resp10['status_code']==409 and 'EHR with this ID already exists' in json.loads(resp10['text'])['message']):
                     pass
                 else:
                     myerror=f"couldn't create ehrid={eid}"+" "+resp10['status_code']+"\n"+ resp10['headers']+"\n"+resp10['text']
-                    print(myerror)
+                    app.logger.debug(myerror)
                     myresp['error']=myerror
                     myresp['status']='failed'
                     myresp['success']=succ
@@ -1596,9 +1835,6 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
                 eid=resp10['ehrid']
 
         for uf,composition in zip(uploaded_files,comps):
-#            print(type(uf))
-#            uf.stream.seek(0)
-#            composition=uf.read()
             comp = json.loads(composition)
             compositionjson=json.dumps(comp) 
             myurl=url_normalize(EHR_SERVER_BASE_URL_FLAT  + 'composition')
@@ -1607,27 +1843,38 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=minimal'},
                        data=compositionjson
                       )
-            print(response.text)
-            print(response.status_code)
-            print(response.headers)
+            app.logger.debug('Response Url')
+            app.logger.debug(response.url)
+            app.logger.debug('Response Status Code')
+            app.logger.debug(response.status_code)
+            app.logger.debug('Response Text')
+            app.logger.debug(response.text)
+            app.logger.debug('Response Headers')
+            app.logger.debug(response.headers)
             if(response.status_code<210 and response.status_code>199):
                 succ+=1
                 cid=response.headers['Location'].split("composition/")[1]
+                app.logger.info(f'postbatch2: POST success composition={cid} format={filetype} filename={uf.filename} ehrid={eid}')                
                 compids.append(cid)
                 if(check=="Yes"):
-                    checkinfo= compcheck(auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
+                        app.logger.info(f'postbatch2: successfully checked composition={cid} filename={uf.filename} ehrid={eid}')
                     else:
                         filenamecheckfailed.append(uf.filename)
+                        app.logger.warning(f'postbatch2: unsuccessfully checked composition={cid} filename={uf.filename} ehrid={eid}')
             else:
                 filenamefailed.append(uf.filename)
+                app.logger.warning(f'postbatch2: POST failure filename={uf.filename} ehrid={eid}') 
         if(check=='Yes'):
+            app.logger.info(f"{csucc}/{number_of_files} files successfully POSTed and checked")
             if(csucc!=0):
                 myresp['status']='success'
             else:
                 myresp['status']='failure'
         else:
+            app.logger.info(f"{succ}/{number_of_files} files successfully POSTed and checked")
             if(succ!=0):
                 myresp['status']='success'
             else:
@@ -1642,32 +1889,42 @@ def postbatch2(auth,hostname,port,username,password,uploaded_files,tid,check,eid
         return myresp
 
 
-def examplecomp(auth,hostname,port,username,password,template_name):
+def examplecomp(client,auth,hostname,port,username,password,template_name):
+    from app import app
     client.auth = (username,password)
-    print('inside example_composition')
+    app.logger.debug('inside examplecomp')
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
     myurl=url_normalize(EHR_SERVER_BASE_URL+'template/'+template_name+'/example')  
     response = client.get(myurl,
                        params={'format':'FLAT'},
                        headers={'Authorization':auth,'Content-Type':'application/json'}
                         )
-    print(response.text)
-    print(response.status_code)
-    print(response.headers)
+    app.logger.debug('Response Url')
+    app.logger.debug(response.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response.headers)
     myresp={}
     myresp["status_code"]=response.status_code
     if(response.status_code<210 and response.status_code>199):
         myresp["status"]="success"
         myresp['composition']=response.text
+        app.logger.info(f'GET Example composition success template={template_name}')
     else:
         myresp["status"]="failure"
+        app.logger.warning(f'GET Example composition failure template={template_name}')
     myresp['text']=response.text
     myresp["headers"]=response.headers
     return myresp
 
 
-def createform(auth,hostname,port,username,password,template_name):
-    resp=examplecomp(auth,hostname,port,username,password,template_name)
+def createform(client,auth,hostname,port,username,password,template_name):
+    from app import app
+    app.logger.debug('inside createform')
+    resp=examplecomp(client,auth,hostname,port,username,password,template_name)
     if(resp['status']=='failure'):
         return resp
     else:
@@ -1689,6 +1946,8 @@ def createform(auth,hostname,port,username,password,template_name):
         return msg
 
 def createformfile(contexttoadd,varcontext,contenttoadd,varcontent,template_name):
+    from app import app
+    app.logger.debug('      inside createformfile')
     c1=[]
     c3=[]
     c5=[]
@@ -1721,10 +1980,9 @@ def createformfile(contexttoadd,varcontext,contenttoadd,varcontent,template_name
         ff.write(varline+template_name+varend)
         ff.write(varline+str(varctx)+varline2+str(varcnt)+varend)
 
-
-
-
 def fillforms(listc,listcvalues,ivarstart):
+    from app import app
+    app.logger.debug('      inside fillforms')
     startrow='<div class="row">'
     endrow='</div>'
     startcol='   <div class="col">'
@@ -1746,8 +2004,6 @@ def fillforms(listc,listcvalues,ivarstart):
                 ctoadd.append(endrow)
             ctoadd.append(startrow)
         ctoadd.append(startcol)
-
-        # if(isinstance(c,list)):
         mylabel=c[0].split('|')[0]
         ctoadd.append(label1+mylabel+label3)
         for ci,vi in zip(c,v):
@@ -1772,6 +2028,8 @@ def fillforms(listc,listcvalues,ivarstart):
 
 
 def fillListsfromComp(flatcomp):
+    from app import app
+    app.logger.debug('      inside fillListsfromComp')
     listcontext=[]
     listcontextvalues=[]
     listcontent=[]
@@ -1779,64 +2037,50 @@ def fillListsfromComp(flatcomp):
     words1=['context','ctx','category','language','territory','composer']
     words2=['location','start_time','_end_time','setting','_health_care_facility','_participation','_uid']
     words3=['context','ctx']
-    # words4=['_uid']
     lastel=""
     for el in flatcomp:
-      #  print(el)
         second=el.split('/')[1].split('|')[0]
         last=el.split('/')[-1]
-        # if(last in words4):
-        #     continue
         if(second in words1):
             #check if in already considered fields
             if(second in words3):
                 third=el.split('/')[2].split('|')[0]
                 if(third in words2):
-                    print('not in context or content')
+                    app.logger.debug('not in context or content')
                     continue
                 else:
-     #               print('in context')
                     #check if left part already found
                     if(el.split('|')[0]==lastel.split('|')[0]):
-     #                   print('recognized')
                         listcontext[-1].append([el])
                         listcontextvalues[-1].append(flatcomp[el])
                     else:
-     #                   print('unrecognized')
                         listcontext.append([el])
                         listcontextvalues.append([flatcomp[el]])
                     lastel=el
             else:
-   #             print('not in context or content')
                 pass
         else:
-   #         print('in content')
             #check if left part already found
             if(el.split('|')[0]==lastel.split('|')[0]):
-                print('recognized')
                 listcontent[-1].append(el)
                 listcontentvalues[-1].append(flatcomp[el])
             else:
-   #             print('unrecognized')
-    #            print(el)
-     #           print(lastel)
                 listcontent.append([el])
                 listcontentvalues.append([flatcomp[el]])
             lastel=el
-   # print(listcontent)
-   # sys.exit(0)
     return listcontext,listcontent,listcontextvalues,listcontentvalues
 
 def readform():
+    from app import app
+    app.logger.debug('inside readform')
     with open('./templates/form.html','r') as ff:
         allfile=ff.readlines()
-    #allfilecorrected=[af.replace("#","%23") for af in allfile]
     formstring=''.join(allfile)
-    # with open('./pippolippo','w') as pl:
-    #     pl.write(formstring)
     return formstring
 
-def postform(auth,hostname,port,username,password,formname):
+def postform(client,auth,hostname,port,username,password,formname):
+    from app import app
+    app.logger.debug('inside postform')
     #retrieve var and path
     tid=formname
     formname=formname.lower()
@@ -2008,7 +2252,7 @@ def postform(auth,hostname,port,username,password,formname):
     checkresults=""
     checkinfo=""
     comp=json.dumps(composition)
-    myresp=postcomp(auth,hostname,port,username,password,comp,eid,tid,filetype,check)
+    myresp=postcomp(client,auth,hostname,port,username,password,comp,eid,tid,filetype,check)
     return myresp       
  
 def two_at_a_time(iterable):
@@ -2017,12 +2261,16 @@ def two_at_a_time(iterable):
     return zip(a, a)
 
 def retrievetemplatefromform(formloaded):
+    from app import app
+    app.logger.debug('      inside retrievetemplatefromform')
     index=formloaded.rfind("<!-- ", 0, formloaded.rfind("<!-- "))
     index2=formloaded.find(" -->",index,len(formloaded))
     template_name=formloaded[index+4:index2].strip()
     return template_name
 
 def fixformloaded(formloaded):
+    from app import app
+    app.logger.debug('      inside fixformloaded')
     #fix missing double braces 
     #<h1>Form for template form.html</h1>
     #{{forname}}
