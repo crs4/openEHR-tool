@@ -57,7 +57,9 @@ whereas all versions of Windows 11 are supported.
 
 # How to Install and Run
 
-## <span style="color:red">Installing and running locally</span>
+[//]: # (## <span style="color:red">Installing and running locally</span> )
+
+## &#x1F335; Installing and running locally&#x1F335;
 openEHRTool needs Python 3. It has been tested with Python 3.8 but it should work as well with other versions.
 After getting Python (3.8), install the required packages:
 For Linux or Windows:
@@ -128,7 +130,10 @@ Use the docker files inside the cloned directory.
 git clone https://github.com/sasurfer/openEHR-tool.git  
 cd openEHR-tool
 ```
-### <span style="color:red"> Docker "All in One"</span>
+
+[//]: # ( ### <span style="color:red"> Docker "All in One"</span> )
+
+### &#x1F335; Docker "All in One" &#x1F335;
 If you don't already have a working ehrbase server you can opt for the docker compose script that runs all the applications(EHRBase, openEHRTool and Redis) in the same docker subnet.
 
 #### Development
@@ -152,7 +157,9 @@ docker-compose -f docker-compose-total_prod.yml openehrtool build
 docker-compose -f docker-compose-total_prod.yml up
 ```
 
-### <span style="color:red"> Docker "Separated"</span>
+[//]: # ( ### <span style="color:red"> Docker "Separated"</span> )
+
+### &#x1F335; Docker "Separated" &#x1F335;
 EHRBase is run in a network/docker-compose separated from openEHRTool.
 
 #### Development
