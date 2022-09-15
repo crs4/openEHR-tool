@@ -9,4 +9,5 @@ templates/utemp.html
 templates/pcomp.html
 templates/pbatch1.html
 templates/pbatch2.html
+templates/test*
 .vscode/
