@@ -172,8 +172,6 @@ def gtemp():
     yourtemp=""
     tempjson=""
     yourjson='{}'
-    app.logger.info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-    app.logger.info(type(client))
     mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'gtempbase.html','gtemp.html')
     if(mymsg['status']=='failure'):
         return redirect(url_for("ehrbase"))

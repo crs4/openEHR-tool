@@ -76,7 +76,6 @@ def createPageFromBase4templatelist(client,auth,hostname,port,username,password,
 def gettemp(client,auth,hostname,port,username,password,tformat,template):
     from app import app
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    print(type(client))
     client.auth = (username,password)
     myresp={}
     app.logger.debug('inside gettemp')
