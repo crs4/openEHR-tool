@@ -76,6 +76,7 @@ def createPageFromBase4templatelist(client,auth,hostname,port,username,password,
 def gettemp(client,auth,hostname,port,username,password,tformat,template):
     from app import app
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    print(type(client))
     client.auth = (username,password)
     myresp={}
     app.logger.debug('inside gettemp')
@@ -85,8 +86,10 @@ def gettemp(client,auth,hostname,port,username,password,tformat,template):
         response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'})
     else: #format webtemplate
         EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL+'template/'+template+'/example')
-        response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/JSON'})
+        myurl=url_normalize(EHR_SERVER_BASE_URL+'template/'+template)
+        app.logger.debug('myurl')
+        app.logger.debug(myurl)        
+        response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/openehr.wt+json'})
     app.logger.debug('Response Url')
     app.logger.debug(response.url)
     app.logger.debug('Response Status Code')

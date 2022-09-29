@@ -85,7 +85,8 @@ def about():
 
 @app.route("/fsettings.html",methods=["GET"])
 def fset():
-    global hostname,port,username,password,nodename,adusername,adpassword,redishostname,redisport,reventsrecorded
+    global hostname,port,username,password,nodename,adusername,adpassword,redishostname,redisport,reventsrecorded, \
+      client
     if (os.path.exists(settingsfile)):
         varset=readconfig.readconfigfromfile(settingsfile)
         if(len(varset)==10):
@@ -110,8 +111,8 @@ def fset():
 
 @app.route("/settings.html",methods=["GET"])
 def ehrbase():
-    global hostname,port,username,password,nodename,lastehrid,lastcompositionid
-    global adusername,adpassword,redishostname,redisport,reventsrecorded
+    global hostname,port,username,password,nodename,lastehrid,lastcompositionid, \
+        adusername,adpassword,redishostname,redisport,reventsrecorded,client
 
     if request.args.get("pippo")=="Submit":
         hostname=request.args.get("hname","")
@@ -151,6 +152,7 @@ def ehrbase():
             global adauth
             adauth= myutils.getauth(adusername,adpassword)
         global auth,r
+        client=ehrbase_routines.init_ehrbase()
         auth = myutils.getauth(username,password)
         r=init_redis(redishostname,redisport)
         app.logger.info("settings changed from within app")
@@ -170,6 +172,8 @@ def gtemp():
     yourtemp=""
     tempjson=""
     yourjson='{}'
+    app.logger.info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+    app.logger.info(type(client))
     mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'gtempbase.html','gtemp.html')
     if(mymsg['status']=='failure'):
         return redirect(url_for("ehrbase"))
