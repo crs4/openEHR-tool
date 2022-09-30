@@ -187,6 +187,33 @@ def updatetemp(client,adauth,hostname,port,adusername,adpassword,uploaded_templa
         app.logger.warning(f'Update Template PUT failure for template={templateid}')    
         return myresp
 
+def deltemp(client,adauth,hostname,port,adusername,adpassword,templateid):
+    from app import app
+    app.logger.debug('inside deletetemp')
+    app.logger.info(f'Deleting template: template={templateid}')
+    EHR_SERVER_URL = "http://"+hostname+":"+port+"/ehrbase/"
+    client.auth = (adusername,adpassword)   
+    myurl=url_normalize(EHR_SERVER_URL  + 'rest/admin/template/'+templateid)
+    response=client.delete(myurl,headers={'Authorization':adauth })
+    app.logger.debug('Response Url')
+    app.logger.debug(response.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response.headers)
+    myresp={}
+    myresp['headers']=response.headers
+    myresp['status_code']=response.status_code
+    if(response.status_code<210 and response.status_code>199):
+        myresp['status']='success'
+        app.logger.info(f'Delete Template success for template={templateid}')        
+        return myresp
+    else:
+        myresp['status']='failure'
+        app.logger.warning(f'Delete Template failure for template={templateid}')    
+        return myresp
 
 def createehrid(client,auth,hostname,port,username,password,eid):
     from app import app

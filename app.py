@@ -155,6 +155,7 @@ def ehrbase():
         client=ehrbase_routines.init_ehrbase()
         auth = myutils.getauth(username,password)
         r=init_redis(redishostname,redisport)
+        client=ehrbase_routines.init_ehrbase()
         app.logger.info("settings changed from within app")
         return render_template('settings.html',ho=hostname,po=port,us=username,pas=password,no=nodename,
                     adus=adusername,adpas=adpassword,rho=redishostname,rpo=redisport,rr=reventsrecorded)
@@ -279,6 +280,28 @@ def pupdate():
                 return render_template('utemp.html',yourresults=yourresults)
     return render_template('utemp.html',yourresults=yourresults)
 
+
+@app.route("/dtemp.html",methods=["GET"])
+def dtemp():
+    global hostname,port,username,password,auth,nodename,mymsg
+    if(hostname=="" or port=="" or adusername=="" or adpassword=="" or nodename==""):
+        return redirect(url_for("ehrbase"))
+    yourresults=""
+    mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'dtempbase.html','dtemp.html')
+    if(mymsg['status']=='failure'):
+        return redirect(url_for("ehrbase"))
+    if request.args.get("pippo")=="Delete Template": 
+        template_name=request.args.get("tname","")
+        msg=ehrbase_routines.deltemp(client,adauth,hostname,port,adusername,adpassword,template_name)
+        if(msg['status']=='success'):
+            yourresults=str(msg['status'])+ " "+ str(msg['status_code'] + "\nTemplate "+template_name+ " successfully deleted")
+            insertlogline('Delete template:template '+template_name+' deleted successfully')
+        else:
+            yourresults=str(msg['status'])+ " "+ str(msg['status_code'] + "\nTemplate "+template_name+ " successfully deleted")
+            insertlogline('Delete template:template '+template_name+' deletion failure')            
+        return render_template('dtemp.html',yourresults=yourresults)
+    else:
+        return render_template('dtemp.html',yourresults=yourresults)
 
 
 @app.route("/pehr.html",methods=["GET"])
