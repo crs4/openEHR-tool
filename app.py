@@ -294,10 +294,10 @@ def dtemp():
         template_name=request.args.get("tname","")
         msg=ehrbase_routines.deltemp(client,adauth,hostname,port,adusername,adpassword,template_name)
         if(msg['status']=='success'):
-            yourresults=str(msg['status'])+ " "+ str(msg['status_code'] + "\nTemplate "+template_name+ " successfully deleted")
+            yourresults=msg['status']+ " "+ str(msg['status_code']) + "\nTemplate "+template_name+ " successfully deleted"
             insertlogline('Delete template:template '+template_name+' deleted successfully')
         else:
-            yourresults=str(msg['status'])+ " "+ str(msg['status_code'] + "\nTemplate "+template_name+ " successfully deleted")
+            yourresults=msg['status']+ " "+ str(msg['status_code']) + "\nTemplate "+template_name+ " successfully deleted"
             insertlogline('Delete template:template '+template_name+' deletion failure')            
         return render_template('dtemp.html',yourresults=yourresults)
     else:
@@ -1056,6 +1056,8 @@ def slog():
                 fv2=[f for f in fv1 if f.startswith("Post ")]
             elif(meth=='put'):
                 fv2=[f for f in fv1 if f.startswith("Put ")]
+            elif(meth=='del'):
+                fv2=[f for f in fv1 if f.startswith("Delete ")]
             elif(meth=='run'):
                 fv2=[f for f in fv1 if f.startswith("Run ")]
 

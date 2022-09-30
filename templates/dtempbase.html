@@ -41,6 +41,7 @@
             <li><a class="dropdown-item" href="gtemp.html">Get Template</a></li>
             <li><a class="dropdown-item" href="ptemp.html">Post Template</a></li>
             <li><a class="dropdown-item" href="utemp.html">Update Template</a></li>
+            <li><a class="dropdown-item" href="dtemp.html">Delete Template</a></li>
           </ul>
         </li>
 
@@ -179,7 +180,7 @@ if (window.innerWidth < 992) {
 <div class="container">
   <h1>Delete a specific template</h1>
 
-            <div class="position-relative">
+          <div class="position-relative">
                 <div id="forms" class="position-absolute" data-tor="place.top(100px)">
                       <br><br>
                       <h3>Delete Template</h3> 
@@ -193,32 +194,28 @@ if (window.innerWidth < 992) {
                           <option>4</option>
                         </select> 
                         <!--dropdownmenustop-->
-                        <br>
-                        <label class="form-label" for="ehrid">Format</label><br>
-                        <input class="form-check-input" type="radio" name="format" value="WT">WebTemplate</input>
-                        <input class="form-check-input" type="radio" name="format" value="OPT" checked>OPT</input>
                         <br><br>
                         <input   id='pippo' name='pippo' class="btn btn-primary" type="submit" value="Delete Template">
                         <br><br><br>
+
                       </form>
-                </div>
-                  
-                <br><br><br><br><br>
-            </div>
-            <div id="results">
-                    <h2>Results</h2>
-                    {% macro linebreaks_for_string( the_string ) -%}
-                    {% if the_string %}
-                    {% for line in the_string.split('\n') %}
-                    <br />
-                    {{ line }}
-                    {% endfor %}
-                    {% else %}
-                    {{ the_string }}
-                    {% endif %}
-                    {%- endmacro %}
-                    {{linebreaks_for_string(yourresults) if yourresults!= ''}}
+                  <br>
+                   <div id="results">
+                      <h2>Results</h2>
+                      {% macro linebreaks_for_string( the_string ) -%}
+                      {% if the_string %}
+                      {% for line in the_string.split('\n') %}
+                      <br />
+                      {{ line }}
+                      {% endfor %}
+                      {% else %}
+                      {{ the_string }}
+                      {% endif %}
+                      {%- endmacro %}
+                      {{linebreaks_for_string(yourresults) if yourresults!= ''}}
+                  </div>
               </div>
+           </div>     
   
   </div>
 
