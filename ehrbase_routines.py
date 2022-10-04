@@ -104,7 +104,8 @@ def gettemp(client,auth,hostname,port,username,password,tformat,template):
             responsexml=responsexml.replace("#","%23")
             myresp['template']=responsexml
         else:
-            myresp['template']=json.dumps(json.loads(response.text),sort_keys=True, indent=4, separators=(',', ': '))
+            nohash=response.text.replace("#","%23")
+            myresp['template']=json.dumps(json.loads(nohash),sort_keys=True, indent=4, separators=(',', ': '))
         myresp['text']=response.text
         myresp['status']='success'
         myresp['headers']=response.headers
