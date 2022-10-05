@@ -580,6 +580,8 @@ def runaql():
         qdata=request.args.get("qdata","")
         if "$v" not in qdata: #no query choosable
             aqltext2=f"No queries available"
+            yourresults='Please select or create a query first'
+            return render_template('raql.html',yourresults=yourresults,lastehr=lastehrid,resultsave=resultsave,temp=temp,aqltext2=aqltext2,aqltext={})
         else:
             qdatas=qdata.split('$v')
             qname=qdatas[0]
@@ -625,9 +627,9 @@ def runaql():
             yourresults=f"Query run failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
         return render_template('raql.html',yourresults=yourresults,aqltext=aqltext,lastehr=lastehrid,resultsave=resultsave,temp=temp)
     elif(request.args.get("pippo2")=="Run"):
-        if(aqltext2 is None):
-            yourresults='Please select the query first'
-            return render_template('raql.html',yourresults=yourresults,lastehr=lastehrid,resultsave=resultsave,temp=temp,aqltext2=aqltext2)
+        if(aqltext2 is None or aqltext2=='No queries available'):
+            yourresults='Please select or create a query first'
+            return render_template('raql.html',yourresults=yourresults,lastehr=lastehrid,resultsave=resultsave,temp=temp,aqltext2=aqltext2,aqltext={})
         qmethod=request.args.get("qmethod","")
         limit=request.args.get("limit","")
         aqltext=aqltext2
