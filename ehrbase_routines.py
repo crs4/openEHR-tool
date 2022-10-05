@@ -658,6 +658,67 @@ def postaql(client,auth,hostname,port,username,password,aqltext,qname,version,qt
         app.logger.warning("AQL POST failure")
     return myresp
 
+def createPageFromBase4querylist(client,auth,hostname,port,username,password,basefile,targetfile):
+    from app import app
+    EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    app.logger.debug('inside createPageFromBase4querylist')
+    client.auth = (username,password)
+    myresp={}
+    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/query')
+    response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'})
+    app.logger.debug('Get list queries')
+    app.logger.debug('Response Url')
+    app.logger.debug(response.url)
+    app.logger.debug('Response Status Code')
+    app.logger.debug(response.status_code)
+    app.logger.debug('Response Text')
+    app.logger.debug(response.text)
+    app.logger.debug('Response Headers')
+    app.logger.debug(response.headers)
+    if(response.status_code<210 and response.status_code>199):
+        myresp['text']=response.text
+        myresp['status']='success'
+        myresp['headers']=response.headers
+        myresp['status_code']=  response.status_code
+        results=json.loads(response.text)['versions']
+        names=[r['name'] for r in results]
+        versions=[r['version'] for r in results]
+        
+        if(len(names)==0):
+            qdata=['No queries available']
+        else:
+            qdata=[]
+            for n,v in zip(names,versions):
+                qdata.append(n+'$v'+v)
+        myresp['qdata']=qdata
+        drmstart=['<select  class="form-select" type="text" id="qdata" name="qdata">']
+        drmoptions=['<option>'+q+'</option>' for q in qdata]
+        drmstop=['</select>']
+        drm=[]
+        drm=drmstart+drmoptions+drmstop
+        drmstring='\n'.join(drm)
+        with open('./templates/'+basefile,'r') as ff:
+            lines=ff.readlines()
+        with open('./templates/'+targetfile,'w') as fg:
+            docopy=True
+            for line in lines:
+                if('<!--dropdownmenustart-->' in line):
+                    docopy=False
+                    fg.write(drmstring)
+                elif('<!--dropdownmenustop-->' in line):
+                    docopy=True
+                else:
+                    if(docopy):
+                        fg.write(line)
+        return myresp
+    else:
+        myresp['text']=response.text
+        myresp['status']='failure'
+        myresp['headers']=response.headers  
+        myresp['status_code']=  response.status_code   
+        app.logger.warning("GET queries for createPageFromBase4tquerylist failure")
+        return myresp   
+
 def getaql(client,auth,hostname,port,username,password,qname,version):
     from app import app
     client.auth = (username,password)

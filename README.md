@@ -104,7 +104,11 @@ ex:
 redis-server  ./redis.conf
 python3 -m flask run -p 9000
 ```
-
+If you need to make the app available in a network replace the last line with:
+```
+flask run --host='0.0.0.0' -p 9000
+```
+0.0.0.0 as ip binds to all external IPs on a non-privileged port
 ### Production
 For Linux and MacOS define the environment before running the app:
 ```
@@ -122,8 +126,12 @@ ex:
 redis-server  ./redis.conf
 gunicorn -w 1 -b 127.0.0.1:9000 wsgi:app
 ```
-use 0.0.0.0 as ip to bind to all external IPs on a non-privileged port.  Gunicorn version 20.1.0 has been used in testing.
-
+Gunicorn version 20.1.0 has been used in testing.
+If you need to make the app available in a network replace the last line with:
+```
+gunicorn -w 1 -b 0.0.0.0:9000 wsgi:app
+```
+0.0.0.0 as ip binds to all external IPs on a non-privileged port
 ## Using Docker 
 Use the docker files inside the cloned directory.
 ```
@@ -196,4 +204,5 @@ and again if a previous version is there:
 ```
 docker-compose -f docker-compose_prod.yml.mac up --build
 ```
+
 

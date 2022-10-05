@@ -8,6 +8,8 @@ templates/cform.html
 templates/dtemp.html
 templates/utemp.html
 templates/pcomp.html
+templates/gaql.html
+templates/raql.html
 templates/pbatch1.html
 templates/pbatch2.html
 templates/test*

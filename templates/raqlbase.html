@@ -208,23 +208,35 @@ if (window.innerWidth < 992) {
   <div id="forform2" class='col ps-5' >
     <form id="form2"> 
           <h2>Run a stored query</h2> 
-          <label class="form-label" for="na">Query name</label><br>
-          <input class="form-control" type="text" id="nquery" name="nquery"> <br><br>     
-          <input class="form-check-input" type="radio" name="qmethod" value="GET" checked>GET</input>
-          <input class="form-check-input" type="radio" name="qmethod" value="POST">POST</input><br><br>              
-          <label class="form-label" for="jk">Version</label><br>
-          <input class="form-control" type="text" id="version" name="version"> <br><br> 
-          <label class="form-label" for="li">Limit (Optional)</label><br>
-          <input class="form-control" type="text" id="limit" name="limit"><br><br>              
-          <!-- <label for="of">Offset</label><br> -->
-          <!-- <input type="text" id="offset" name="offset"> <br><br>     
-          <label for="fe">Fetch</label><br>
-          <input type="text" id="fetch" name="offset">   <br><br>           -->
-          <label class="form-label" for="ehr">EHRID (Optional)</label><br>
-          <input class="form-control" type="text" id="ehrid" name="ehrid" value={{lastehr}}>  <br><br>     
-          <label class="form-label" for="qp">Query parameters (Optional)</label><br>
-          <input class="form-control" type="text" id="qparam" name="qparam">  <br><br>     <br>       
-          <input class="btn btn-primary" name="pippo2" type="submit" value="Run stored query">
+          <br>
+          <form id="form1">
+            <label  class="form-label" for="template">Select query_name$version</label><br>
+            <!--dropdownmenustart-->
+            <select  class="form-select" type="text" id="qdata" name="qdata">
+              <option>1</option>
+              <option>2</option>
+              <option>3</option>
+              <option>4</option>
+            </select> 
+            <!--dropdownmenustop-->
+            <br>
+            <input class="btn btn-primary" name="pippo" type="submit" value="Select">
+            <br><br>
+          <div class="pippobox" style="display: inline-block">
+            {{aqltext2 if aqltext2!=''}}
+          </div>   
+          </form>
+          <form id="form2">
+            <input class="form-check-input" type="radio" name="qmethod" value="GET" checked>GET</input>
+            <input class="form-check-input" type="radio" name="qmethod" value="POST">POST</input><br><br>              
+            <label class="form-label" for="li">Limit (Optional)</label><br>
+            <input class="form-control" type="text" id="limit" name="limit"><br><br>              
+            <label class="form-label" for="ehr">EHRID (Optional)</label><br>
+            <input class="form-control" type="text" id="ehrid" name="ehrid" value={{lastehr}}>  <br><br>     
+            <label class="form-label" for="qp">Query parameters (Optional)</label><br>
+            <input class="form-control" type="text" id="qparam" name="qparam">  <br><br>     <br>       
+            <input class="btn btn-primary" name="pippo2" type="submit" value="Run">
+          </form>
     </div>
   </div>
 
@@ -250,7 +262,7 @@ if (window.innerWidth < 992) {
                </div>
                <div id="boh" style="display:none;">
                 <br><br>
-                <a class="btn btn-danger" role="button" href="data:application/json;charset=utf-8,{{temp}}"
+                <a class="btn btn-danger" role="button" href="data:text/plain;charset=utf-8,{{temp}}"
                    download="queryresult.json">
                    Save results to file
                  </a>
@@ -261,7 +273,15 @@ if (window.innerWidth < 992) {
    
 </div>
 <!-- </div> -->
-
+<style>
+  .pippobox{
+    background-color: white;
+    width: 100%;
+    border: 1px solid black;
+    padding: 50px;
+    margin: 0px;
+  }
+</style>
 <script type="text/javascript">
   if ( {{aqltext|tojson}} !== '{}' ) {
     document.getElementById("aqlt").innerHTML = 'Query: {{aqltext|tojson}}';}

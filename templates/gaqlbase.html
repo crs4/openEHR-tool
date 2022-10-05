@@ -182,16 +182,19 @@ if (window.innerWidth < 992) {
  
 
             <br>
-            <div class="position-relative">
+            <div id="forms" class="position-absolute" data-tor="place.top(30px)">
 
-                <div id="forms" class="position-absolute" data-tor="place.top(30px)">
-         <form id="form1">
-              <label class="form-label"  for="template">Name of the query to be retrieved (blank for all):</label><br>
-              <input class="form-control" type="text" id="qname" name="qname"><br><br>
-              <label class="form-label"  for="version">Version (Optional but necessary for the query text):</label><br>
-              <input class="form-control" type="text" id="version" name="version"><br><br><br>
-              <input class="btn btn-primary" name="pippo" type="submit" value="Submit">
-            </form>
+              <form id="form1">
+                <label  class="form-label" for="template">Select query_name$version</label><br>
+                <!--dropdownmenustart-->
+                <select  class="form-select" type="text" id="qdata" name="qdata">
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                </select> 
+                <!--dropdownmenustop-->
+                <input class="btn btn-primary" name="pippo" type="submit" value="Submit">
 
 
                 <br><br><br><br>
@@ -200,9 +203,9 @@ if (window.innerWidth < 992) {
                     <h2>Results</h2>
                     <div id="save" style="display:none;">
                       <br><br>
-                      <a class="btn btn-danger" role="button" href="data:charset=utf-8,{{aql}}"
+                      <a class="btn btn-danger" role="button" href="data:text/plain;charset=utf-8,{{aql}}"
                          download="query.aql">
-                         Save to file
+                         Save query to file
                        </a>
                        <br><br>
                    </div>
@@ -220,6 +223,8 @@ if (window.innerWidth < 992) {
                     {% endif %}
                     {%- endmacro %}
                     {{ linebreaks_for_string( yourresults) }}
+
+                    <div id="pluto" style="display:none;"><pre id="json"><br><br>Query: {{aql if aql!=''}}</pre></div>
                   </div>
                 </div>
               </div>
@@ -230,9 +235,11 @@ if (window.innerWidth < 992) {
 
   <script type="text/javascript">
     if ( {{aqlpresent|tojson}} == "true" ) {
-      document.getElementById("save").style.display = 'block';}
+      document.getElementById("save").style.display = 'block';
+      document.getElementById("pluto").style.display = 'block';}
       else {   
-      document.getElementById("save").style.display = 'none';}
+      document.getElementById("save").style.display = 'none';
+      document.getElementById("pluto").style.display = 'none';}
   </script> 
 
 

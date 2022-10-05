@@ -206,7 +206,7 @@ if (window.innerWidth < 992) {
                     <h2>Results</h2>
                     <div id="savexml" style="display:none;">
                       <br><br>
-                      <a class="btn btn-danger" role="button" href="data:application/json;charset=utf-8,{{compxml}}"
+                      <a class="btn btn-danger" role="button" href="data:application/xml;charset=utf-8,{{compxml}}"
                          download="composition.xml">
                          Save to file
                        </a>
@@ -214,7 +214,7 @@ if (window.innerWidth < 992) {
                    </div>
                    <div id="savejson" style="display:none;">
                     <br><br>
-                    <a class="btn btn-danger" role="button" href="data:application/json;charset=utf-8,{{compjson}}"
+                    <a class="btn btn-danger" role="button" href="data:text/plain;charset=utf-8,{{compjson}}"
                        download="composition.json">
                        Save to file
                      </a>
@@ -222,7 +222,7 @@ if (window.innerWidth < 992) {
                  </div>
                  <div id="saveflat" style="display:none;">
                   <br><br>
-                  <a class="btn btn-danger" role="button" href="data:application/json;charset=utf-8,{{compflat}}"
+                  <a class="btn btn-danger" role="button" href="data:text/plain;charset=utf-8,{{compflat}}"
                      download="compositionflat.json">
                      Save to file
                    </a>
