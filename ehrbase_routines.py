@@ -658,22 +658,21 @@ def postaql(client,auth,hostname,port,username,password,aqltext,qname,version,qt
     return myresp
 
 def createPageFromBase4querylist(client,auth,hostname,port,username,password,basefile,targetfile):
-    from app import app
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    app.logger.debug('inside createPageFromBase4querylist')
+    current_app.logger.debug('inside createPageFromBase4querylist')
     client.auth = (username,password)
     myresp={}
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/query')
     response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'})
-    app.logger.debug('Get list queries')
-    app.logger.debug('Response Url')
-    app.logger.debug(response.url)
-    app.logger.debug('Response Status Code')
-    app.logger.debug(response.status_code)
-    app.logger.debug('Response Text')
-    app.logger.debug(response.text)
-    app.logger.debug('Response Headers')
-    app.logger.debug(response.headers)
+    current_app.logger.debug('Get list queries')
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
     if(response.status_code<210 and response.status_code>199):
         myresp['text']=response.text
         myresp['status']='success'
@@ -715,8 +714,9 @@ def createPageFromBase4querylist(client,auth,hostname,port,username,password,bas
         myresp['status']='failure'
         myresp['headers']=response.headers  
         myresp['status_code']=  response.status_code   
-        app.logger.warning("GET queries for createPageFromBase4tquerylist failure")
+        current_app.logger.warning("GET queries for createPageFromBase4tquerylist failure")
         return myresp   
+
 
 def getaql(client,auth,hostname,port,username,password,qname,version):
     
