@@ -3,14 +3,7 @@ import app
 import shutil,os,json
 import requests,requests_mock
 from lxml import etree
-
-class fakeresponse():
-    def __init__(self,status_code,text,headers,url):
-        self.status_code=status_code
-        self.text=text
-        self.headers=headers
-        self.url=url
-
+from pytest_mock import mocker
 
 def test_home_page(test_client):
     """
@@ -49,7 +42,7 @@ def test_gtemp_page_redirect(test_client):
     assert b'admin_password=' in response.data
 
 
-def test_gtemp_page(test_client_with_globalvars):
+def test_gtemp_page(test_client_with_globalvars,mocker):
     """
     GIVEN a Flask application configured for testing
     WHEN the '/gtemp' page is requested (GET) and the 
@@ -71,6 +64,7 @@ def test_gtemp_page(test_client_with_globalvars):
     myheaders=json.loads('{"Vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers", "X-Content-Type-Options": "nosniff", "X-XSS-Protection": "1; mode=block", "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate", "Pragma": "no-cache", "Expires": "0", "X-Frame-Options": "DENY", "Content-Type": "application/json", "Transfer-Encoding": "chunked", "Date": "Tue, 27 Sep 2022 10:29:43 GMT", "Keep-Alive": "timeout=60", "Connection": "keep-alive"}')
     myurl='http://localhost:8080/ehrbase/rest/openehr/v1/definition/template/adl1.4?format=JSON'
     with requests_mock.Mocker() as mock:
+        mocker.patch('app.insertlogline', return_value='')
         mock.get(myurl, status_code=mycode,text=mytext,headers=myheaders)
         response = test_client_with_globalvars.get('/gtemp.html')
         assert response.status_code == 200
@@ -87,7 +81,7 @@ def test_gtemp_page(test_client_with_globalvars):
         text2= response.text[idx+12:idx2].strip().replace('&#34;','"')
         text2json=json.loads(text2)
         assert mytextjson==text2json
-
+        #
         #check get template Interhealth_cancer_registry.xml format OPT
         templatelist=[]
         filename=mydir+'/../Interhealth_cancer_registry.opt'
@@ -105,9 +99,9 @@ def test_gtemp_page(test_client_with_globalvars):
         mock.get(myurlpippo, status_code=mycodepippo,text=mytextpippo,headers=myheaderspippo)
         response = test_client_with_globalvars.get('/gtemp.html',query_string={'pippo':'Get Template','tname':'Interhealth_cancer_registry','format':'OPT'})
         assert response.status_code == 200
+        print(response.text)
         assert "&lt;value&gt;Interhealth_cancer_registry&lt;/value&gt;" in response.text
-
-
+        #
         #check get template Interhealth_cancer_registry.xml format WebTemplate
         filename=mydir+'/../Interhealth_cancer_registry.json'
         with open(filename, encoding='utf-8') as f:

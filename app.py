@@ -37,12 +37,27 @@ redisport=""
 reventsrecorded = 0
 currentposition=0
 sessiontotalevents=0
+r=''
+
+def init_redis(redishostname,redisport):
+    global r
+    r = redis.Redis(host=redishostname, port=redisport,db=0,decode_responses=True)
+    return r
+
+def insertlogline(line):
+    global currentposition,sessiontotalevents,r
+    if(currentposition==reventsrecorded):
+        currentposition=0
+    mykey='c'+str(currentposition)
+    r.set(mykey,line)
+    currentposition+=1
+    sessiontotalevents+=1
 
 
 def create_app():
     global hostname,port,username,password,lastehrid,lastcompositionid,nodename,adusername, \
         adpassword,redishostname,redisport,reventsrecorded,currentposition,sessiontotalevents,auth, \
-            adauth
+            adauth,r
     app = Flask(__name__)
     app.app_context()
     app.config.from_object('config')
@@ -66,18 +81,7 @@ def create_app():
     for ex in default_exceptions:
         app.register_error_handler(ex, handle_error)
 
-    def init_redis(redishostname,redisport):
-        r = redis.Redis(host=redishostname, port=redisport,db=0,decode_responses=True)
-        return r
 
-    def insertlogline(line):
-        global currentposition,sessiontotalevents
-        if(currentposition==reventsrecorded):
-            currentposition=0
-        mykey='c'+str(currentposition)
-        r.set(mykey,line)
-        currentposition+=1
-        sessiontotalevents+=1
 
 
     settingsfile='./config/openehrtool.cfg'
@@ -201,6 +205,7 @@ def create_app():
             msg=ehrbase_routines.gettemp(client,auth,hostname,port,username,password,tformat,template_name)
             if(msg['status']=="success"):            
                 if(tformat=='OPT'):
+                    print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
                     singletemplate='true'
                     singletemplate2='false'
                     temp=msg['template']
