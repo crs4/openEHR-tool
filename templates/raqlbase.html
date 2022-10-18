@@ -187,7 +187,22 @@ if (window.innerWidth < 992) {
     <!-- <div class="row gx-5"> -->
     <div id="forform1" class="col pe-5">
         <form id="form1">
-          <h2>Paste and run your AQL query</h2>
+          <h2>Paste and run your AQL query<button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+            data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+            title="<h4>Instructions:</h4>
+            <ul>
+              <li>Type your query in the box</li>
+              <li>Select GET or POST method</li>
+              <li>Optionally select Limit</li>
+              <li>Optionally select EHRID </li>
+              <li>Optionally add query parameters</li>
+              <li>Click the 'Run pasted query' button</li>
+              <li>View results below the word 'Results'</li>
+              <li>Optionally Save the query results by clicking the 'Save to file' button</li>
+              </ul>">
+              <img src='/static/img/975.png'
+              style="width:140%;height:130%;"  alt="Question Mark" >
+            </button></h2>
             <textarea class="form-control" id='aqltext' form='form1' name="aqltext" rows="6"></textarea><br><br>
             <input class="form-check-input" type="radio" name="qmethod" value="GET" checked>GET</input>
             <input class="form-check-input" type="radio" name="qmethod" value="POST">POST</input><br><br><br>  
@@ -207,7 +222,23 @@ if (window.innerWidth < 992) {
 
   <div id="forform2" class='col ps-5' >
     <form id="form2"> 
-          <h2>Run a stored query</h2> 
+          <h2>Run a stored query<button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+            data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+            title="<h4>Instructions:</h4>
+            <ul>
+              <li>Select the query$version from the dropdown menu</li>
+              <li>Click 'Select' and visualize the query
+              <li>Select GET or POST method</li>
+              <li>Optionally select Limit</li>
+              <li>Optionally select EHRID </li>
+              <li>Optionally add query parameters</li>
+              <li>Click the 'Run pasted query' button</li>
+              <li>View results below the word 'Results'</li>
+              <li>Optionally Save the query results by clicking the 'Save to file' button</li>
+              </ul>">
+              <img src='/static/img/975.png'
+              style="width:140%;height:130%;"  alt="Question Mark" >
+            </button></h2> 
           <br>
           <form id="form1">
             <label  class="form-label" for="template">Select query_name$version</label><br>
@@ -283,9 +314,10 @@ if (window.innerWidth < 992) {
   }
 </style>
 <script type="text/javascript">
-  if ( {{aqltext|tojson}} !== '{}' ) {
+  var obj={{aqltext|tojson}};
+  if (!( obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype)) {
     document.getElementById("aqlt").innerHTML = 'Query: {{aqltext|tojson}}';}
-
+    
     if ( {{resultsave|tojson}} == "true" ) {
       document.getElementById("boh").style.display = 'block';}
       else {   
@@ -339,9 +371,22 @@ color:white;
   background-color: #FFACB7;
   color: #fff;
 }
-
 </style>
 
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+  </script>
+
+<style>
+  .tooltip{
+   font-size: 0.9rem;
+   max-width: 350px;
+   width: 350px;
+}
+</style>
 </body>
 </html>
     

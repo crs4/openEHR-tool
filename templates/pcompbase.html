@@ -178,7 +178,21 @@ if (window.innerWidth < 992) {
 
  
 <div class="container">
-  <h1>Post a Composition</h1>
+  <h1>Post a Composition<button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+    data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+    title="<h4>Instructions:</h4>
+    <ul>
+      <li>Click the 'Browse' button and select the composition file</li>
+      <li>Click the 'Submit' button</li>
+      <li>Select the composition format</li>
+      <li>Type the EHRID or accept the last one if it exists</li>
+      <li>Select the templateid from the dropdown menu</li>
+      <li>Select if you want to check the inserted and retrieved composition vs the original one</li>
+      <li>View results below the word 'Results'</li>
+   </ul>">
+      <img src='/static/img/975.png' 
+      style="width:50%;height:40%;"  alt="Question Mark" >
+    </button></h1>
 
             <br>
             <div class="position-relative">
@@ -293,9 +307,22 @@ color:white;
   background-color: #FFACB7;
   color: #fff;
 }
-
 </style>
 
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+  </script>
+
+<style>
+  .tooltip{
+   font-size: 0.9rem;
+   max-width: 350px;
+   width: 350px;
+}
+</style>
 </body>
 </html>
     

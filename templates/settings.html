@@ -178,9 +178,23 @@ if (window.innerWidth < 992) {
 
  
 <div class="container">
-  <h1>openEHRTool Settings</h1>
+  <h1>openEHRTool Settings<button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+    data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+    title="Instructions:<br><ul>
+      In order to set the variables:
+      <li>Fill or leave blank all each of the information </li>
+      <li>Click the 'Submit' button</li>
+      <li>View the stored values below the word 'Current values'</li>
+      </ul>
+      In order to see the variables values:
+      <ul>
+      <li>View the stored values below the word 'Current values'</li>
+      </ul>">
+      <img src='/static/img/975.png'
+      style="width:50%;height:40%;"  alt="Question Mark" >
+    </button></h1>
 
-            <p>Specify the main parameters of your EHRBase and Redis server. Basic Authentication is used.</p>
+            <p>Specify the main parameters of your EHRBase and Redis server. Basic Authentication is used. </p>
 
 <br><br>
             <div class="container-fluid">
@@ -372,8 +386,23 @@ color:white;
   background-color: #FFACB7;
   color: #fff;
 }
-
 </style>
+
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+  </script>
+
+<style>
+  .tooltip{
+   font-size: 0.9rem;
+   max-width: 350px;
+   width: 350px;
+}
+</style>
+
 
 </body>
 </html>

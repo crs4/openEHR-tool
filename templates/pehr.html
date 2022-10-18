@@ -184,7 +184,16 @@ if (window.innerWidth < 992) {
   <br><br><br>
   <div class="row">
     <div class="col pe-5">
-      <h2>Create a EHR with specified EHRID (blank for unspecified)</h2>
+      <h2>Create a EHR with specified EHRID (blank for unspecified)<button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+        data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+        title="<h4>Instructions:</h4>
+        <ul><li>Type the desired EHRID or leave blank for unspecified</li>
+          <li>Click the 'Submit' button</li>
+          <li>View results below the word 'Results'</li>
+          </ul>">
+          <img src='/static/img/975.png'
+          style="width:140%;height:130%;"  alt="Question Mark" >
+        </button></h2>
       <form id="form1">
         <label class="form-label" for="ehrid">EHRID</label><br>
         <input class="form-control"  type="text" id="ehrtext" name="ehrtext"><br><br><br>
@@ -192,7 +201,18 @@ if (window.innerWidth < 992) {
       </form>     
     </div>
     <div class="col ps-5">
-      <h2>Create a EHR given<br>SubjectID and SubjectNamespace (and optionally EHRID)</h2>  
+      <h2>Create a EHR given<br>SubjectID and SubjectNamespace (and optionally EHRID)<button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+        data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+        title="<h4>Instructions:</h4>
+        <ul><li>Type the desired EHRID or leave blank for unspecified</li>
+          <li>Type the SubjectId</li>
+          <li>Type the SubjectNamespace</li>
+          <li>Click the 'Submit' button</li>
+          <li>View results below the word 'Results'</li>
+          </ul>">
+          <img src='/static/img/975.png'
+          style="width:140%;height:130%;"  alt="Question Mark" >
+        </button></h2>  
       <form id="form2">
         <label class="form-label"  for="jk">EHRID</label><br>
         <input class="form-control" type="text" id="eid" name="eid"><br><br>
@@ -266,9 +286,22 @@ color:white;
   background-color: #FFACB7;
   color: #fff;
 }
-
 </style>
 
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+  </script>
+
+<style>
+  .tooltip{
+   font-size: 0.9rem;
+   max-width: 350px;
+   width: 350px;
+}
+</style>
 </body>
 </html>
     

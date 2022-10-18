@@ -180,12 +180,23 @@ if (window.innerWidth < 992) {
   
 <div class="container" >
   <h1>Retrieve a EHR</h1>
-  (Last ehr created EHRID={{lastehr}})
+  {{"Last ehr created EHRID="+lastehr if lastehr!=""}}
   <br><br><br>
   <div class="row">
     <!-- <div class="row gx-5"> -->
     <div class="col pe-5">
-      <h2>Get EHR from EHRID</h2>  
+      <h2>Get EHR from EHRID<button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+        data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+        title="<h4>Instructions:</h4>
+        <ul>
+          <li>Type the EHRID</li>
+          <li>Click the 'Submit' button</li>
+          <li>View results below the word 'Results'</li>
+          <li>Optionally Save the ehr by clicking the 'Save to file' button</li>
+          </ul>">
+          <img src='/static/img/975.png'
+          style="width:140%;height:130%;"  alt="Question Mark" >
+        </button></h2>  
       <form id="form1">
         <label class="form-label" for="ehrid">EHRID:</label><br>
         <input class="form-control" type="text" id="ename" name="ename"><br><br><br>
@@ -193,7 +204,19 @@ if (window.innerWidth < 992) {
       </form>   
     </div>
     <div class="col ps-5">
-      <h2>Get EHR given SubjectID and SubjectNamespace</h2>  
+      <h2>Get EHR given SubjectID and SubjectNamespace<button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+        data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+        title="<h4>Instructions:</h4>
+        <ul>
+          <li>Type the SubjectId</li>
+          <li>Type the SubjectNamespace</li>
+          <li>Click the 'Submit' button</li>
+          <li>View results below the word 'Results'</li>
+          <li>Optionally Save the results by clicking the 'Save to file' button</li>
+          </ul>">
+          <img src='/static/img/975.png'
+          style="width:140%;height:130%;"  alt="Question Mark" >
+        </button></h2>  
       <form id="form2">
         <label class="form-label" for="ehrs">SubjectID</label><br>
         <input class="form-control" type="text" id="sid" name="sid"><br><br>
@@ -279,9 +302,22 @@ color:white;
   background-color: #FFACB7;
   color: #fff;
 }
-
 </style>
 
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+  </script>
+
+<style>
+  .tooltip{
+   font-size: 0.9rem;
+   max-width: 350px;
+   width: 350px;
+}
+</style>
 </body>
 </html>
     

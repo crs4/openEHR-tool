@@ -186,13 +186,42 @@ if (window.innerWidth < 992) {
             <form id="form0">
            
               <div class="row">
-                  <div class="col">
+                  <div class="col">                    
                     <input type="radio" class="btn-check" name="search" id="b" value='structured' autocomplete="off" checked>
                     <label class="btn btn-outline-dark" for="b">Structured Filter</label>
+                    <button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+                      data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+                      title="<h4>Instructions:</h4>
+                      <ul>
+                        <li>Click Button 'Structured Filter'</li>
+                        <li>Select method or leave all</li>
+                        <li>Select type or leave all</li>
+                        <li>Select outcome or leave all</li>
+                        <li>Select order oldest entries first or viceversa</li>
+                        <li>Click the 'SUBMIT YOUR CHOICE' button</li>
+                        <li>View results below</li>
+                        </ul>">
+                        <img src='/static/img/975.png'
+                        style="width:140%;height:130%;"  alt="Question Mark" >
+                      </button>
                   </div>
                   <div class="col">
                     <input type="radio" class="btn-check" name="search" id="mySwitch" value='custom' autocomplete="off" >
                     <label class="btn btn-outline-danger" for="mySwitch">Search for keywords</label>
+                    <button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+                    data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+                    title="<h4>Instructions:</h4>
+                    <ul>
+                      <li>Click Button 'Search for keywords'</li>
+                      <li>Select order oldest entries first or viceversa</li>
+                      <li>Type the keywords</li>
+                      <li>Decide the operator to apply on the keywords</li>
+                      <li>Click the 'SUBMIT YOUR CHOICE' button</li>
+                      <li>View results below</li>
+                      </ul>">
+                      <img src='/static/img/975.png'
+                      style="width:140%;height:130%;"  alt="Question Mark" >
+                    </button>
                   </div>
               </div>
               <div class="row">
@@ -390,9 +419,22 @@ color:white;
   background-color: #FFACB7;
   color: #fff;
 }
-
 </style>
 
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+  </script>
+
+<style>
+  .tooltip{
+   font-size: 0.9rem;
+   max-width: 350px;
+   width: 350px;
+}
+</style>
 </body>
 </html>
     

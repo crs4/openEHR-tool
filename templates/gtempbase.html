@@ -185,7 +185,21 @@ if (window.innerWidth < 992) {
                   <div class="row">
                     <div class="col pe-5">
                       <br><br>
-                      <h3>Get Template</h3> 
+  
+<h3>Get Template
+  <button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+  data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+  title="<h4>Instructions:</h4>
+    <ul><li>Select the template name from the dropdown list</li>
+    <li>Choose between WebTemplate and OPT format</li>
+    <li>Click the 'Get Template' button</li>
+    <li>View results below the word 'Results'</li>
+  <li>Optionally Save the template by clicking the 'Save to file' button</li></ul>">
+    <img src='/static/img/975.png' 
+    style="width:140%;height:130%;"  alt="Question Mark" >
+  </button></h3>
+
+
                       <form id="form1">
                         <label  class="form-label" for="template">Template Name:</label><br>
                         <!--dropdownmenustart-->
@@ -210,7 +224,15 @@ if (window.innerWidth < 992) {
                 <div class="col ps-5">
                   <br><br>
                   <form id="form2">
-                    <h3>Get Templates list</h3>
+                    <h3>Get Templates list <button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+                      data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+                      title="<h4>Instructions:</h4>
+                      <ul><li>Click the 'Get list' button</li>
+                        <li>View results below the word 'Results'</li>
+                        </ul>">
+                        <img src='/static/img/975.png'
+                        style="width:140%;height:130%;"  alt="Question Mark" >
+                      </button></h3>
                     <br><br><br><br>
                     <input   id='pippo2' name='pippo2' class="btn btn-primary" type="submit" value="Get List">                
                   
@@ -262,7 +284,55 @@ if (window.innerWidth < 992) {
   </div>
 
 
+<style>
+/*Tooltip container */
+ .tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
 
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+
+  /* Position the tooltip text */
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+/* Tooltip arrow */
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+} 
+
+</style>
 
 <script type="text/javascript">
     if ( {{singletemplate|tojson}} == "true" ) {
@@ -320,9 +390,22 @@ color:white;
   background-color: #FFACB7;
   color: #fff;
 }
-
 </style>
 
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+  </script>
+
+<style>
+  .tooltip{
+   font-size: 0.9rem;
+   max-width: 350px;
+   width: 350px;
+}
+</style>
 </body>
 </html>
     

@@ -178,7 +178,20 @@ if (window.innerWidth < 992) {
 
  
 <div class="container">
-  <h1>Post AQL query</h1>
+  <h1>Post AQL query<button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+    data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+    title="<h4>Instructions:</h4>
+    <ul>
+      <li>Type the query in the box</li>
+      <li>Type the desired query name</li>
+      <li>Type optionally the version</li>
+      <li>Type optionally the type</li>
+      <li>Click the 'Store query' button</li>
+      <li>View results below the word 'Results'</li>
+      </ul>">
+      <img src='/static/img/975.png'
+      style="width:50%;height:40%;"  alt="Question Mark" >
+    </button></h1>
  
 
             <br>
@@ -244,8 +257,12 @@ if (window.innerWidth < 992) {
  </style>
 
 <script type="text/javascript">
-  if ( {{aqltext|tojson}} !== '{}' ) {
+var obj={{aqltext|tojson}};
+  if (!( obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype)) {
     document.getElementById("aqlt").innerHTML = 'Query: {{aqltext|tojson}}';}
+    // else{
+    //   document.getElementById("aqlt").innerHTML = 'NoQuery: {{aqltext|tojson}}';}
+    
 </script>   
 
 <style>
@@ -283,9 +300,22 @@ color:white;
   background-color: #FFACB7;
   color: #fff;
 }
-
 </style>
 
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+  </script>
+
+<style>
+  .tooltip{
+   font-size: 0.9rem;
+   max-width: 350px;
+   width: 350px;
+}
+</style>
 </body>
 </html>
     

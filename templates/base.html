@@ -178,7 +178,20 @@ if (window.innerWidth < 992) {
 
  
 <div class="container">
-  <h1>Form for template {{formname}}</h1>
+  <h1>Form for template {{formname}}<button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+    data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+    title="<h4>Instructions:</h4>
+    you can:
+      <ol><li>Save the form clicking the 'Save to file' button</li>
+        <li>Post the composition</li>
+      <ul><li>Fill the fields</li>
+      <li>Type the EHRID</li>
+      <li>Select if you want to check the inserted and retrieved composition vs the original one</li>
+      <li>View results below the word 'Results'</li>
+    </ul></ol>">
+      <img src='/static/img/975.png' 
+      style="width:50%;height:40%;"  alt="Question Mark" >
+    </button></h1>
 
             <br><br><br>
             <div class="position-relative">
@@ -438,9 +451,22 @@ color:white;
   background-color: #FFACB7;
   color: #fff;
 }
-
 </style>
 
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+  </script>
+
+<style>
+  .tooltip{
+   font-size: 0.9rem;
+   max-width: 350px;
+   width: 350px;
+}
+</style>
 </body>
 </html>
     

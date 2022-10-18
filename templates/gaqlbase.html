@@ -180,9 +180,22 @@ if (window.innerWidth < 992) {
 <div class="container">
   <h1>Retrieve a stored AQL query or the list</h1>
  
+  <div class="position-relative">
+    <div id="forms" class="position-absolute" data-tor="place.top(100px)">
+      <div class="row">
+        <div class="col pe-5">
+          <br><br>
 
-            <br>
-            <div id="forms" class="position-absolute" data-tor="place.top(30px)">
+            <h3>Retrieve a stored query<button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+              data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+              title="<h4>Instructions:</h4>
+                <ul><li>Select the query name$versionfrom the dropdown list</li>
+                <li>Click the 'Get query' button</li>
+                <li>View results below the word 'Results'</li>
+              <li>Optionally Save the query by clicking the 'Save to file' button</li></ul>">
+                <img src='/static/img/975.png' 
+                style="width:140%;height:130%;"  alt="Question Mark" >
+              </button></h3>
 
               <form id="form1">
                 <label  class="form-label" for="template">Select query_name$version</label><br>
@@ -194,7 +207,31 @@ if (window.innerWidth < 992) {
                   <option>4</option>
                 </select> 
                 <!--dropdownmenustop-->
-                <input class="btn btn-primary" name="pippo" type="submit" value="Submit">
+                <br><br>
+                <input class="btn btn-primary" name="pippo" type="submit" value="Get query">
+
+                </form>
+        </div>
+                <br><br><br><br><br>
+                <div class="col ps-5">
+                  <br><br>
+                  <form id="form2">
+                    <h3>Get queries list <button type="button" class="btn btn-sm btn-light" style="width:7%; tooltip-font-size-sm;" 
+                      data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+                      title="<h4>Instructions:</h4>
+                      <ul><li>Click the 'Get query list' button</li>
+                        <li>View results below the word 'Results'</li>
+                        </ul>">
+                        <img src='/static/img/975.png'
+                        style="width:140%;height:130%;"  alt="Question Mark" >
+                      </button></h3>
+                    <br><br><br><br><br>
+                    <input   id='pippo2' name='pippo2' class="btn btn-primary" type="submit" value="Get query list">                
+                  
+                  </form>
+                </div>
+               </div>
+
 
 
                 <br><br><br><br>
@@ -209,6 +246,7 @@ if (window.innerWidth < 992) {
                        </a>
                        <br><br>
                    </div>
+                  
 
 
 
@@ -290,9 +328,22 @@ color:white;
   background-color: #FFACB7;
   color: #fff;
 }
-
 </style>
 
+<script>
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+  </script>
+
+<style>
+  .tooltip{
+   font-size: 0.9rem;
+   max-width: 350px;
+   width: 350px;
+}
+</style>
 </body>
 </html>
     

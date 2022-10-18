@@ -49,9 +49,12 @@ def insertlogline(line):
     if(currentposition==reventsrecorded):
         currentposition=0
     mykey='c'+str(currentposition)
-    r.set(mykey,line)
-    currentposition+=1
-    sessiontotalevents+=1
+    try:
+        r.set(mykey,line)
+        currentposition+=1
+        sessiontotalevents+=1
+    except:
+        render_template('error.html',error='Redis not initialised or not working properly',errorcode=500,info=str(sys.exc_info()))
 
 
 def create_app():
@@ -205,7 +208,6 @@ def create_app():
             msg=ehrbase_routines.gettemp(client,auth,hostname,port,username,password,tformat,template_name)
             if(msg['status']=="success"):            
                 if(tformat=='OPT'):
-                    print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
                     singletemplate='true'
                     singletemplate2='false'
                     temp=msg['template']
@@ -528,6 +530,7 @@ def create_app():
         global hostname,port,username,password,auth,nodename
         if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
             return redirect(url_for("ehrbase"))
+        aqltext={}
         if request.args.get("pippo")=="Store query":
             aqltext=request.args.get("aqltext","")
             version=request.args.get("version","")
@@ -536,7 +539,7 @@ def create_app():
             app.logger.debug(f'aqltext={aqltext} ') 
             if(aqltext=="" or qname==""):
                 app.logger.warning("no text in aql")
-                render_template('paql.html')
+                render_template('paql.html',aqltext=aqltext)
             myaqltext="{'q':'"+aqltext+"'}"
             reversed_nodename=".".join(reversed(nodename.split(".")))
             qname=reversed_nodename+"::"+qname+"/"
@@ -550,7 +553,7 @@ def create_app():
                 yourresults=f"Query insertion failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
             return render_template('paql.html',yourresults=yourresults,aqltext=aqltext)
         else: 
-            return render_template('paql.html',aqltext={})
+            return render_template('paql.html',aqltext=aqltext)
 
     @app.route("/gaql.html",methods=["GET"])
     def gaql():
@@ -562,7 +565,8 @@ def create_app():
             return redirect(url_for("ehrbase"))
         aql=""
         aqlpresent='false'
-        if request.args.get("pippo")=="Submit":
+        yourresults=""
+        if request.args.get("pippo")=="Get query":
             qdata=request.args.get("qdata","")
             if "$v" not in qdata: #no query choosable
                 yourresults=f"No queries available"
@@ -583,19 +587,28 @@ def create_app():
             else:
                 insertlogline('Get AQL Query: query '+qname+' version='+version+' retrieval failure')
                 yourresults=f"Query retrieval failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
-            return render_template('gaql.html',yourresults=yourresults,aql=aql,aqlpresent=aqlpresent)
+            return render_template('gaql.html',aql=aql,aqlpresent=aqlpresent,yourresults=yourresults)
+        elif request.args.get("pippo2")=="Get query list":
+            yourresults=str(mymsg['status'])+ " "+ str(mymsg['status_code']) +"\n"+ \
+                        str(mymsg['text'])
+            aqlpresent='false'
+            aql=""
+            return render_template('gaql.html',aql=aql,aqlpresent=aqlpresent,yourresults=yourresults)
         else: 
-            return render_template('gaql.html',aql=aql,aqlpresent=aqlpresent)
+            return render_template('gaql.html',aql=aql,aqlpresent=aqlpresent,yourresults=yourresults)
 
     @app.route("/raql.html",methods=["GET"])
     def runaql():
-        global hostname,port,username,password,auth,nodename
+        global hostname,port,username,password,auth,nodename,qname,version
         if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
             return redirect(url_for("ehrbase"))
         global lastehrid
         resultsave='false'
         temp=""
         yourresults=""
+        aqltext2=""
+#        qname=""
+#        version=""
         mymsg=ehrbase_routines.createPageFromBase4querylist(client,auth,hostname,port,username,password,'raqlbase.html','raql.html')
         if(mymsg['status']=='failure'):
             return redirect(url_for("ehrbase"))
@@ -619,7 +632,7 @@ def create_app():
                 else:
                     insertlogline('Get AQL Query: query '+qname+' version='+version+' retrieval failure')
                     yourresults=f"Query {qname} v{version} retrieval failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
-                    return render_template('raql.html',yourresults=yourresults,aqltext=aqltext,aqltext2=aqltext2,lastehr=lastehrid,resultsave=resultsave,temp=temp)     
+                    return render_template('raql.html',yourresults=yourresults,aqltext=aqltext2,aqltext2=aqltext2,lastehr=lastehrid,resultsave=resultsave,temp=temp)     
         elif request.args.get("pippo")=="Run pasted query": 
             aqltext=request.args.get("aqltext","")
             qmethod=request.args.get("qmethod","")
