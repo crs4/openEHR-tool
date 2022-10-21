@@ -1,6 +1,4 @@
-from re import U
 import requests
-
 from url_normalize import url_normalize
 from lxml import etree
 import json
@@ -1979,46 +1977,97 @@ def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,ch
         return myresp
 
 
-def examplecomp(client,auth,hostname,port,username,password,template_name):
+def examplecomp(client,auth,hostname,port,username,password,template_name,filetype):
     
     client.auth = (username,password)
     current_app.logger.debug('inside examplecomp')
-    EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-    myurl=url_normalize(EHR_SERVER_BASE_URL+'template/'+template_name+'/example')  
-    response = client.get(myurl,
+    if(filetype=="XML"):
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4/'+template_name+'/example')
+        response=client.get(myurl,params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml','accept':'application/xml'})
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            root = etree.fromstring(response.text)
+#          root.indent(tree, space="\t", level=0)
+            myresp['xml'] = etree.tostring(root,  encoding='unicode', method='xml', pretty_print=True)
+            myresp["status"]="success"
+            current_app.logger.info(f"GET Example composition success for template={template_name} in format={filetype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.warning(f"GET Example composition failure for template={template_name} in format={filetype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp
+    elif(filetype=="JSON"):
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+        myurl=url_normalize(EHR_SERVER_BASE_URL   + 'definition/template/adl1.4/'+template_name+'/example')
+        response = client.get(myurl, params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/json'} )
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            myresp['json']=response.text
+            current_app.logger.info(f"GET Example composition success for template={template_name} in format={filetype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.info(f"GET Example composition failure for template={template_name} in format={filetype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp
+    else:#FLAT JSON
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+        myurl=url_normalize(EHR_SERVER_BASE_URL+'template/'+template_name+'/example')  
+        response = client.get(myurl,
                        params={'format':'FLAT'},
                        headers={'Authorization':auth,'Content-Type':'application/json'}
-                        )
-    current_app.logger.debug('Response Url')
-    current_app.logger.debug(response.url)
-    current_app.logger.debug('Response Status Code')
-    current_app.logger.debug(response.status_code)
-    current_app.logger.debug('Response Text')
-    current_app.logger.debug(response.text)
-    current_app.logger.debug('Response Headers')
-    current_app.logger.debug(response.headers)
-    myresp={}
-    myresp["status_code"]=response.status_code
-    if(response.status_code<210 and response.status_code>199):
-        myresp["status"]="success"
-        myresp['composition']=response.text
-        current_app.logger.info(f'GET Example composition success template={template_name}')
-    else:
-        myresp["status"]="failure"
-        current_app.logger.warning(f'GET Example composition failure template={template_name}')
-    myresp['text']=response.text
-    myresp["headers"]=response.headers
-    return myresp
-
+                        )           
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            myresp['flat']=json.dumps(json.loads(response.text),sort_keys=True, indent=4, separators=(',', ': '))
+            current_app.logger.info(f"GET Example composition success for template={template_name} in format={filetype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.warning(f"GET Example composition success for template={template_name} in format={filetype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp
 
 def createform(client,auth,hostname,port,username,password,template_name):
     
     current_app.logger.debug('inside createform')
-    resp=examplecomp(client,auth,hostname,port,username,password,template_name)
+    filetype='FLAT'
+    resp=examplecomp(client,auth,hostname,port,username,password,template_name,filetype)
     if(resp['status']=='failure'):
         return resp
     else:
-        flatcomp=json.loads(resp['composition'])
+        flatcomp=json.loads(resp['flat'])
         #remove template_name/_uid
         tkey=template_name.lower()+'/_uid'
         if tkey in flatcomp:

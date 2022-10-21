@@ -983,29 +983,51 @@ def create_app():
             return redirect(url_for("ehrbase"))
         yourresults=""
         success='false'
-        yourjson='{}'
+        compflat="{}"
+        compxml=""
+        compjson=""
+        status='failed'
+        myformat='xml'
         mymsg=ehrbase_routines.mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'ecompbase.html','ecomp.html')
         if(mymsg['status']=='failure'):
             return redirect(url_for("ehrbase"))
         if request.args.get("pippo")=="Submit": 
             template_name=request.args.get("tname","")
-            msg=ehrbase_routines.examplecomp(client,auth,hostname,port,username,password,template_name)
+            filetype=request.args.get("filetype","") 
+            app.logger.debug(f'filetype={filetype} template_name={template_name}')
+            msg=ehrbase_routines.examplecomp(client,auth,hostname,port,username,password,template_name,filetype)
 
             if(msg['status']=="success"):
+                status='success'
                 success='true'
-                yourjson=msg['composition']
+                if('xml' in msg):
+                    myformat='xml'
+                    compxml=msg['xml']
+                elif('flat' in msg):
+                    myformat='flat'
+                    compflat=msg['flat']
+                else:
+                    myformat='json'
+                    compjson=msg['json']
+
                 yourresults=str(msg['status'])+ " "+ str(msg['status_code'])
-                insertlogline('Get Example Composition: example composition from template '+template_name+' created successfully')
-                return render_template('ecomp.html',success=success,yourresults=yourresults,yourjson=yourjson)
+                insertlogline('Get Example Composition: example composition from template '+template_name+' created successfully in format '+myformat)           
             else:   
+                status='failed'
                 success='false'
+                if(filetype=='XML'):
+                    myformat='xml'
+                elif(filetype=='JSON'):
+                    myformat='json'
+                else:
+                    myformat='flat'        
                 yourresults=str(msg['status'])+ " "+ str(msg['status_code']) +"\n"+ \
                                 str(msg['text']) + "\n" +\
                                 str(msg['headers'])
-                insertlogline('Get Example Composition: example composition from template '+template_name+' creation failure')                
-                return render_template('ecomp.html',success=success,yourresults=yourresults)
+                insertlogline('Get Example Composition: example composition from template '+template_name+' creation failure in format '+myformat)                
+            return render_template('ecomp.html',success=success,status=status,yourresults=yourresults,compxml=compxml,compjson=compjson,compflat=compflat,format=myformat)
         else:
-            return render_template('ecomp.html',success=success,yourresults=yourresults)
+            return render_template('ecomp.html',success=success,status=status,yourresults=yourresults,compxml=compxml,compjson=compjson,compflat=compflat,format=myformat)
 
 
     @app.route("/cform.html",methods=["GET"])
