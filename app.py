@@ -12,6 +12,7 @@ import sys
 import redis
 import json
 from werkzeug.exceptions import default_exceptions
+from datetime import datetime
 
 default_hostname="localhost"
 default_port="8080"
@@ -46,11 +47,13 @@ def init_redis(redishostname,redisport):
 
 def insertlogline(line):
     global currentposition,sessiontotalevents,r
+    now = datetime.now()
+    timestamp = now.strftime("%Y/%m/%d-%H:%M:%S-")
     if(currentposition==reventsrecorded):
         currentposition=0
     mykey='c'+str(currentposition)
     try:
-        r.set(mykey,line)
+        r.set(mykey,timestamp+line)
         currentposition+=1
         sessiontotalevents+=1
     except:
@@ -1119,33 +1122,33 @@ def create_app():
 
                 fv2=fv1
                 if(meth=='get'):
-                    fv2=[f for f in fv1 if f.startswith("Get ")]
+                    fv2=[f for f in fv1 if f[20:].startswith("Get ")]
                 elif(meth=="post"):
-                    fv2=[f for f in fv1 if f.startswith("Post ")]
+                    fv2=[f for f in fv1 if f[20:].startswith("Post ")]
                 elif(meth=='put'):
-                    fv2=[f for f in fv1 if f.startswith("Put ")]
+                    fv2=[f for f in fv1 if f[20:].startswith("Put ")]
                 elif(meth=='del'):
-                    fv2=[f for f in fv1 if f.startswith("Delete ")]
+                    fv2=[f for f in fv1 if f[20:].startswith("Delete ")]
                 elif(meth=='run'):
-                    fv2=[f for f in fv1 if f.startswith("Run ")]
+                    fv2=[f for f in fv1 if f[20:].startswith("Run ")]
 
                 fv3=fv2
                 if(typ=='template'):
-                    fv3=[f for f in fv2 if f.split(':')[0].split()[1]=='template']
+                    fv3=[f for f in fv2 if f[20:].split(':')[0].split()[1]=='template']
                 elif(typ=='ehr'):
-                    fv3=[f for f in fv2 if f.split(':')[0].split()[1]=='EHR']
+                    fv3=[f for f in fv2 if f[20:].split(':')[0].split()[1]=='EHR']
                 elif(typ=='composition'):
-                    fv3=[f for f in fv2 if 'Composition' in f.split(':')[0]]
+                    fv3=[f for f in fv2 if 'Composition' in f[20:].split(':')[0]]
                 elif(typ=='query'):
-                    fv3=[f for f in fv2 if f.split(':')[0].split()[1]=='AQL']
+                    fv3=[f for f in fv2 if f[20:].split(':')[0].split()[1]=='AQL']
                 elif(typ=='form'):
-                    fv3=[f for f in fv2 if 'Form' in f.split(':')[0]]
+                    fv3=[f for f in fv2 if 'Form' in f[20:].split(':')[0]]
 
                 fv4=fv3
                 if(out=='successful'):
-                    fv4=[f for f in fv3 if 'successful' in f]
+                    fv4=[f for f in fv3 if 'successful' in f[20:]]
                 elif(out=='unsuccessful'):
-                    fv4=[f for f in fv3 if 'failure' in f]
+                    fv4=[f for f in fv3 if 'failure' in f[20:]]
                 
                 results='\n'.join(fv4)
                 return  render_template('showlog.html',yourresults=results,rediseventsrecorded=reventsrecorded)

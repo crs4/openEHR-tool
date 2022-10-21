@@ -157,6 +157,7 @@ def findvaluesfromsearch(fv,logsearch,andornot):
     #andornot "and" or "or" or "not"
     if(logsearch==""):
         print('no keys')
+        return fv
     else:
         logsplit=logsearch.split()
         keywords=[k.lower() for k in logsplit]
