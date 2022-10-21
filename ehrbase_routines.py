@@ -102,7 +102,7 @@ def gettemp(client,auth,hostname,port,username,password,tformat,template):
             myresp['template']=responsexml
         else:
             nohash=response.text.replace("#","%23")
-            myresp['template']=json.dumps(json.loads(nohash),sort_keys=True, indent=4, separators=(',', ': '))
+            myresp['template']=json.dumps(json.loads(nohash),sort_keys=True, indent=1, separators=(',', ': '))
         myresp['text']=response.text
         myresp['status']='success'
         myresp['headers']=response.headers
@@ -611,7 +611,7 @@ def getcomp(client,auth,hostname,port,username,password,compid,eid,filetype):
         myresp['ehrid']=eid
         if(response.status_code<210 and response.status_code>199):
             myresp["status"]="success"
-            myresp['flat']=json.dumps(json.loads(response.text)['composition'],sort_keys=True, indent=4, separators=(',', ': '))
+            myresp['flat']=json.dumps(json.loads(response.text)['composition'],sort_keys=True, indent=1, separators=(',', ': '))
             current_app.logger.info(f"GET Composition success for compositionid={compid} ehrid={eid} format={filetype}")
         else:
             myresp["status"]="failure"
@@ -2050,7 +2050,7 @@ def examplecomp(client,auth,hostname,port,username,password,template_name,filety
         myresp["status_code"]=response.status_code
         if(response.status_code<210 and response.status_code>199):
             myresp["status"]="success"
-            myresp['flat']=json.dumps(json.loads(response.text),sort_keys=True, indent=4, separators=(',', ': '))
+            myresp['flat']=json.dumps(json.loads(response.text),sort_keys=True, indent=1, separators=(',', ': '))
             current_app.logger.info(f"GET Example composition success for template={template_name} in format={filetype}")
         else:
             myresp["status"]="failure"
