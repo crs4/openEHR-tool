@@ -205,4 +205,12 @@ and again if a previous version is there:
 docker-compose -f docker-compose_prod.yml.mac up --build
 ```
 
-
+## &#x1F335; Testing (for developers)&#x1F335;
+In order to launch testing set the env variable APP_ENV:
+```
+export APP_ENV=Test
+```
+and then launch pytest:
+```
+python -m pytest --capture=tee-sys  -v
+```

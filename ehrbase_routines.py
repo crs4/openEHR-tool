@@ -2019,6 +2019,10 @@ def createform(client,auth,hostname,port,username,password,template_name):
         return resp
     else:
         flatcomp=json.loads(resp['composition'])
+        #remove template_name/_uid
+        tkey=template_name.lower()+'/_uid'
+        if tkey in flatcomp:
+            del flatcomp[tkey]
         listcontext=[]
         listcontent=[]
         listcontext,listcontent,listcontextvalues,listcontentvalues=fillListsfromComp(flatcomp)
@@ -2030,10 +2034,20 @@ def createform(client,auth,hostname,port,username,password,template_name):
         # varlistcnt=[]
         contexttoadd,varcontext,ivarstart=fillforms(listcontext,listcontextvalues,0)
         contenttoadd,varcontent,ivarend=fillforms(listcontent,listcontentvalues,ivarstart)
+
         createformfile(contexttoadd,varcontext,contenttoadd,varcontent,template_name)
         msg={}
         msg['status']='success'
         return msg
+
+def iterwrite(f,var):
+    for v in var:
+        if(isinstance(v,list)):
+            return iterwrite(f,v)
+        else:
+            f.write(v)
+
+
 
 def createformfile(contexttoadd,varcontext,contenttoadd,varcontent,template_name):
     
@@ -2089,9 +2103,10 @@ def fillforms(listc,listcvalues,ivarstart):
     i=ivarstart
     j=0
     for c,v in zip(listc,listcvalues):
-        if(j%2==0):
-            if(j%2!=0):
-                ctoadd.append(endrow)
+        if(j==0):
+            ctoadd.append(startrow)
+        elif(j%2==0):
+            ctoadd.append(endrow)
             ctoadd.append(startrow)
         ctoadd.append(startcol)
         mylabel=c[0].split('|')[0]
@@ -2113,6 +2128,9 @@ def fillforms(listc,listcvalues,ivarstart):
     if(j%2 !=0):#add void col if needed
         ctoadd.append(startcol)
         ctoadd.append(endcol)
+        ctoadd.append(endrow)
+    else:
+        ctoadd.append(endrow)
     return ctoadd,varc,i
 
 
