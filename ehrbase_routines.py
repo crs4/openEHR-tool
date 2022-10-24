@@ -2075,6 +2075,10 @@ def createform(client,auth,hostname,port,username,password,template_name):
         listcontext=[]
         listcontent=[]
         listcontext,listcontent,listcontextvalues,listcontentvalues=fillListsfromComp(flatcomp)
+        current_app.logger.debug('listcontext')
+        current_app.logger.debug(listcontext)
+        current_app.logger.debug('listcontextvalues')
+        current_app.logger.debug(listcontextvalues)
         contexttoadd=[]
         contenttoadd=[]
         varcontext=[]
@@ -2152,6 +2156,7 @@ def fillforms(listc,listcvalues,ivarstart):
     i=ivarstart
     j=0
     for c,v in zip(listc,listcvalues):
+        current_app.logger.debug(f'c,v in zip(listc,listcvalue) {c} {v}')
         if(j==0):
             ctoadd.append(startrow)
         elif(j%2==0):
@@ -2196,28 +2201,45 @@ def fillListsfromComp(flatcomp):
     words3=['context','ctx']
     lastel=""
     for el in flatcomp:
+        current_app.logger.debug(f'el in flatcomp: {el}')
         second=el.split('/')[1].split('|')[0]
+        current_app.logger.debug(f'second: {second}')
         last=el.split('/')[-1]
+        current_app.logger.debug(f'last: {last}')
         if(second in words1):
+            current_app.logger.debug('A')
             #check if in already considered fields
             if(second in words3):
+                current_app.logger.debug(f'A1')
                 third=el.split('/')[2].split('|')[0]
+                current_app.logger.debug(f'third: {third}')
                 if(third in words2):
-                    current_app.logger.debug('not in context or content')
+                    current_app.logger.debug(f'A1A')
+                    current_app.logger.debug('already considered in context')
                     continue
                 else:
+                    current_app.logger.debug(f'A1B')
                     #check if left part already found
+                    current_app.logger.debug(f'lastel: {lastel}')
                     if(el.split('|')[0]==lastel.split('|')[0]):
-                        listcontext[-1].append([el])
-                        listcontextvalues[-1].append(flatcomp[el])
+                        current_app.logger.debug(f'A1B1')
+                        current_app.logger.debug(f'listcontext[-1] {listcontext[-1]}')
+                        current_app.logger.debug(f'el {el}')
+                        listcontext[-1].extend([el])
+                        listcontextvalues[-1].extend([flatcomp[el]])
                     else:
+                        current_app.logger.debug(f'A1B2')
+                        current_app.logger.debug(f'el {el}' )                      
                         listcontext.append([el])
                         listcontextvalues.append([flatcomp[el]])
                     lastel=el
             else:
+                current_app.logger.debug(f'A2')
                 pass
         else:
             #check if left part already found
+            current_app.logger.debug(f'B')
+            current_app.logger.debug(f'lastel: {lastel}')
             if(el.split('|')[0]==lastel.split('|')[0]):
                 listcontent[-1].append(el)
                 listcontentvalues[-1].append(flatcomp[el])
