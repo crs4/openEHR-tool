@@ -25,6 +25,39 @@ The examples available are:
 
 As an alternative, settings can be written at runtime in the application. Note that this way they are nor persisted and must be reentered when the application is stopped and rerun. 
 
+If you are using Docker on Mac or Windows, in the "Separated" mode, and see networking problems (unable to connect or sluggishness) you can try and connect the network where resides openEHR-tool to the EHRBase network. First find the network of ehrbase:
+```
+docker ps | grep ehrbase
+
+output example:
+419459a16bda   ehrbase/ehrbase-postgres:latest   "docker-entrypoint.s…"   7 weeks ago   Up 5 hours   0.0.0.0:5432->5432/tcp, :::5432->5432/tcp   ehrbase-0210_ehrdb_1
+e2c60fa51110   ehrbase/ehrbase:0.21.0            "/bin/sh -c ./docker…"   7 weeks ago   Up 5 hours   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp   ehrbase-0210_ehrbase_1
+```
+then inspect the container to obtain the network name:
+```
+docker inspect e2c60fa51110 | grep -i networkmode
+
+output example:
+"NetworkMode": "ehrbase-0210_ehrbase-net",
+```
+then edit docker-compose.yml.mac.2 or docker-compose.yml.win.2, depending on you OS,replacing in the second to last line:
+```
+name: ehrbase_ehrbase-net
+```
+with your EHRBase network name:
+```
+name: ehrbase-0210_ehrbase-net
+```
+Now you can rebuild your containers. On MacOS:
+```
+docker-compose -f docker-compose.yml.mac.2 up --build
+```
+on Windows:
+```
+docker-compose -f docker-compose.yml.win.2 up --build
+```
+The right configuration file now is openehrtool.cfg.example.total so make sure to copy it onto openehrtool.cfg before running or otherwise reload the configuration after doing the copy.
+
 ### EHRBase-related Settings
 For the EHRBase server the following properties are needed:
 * hostname : hostname or ip where the instance of ehrbase is running
@@ -132,7 +165,7 @@ If you need to make the app available in a network replace the last line with:
 gunicorn -w 1 -b 0.0.0.0:9000 wsgi:app
 ```
 0.0.0.0 as ip binds to all external IPs on a non-privileged port
-## Using Docker 
+## Running in Docker 
 Use the docker files inside the cloned directory.
 ```
 git clone https://github.com/sasurfer/openEHR-tool.git  
@@ -151,7 +184,7 @@ docker-compose -f docker-compose-total.yml
 ```
 if you run an updated version of openEHRTool rebuild it and run it with:
 ```
-docker-compose -f docker-compose-total.yml openehrtool build
+docker-compose -f docker-compose-total.yml openehrtool --build
 docker-compose -f docker-compose-total.yml up
 ```
 #### Production
@@ -161,7 +194,7 @@ docker-compose -f docker-compose-total_prod.yml
 ```
 if you run an updated version of openEHRTool rebuild it and run it with:
 ```
-docker-compose -f docker-compose-total_prod.yml openehrtool build
+docker-compose -f docker-compose-total_prod.yml openehrtool --build
 docker-compose -f docker-compose-total_prod.yml up
 ```
 
@@ -214,3 +247,5 @@ and then launch pytest:
 ```
 python -m pytest --capture=tee-sys  -v
 ```
+
+
