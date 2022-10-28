@@ -1,6 +1,8 @@
 # openEHRTool
 
-A tool meant to make it easier to interact with a **EHRBase** server. To take advantage of all the methods and the dashboard use a version of EHRBase >= 0.21.0 and add these lines to the .env.ehrbase file:
+A tool meant to make it easier to interact with a **EHRBase** server. 
+
+To take advantage of all the methods and the dashboard use a version of EHRBase >= 0.21.0 and add these lines to the .env.ehrbase file:
 ```
 MANAGEMENT_ENDPOINTS_WEB_EXPOSURE=env,health,info,metrics,prometheus
 MANAGEMENT_ENDPOINTS_WEB_BASEPATH=/management
@@ -248,4 +250,10 @@ and then launch pytest:
 python -m pytest --capture=tee-sys  -v
 ```
 
+# Screenshots: #
+![homepage](/../screenshots/screenshots/homepage.png?raw=true "Homepage")
+![get_template](/../screenshots/screenshots/gettemplate.png?raw=true "Get Template")
+![examplecomp](/../screenshots/screenshots/examplecomp.png?raw=true "Composition example from Template")
+![postcomp](/../screenshots/screenshots/postcomp.png?raw=true "Post a Composition")
+![sessionlog](/../screenshots/screenshots/sessionlog.png?raw=true "Session Activities")
 
