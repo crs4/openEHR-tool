@@ -650,20 +650,33 @@ def create_app():
             if(aqltext==""):
                 app.logger.info("no text in aql")
                 render_template('raql.html',lastehr=lastehrid,resultsave=resultsave,temp=temp)
-            app.logger.info(aqltext)
+            else:
+                aqltext=aqltext.translate({ord(ch):' ' for ch in '\n\r'})
+            app.logger.info(f'AQLTEXT={aqltext}')
             msg=ehrbase_routines.runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam,qname,version)
             if(msg['status']=="success"):
+                app.logger.debug(f"aqltext={aqltext} msg[text]={msg['text']} msg['status_code']={msg['status_code']} msg['headers']={msg['headers']}")
                 insertlogline('Run AQL Query: pasted query run successfully')
-                msgtext=json.loads(msg['text'])
-                if('rows' in msgtext):
-                    temp=msgtext['rows']
-                    if(len(temp)>0):
-                        resultsave='true'            
+                
+                if msg['text'] != '':
+                    app.logger.debug('f msg[text] not empty')
+                    msgtext=json.loads(msg['text'])
+                    if('rows' in msgtext):
+                        temp=msgtext['rows']
+                        if(len(temp)>0):
+                            resultsave='true'    
+                        else:
+                            resultsave='false'
+                else:
+                    app.logger.debug('f msg[text] empty')
+                    resultsave='false'
+                    temp=''
                 yourresults=f"Query run successfully.\n status_code={msg['status_code']}\n text={msg['text']}\n headers={msg['headers']}"
             else:
                 insertlogline('Run AQL Query: pasted query run failure')
                 resultsave='false'
-                yourresults=f"Query run failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
+                yourresults=f"Query run failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"
+            app.logger.debug(f'YR={yourresults} aqltext={aqltext} lastehrid={lastehrid} resultsave={resultsave} temp={temp}')               
             return render_template('raql.html',yourresults=yourresults,aqltext=aqltext,lastehr=lastehrid,resultsave=resultsave,temp=temp)
         elif(request.args.get("pippo2")=="Run"):
             if(aqltext2 is None or aqltext2=='No queries available'):

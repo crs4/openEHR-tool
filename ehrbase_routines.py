@@ -759,7 +759,7 @@ def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,eid
     
     current_app.logger.debug('inside runaql')
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    current_app.logger.debug(f"aqltext={qmethod} qmethod={qmethod} limit={limit} ehrid={eid} qparam={qparam} qname={qname} version={version}")
+    current_app.logger.debug(f"aqltext={aqltext} qmethod={qmethod} limit={limit} ehrid={eid} qparam={qparam} qname={qname} version={version}")
     client.auth = (username,password)
     if(aqltext !=""): #PASTED QUERY
         if(qmethod=="GET"):    
