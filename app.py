@@ -437,12 +437,12 @@ def create_app():
                 filename=secure_filename(filename)
                 uploaded_file.stream.seek(0)
                 comp=uploaded_file.read()
-                return render_template('pcomp.html',yourfile=f"you have chosen {filename}",last=lastehrid)
+                return render_template('pcomp.html',yourfile=f"you have chosen {filename}",laste=lastehrid)
         else:
             if request.args.get("fform1")=="POST THE COMPOSITION":
                 if(filename==""):
                     yourresults="Please, choose the file first"
-                    return render_template('pcomp.html',yourresults=yourresults,last=lastehrid)
+                    return render_template('pcomp.html',yourresults=yourresults,laste=lastehrid)
                 filetype=request.args.get("filetype","")
                 eid=request.args.get("ename","")
                 tid=request.args.get("tname","")
@@ -450,7 +450,7 @@ def create_app():
                 checkresults=""
                 checkinfo=""
                 if(eid=="" or tid==""):
-                    return render_template('pcomp.html',yourfile=f"you have chosen {filename}",last=lastehrid)
+                    return render_template('pcomp.html',yourfile=f"you have chosen {filename}",laste=lastehrid)
                 msg=ehrbase_routines.postcomp(client,auth,hostname,port,username,password,comp,eid,tid,filetype,check)
                 if(msg['status']=="success"):
                     yourresults=f"Composition inserted successfully.\n status_code={msg['status_code']} VersionUID={msg['compositionid']}\n text={msg['text']}\n headers={msg['headers']}"
@@ -462,13 +462,13 @@ def create_app():
                 else:
                     yourresults=f"Composition insertion failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"        
                     insertlogline('Post Composition: composition from file '+filename+'  posting failure')
-                return render_template('pcomp.html',yourfile=f"you have chosen {filename}",yourresults=yourresults,last=lastcompositionid,checkresults=checkresults,checkinfo=checkinfo)        
+                return render_template('pcomp.html',yourfile=f"you have chosen {filename}",yourresults=yourresults,laste=lastehrid,checkresults=checkresults,checkinfo=checkinfo)        
             else:
                 if("filename" not in vars()):
                     filename=""
-                    return render_template('pcomp.html',yourfile="",last=lastehrid)
+                    return render_template('pcomp.html',yourfile="",laste=lastehrid)
                 else:
-                    return render_template('pcomp.html',yourfile=f"you have chosen {filename}",last=lastehrid)
+                    return render_template('pcomp.html',yourfile=f"you have chosen {filename}",laste=lastehrid)
 
 
     @app.route("/gcomp.html",methods=["GET"])
