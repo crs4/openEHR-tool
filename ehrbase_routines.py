@@ -630,6 +630,10 @@ def postaql(client,auth,hostname,port,username,password,aqltext,qname,version,qt
         qtype="AQL"
     if(version==""):
         version="1.0.0"
+    aqltext=aqltext.translate({ord(c):' ' for c in '\n\r'})
+    if "'" in aqltext:
+        aqltext=aqltext.replace("'",'\\\'')
+    aqltext="{'q':'"+aqltext+"'}"
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/query/'+qname+"/"+version)
     response = client.put(myurl,params={'type':qtype,'format':'RAW'},headers={'Authorization':auth,'Content-Type':'text/plain'},data=aqltext)
     current_app.logger.debug('Response Url')
@@ -755,7 +759,7 @@ def getaql(client,auth,hostname,port,username,password,qname,version):
         current_app.logger.warning("AQL GET failure")
     return myresp  
 
-def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,eid,qparam,qname,version):
+def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,offset,eid,qparam,qname,version):
     
     current_app.logger.debug('inside runaql')
     EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
@@ -764,16 +768,26 @@ def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,eid
     if(aqltext !=""): #PASTED QUERY
         if(qmethod=="GET"):    
             myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/aql')            
-            params={}
-            params['q']=aqltext
-            if(limit != ""):
+            params={}            
+            addlimittoq=''
+            if limit != "":
                 params['limit']=limit
+                addlimittoq=' limit '+limit
+                if offset != "":
+                    addlimittoq=addlimittoq+' offset '+offset
+            #        params['offset']=offset
             # if(offset != ""):
             #     params['offset']=offset
             # if(fetch != ""):
             #     params['fetch']=fetch
             if(eid != ""):
                 params['ehrid']=eid
+                addeidtoq=' and e/ehr_id/value='+"'"+eid+"'"
+                if 'where' in aqltext.lower():
+                    aqltext=aqltext+addeidtoq
+                else:
+                    alqtext=aqltext+' where'+addeidtoq
+            aqltext=aqltext+addlimittoq
             if(qparam != ""):
                 qplist=qparam.split(",")
                 myqp={}
@@ -786,15 +800,21 @@ def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,eid
                         val=value
                     myqp[key]=val
                 params["query_parameters"]=myqp
+            params['q']=aqltext
+            current_app.logger.debug(f'q={aqltext}')
             current_app.logger.debug(f"params={params}")
             response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
                 params=params)
         else: #POST
             myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/aql')            
             data={}
-            data['q']=aqltext
+            params={}
+            addlimittoq=''
             if(limit != ""):
                 data['limit']=limit 
+                addlimittoq=' limit '+limit
+                if offset !="":
+                    addlimittoq=addlimittoq+' offset '+offset
             # if(offset != ""):
             #     data['offset']=offset
             # if(fetch != ""):
@@ -803,6 +823,11 @@ def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,eid
                 qv={} 
                 if(eid != ""):
                     qv['ehrid']=eid
+                    addeidtoq=' and e/ehr_id/value='+"'"+eid+"'"
+                    if 'where' in aqltext.lower():
+                        aqltext=aqltext+addeidtoq
+                    else:
+                        alqtext=aqltext+'where'+addeidtoq                    
                 if(qparam != ""):
                     qplist=qparam.split(",")
                     for qp in qplist:
@@ -813,7 +838,9 @@ def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,eid
                         except ValueError:
                             val=value
                             qv[key]=val
-                data["query_parameters"]=qv
+                data["query_parameters"]=qv 
+            aqltext=aqltext+addlimittoq    
+            data['q']=aqltext               
             current_app.logger.debug(f"data={data}")
             response = client.post(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
                 data=json.dumps(data) )
@@ -838,81 +865,86 @@ def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,eid
             myresp["headers"]=response.headers
             current_app.logger.info(f"RUN AQL failure. qmethod={qmethod}")
         return myresp  
-    else: #STORED QUERY
-        if(qmethod=="GET"):  
-            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/'+qname+"/"+version)            
-            params={}
-            if(limit != ""):
-                params['limit']=limit             
-            # if(offset != ""):
-            #     params['offset']=offset
-            # if(fetch != ""):
-            #     params['fetch']=fetch
-            if(eid != ""):
-                params['ehrid']=eid
-            if(qparam != ""):
-                qplist=qparam.split(",")
-                myqp={}
-                for qp in qplist:
-                    key=qp.split("=")[0]
-                    value=qp.split("=")[1]
-                    try:
-                        val = int(value)
-                    except ValueError:
-                        val=value
-                    myqp[key]=val
-                params["query_parameters"]=myqp
-            current_app.logger.debug(f"params={params}")
-            response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
-                params=params)
-        else: #POST
-            myurl=url_normalize(EHR_SERVER_BASE_URL   + 'query/'+qname+"/"+version)       
-            data={}
-            if(limit != ""):
-                data['limit']=limit 
-            # if(offset != ""):
-            #     data['offset']=offset
-            # if(fetch != ""):
-            #     data['fetch']=fetch
-            if( eid !="" or qparam != ""):
-                qv={} 
-                if(eid != ""):
-                    qv['ehrid']=eid
-                if(qparam != ""):
-                    qplist=qparam.split(",")
-                    for qp in qplist:
-                        key=qp.split("=")[0]
-                        value=qp.split("=")[1]
-                        try:
-                            val = int(value)
-                        except ValueError:
-                            val=value
-                            qv[key]=val
-                data["query_parameters"]=qv
-            current_app.logger.debug(f"data={data}")
-            response = client.post(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
-                data=json.dumps(data) )
-        current_app.logger.debug('Response Url')
-        current_app.logger.debug(response.url)
-        current_app.logger.debug('Response Status Code')
-        current_app.logger.debug(response.status_code)
-        current_app.logger.debug('Response Text')
-        current_app.logger.debug(response.text)
-        current_app.logger.debug('Response Headers')
-        current_app.logger.debug(response.headers)
-        myresp={}
-        myresp["status_code"]=response.status_code
-        if(response.status_code<210 and response.status_code>199):
-            myresp["status"]="success"
-            myresp['text']=response.text
-            myresp["headers"]=response.headers
-            current_app.logger.info(f"RUN stored AQL success. qmethod={qmethod} qname={qname} version={version}")
-        else:
-            myresp["status"]="failure"
-            myresp['text']=response.text
-            myresp["headers"]=response.headers
-            current_app.logger.warning(f"RUN stored AQL failure. qmethod={qmethod} qname={qname} version={version}")
-        return myresp  
+    else: #STORED QUERY BYPASSED. NOW STORED QUERIES SHARE THE ABOVE CODE
+        myresp["status"]="failure"
+        myresp['text']='No aql query'
+        myresp["headers"]=''
+        myresp["status_code"]='500'
+        return myresp
+        # if(qmethod=="GET"):  
+        #     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/'+qname+"/"+version)            
+        #     params={}
+        #     if(limit != ""):
+        #         params['limit']=limit             
+        #     # if(offset != ""):
+        #     #     params['offset']=offset
+        #     # if(fetch != ""):
+        #     #     params['fetch']=fetch
+        #     if(eid != ""):
+        #         params['ehrid']=eid
+        #     if(qparam != ""):
+        #         qplist=qparam.split(",")
+        #         myqp={}
+        #         for qp in qplist:
+        #             key=qp.split("=")[0]
+        #             value=qp.split("=")[1]
+        #             try:
+        #                 val = int(value)
+        #             except ValueError:
+        #                 val=value
+        #             myqp[key]=val
+        #         params["query_parameters"]=myqp
+        #     current_app.logger.debug(f"params={params}")
+        #     response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
+        #         params=params)
+        # else: #POST
+        #     myurl=url_normalize(EHR_SERVER_BASE_URL   + 'query/'+qname+"/"+version)       
+        #     data={}
+        #     if(limit != ""):
+        #         data['limit']=limit 
+        #     # if(offset != ""):
+        #     #     data['offset']=offset
+        #     # if(fetch != ""):
+        #     #     data['fetch']=fetch
+        #     if( eid !="" or qparam != ""):
+        #         qv={} 
+        #         if(eid != ""):
+        #             qv['ehrid']=eid
+        #         if(qparam != ""):
+        #             qplist=qparam.split(",")
+        #             for qp in qplist:
+        #                 key=qp.split("=")[0]
+        #                 value=qp.split("=")[1]
+        #                 try:
+        #                     val = int(value)
+        #                 except ValueError:
+        #                     val=value
+        #                     qv[key]=val
+        #         data["query_parameters"]=qv
+        #     current_app.logger.debug(f"data={data}")
+        #     response = client.post(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
+        #         data=json.dumps(data) )
+        # current_app.logger.debug('Response Url')
+        # current_app.logger.debug(response.url)
+        # current_app.logger.debug('Response Status Code')
+        # current_app.logger.debug(response.status_code)
+        # current_app.logger.debug('Response Text')
+        # current_app.logger.debug(response.text)
+        # current_app.logger.debug('Response Headers')
+        # current_app.logger.debug(response.headers)
+        # myresp={}
+        # myresp["status_code"]=response.status_code
+        # if(response.status_code<210 and response.status_code>199):
+        #     myresp["status"]="success"
+        #     myresp['text']=response.text
+        #     myresp["headers"]=response.headers
+        #     current_app.logger.info(f"RUN stored AQL success. qmethod={qmethod} qname={qname} version={version}")
+        # else:
+        #     myresp["status"]="failure"
+        #     myresp['text']=response.text
+        #     myresp["headers"]=response.headers
+        #     current_app.logger.warning(f"RUN stored AQL failure. qmethod={qmethod} qname={qname} version={version}")
+        # return myresp  
 
 
 def compcheck(client,auth,hostname,port,composition,eid,filetype,compid):
