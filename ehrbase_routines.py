@@ -782,11 +782,11 @@ def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,off
             #     params['fetch']=fetch
             if(eid != ""):
                 params['ehrid']=eid
-                addeidtoq=' and e/ehr_id/value='+"'"+eid+"'"
+                addeidtoq=' e/ehr_id/value='+"'"+eid+"'"
                 if 'where' in aqltext.lower():
-                    aqltext=aqltext+addeidtoq
+                    aqltext=aqltext+' and'+addeidtoq
                 else:
-                    alqtext=aqltext+' where'+addeidtoq
+                    aqltext=aqltext+' where'+addeidtoq
             aqltext=aqltext+addlimittoq
             if(qparam != ""):
                 qplist=qparam.split(",")
@@ -823,11 +823,11 @@ def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,off
                 qv={} 
                 if(eid != ""):
                     qv['ehrid']=eid
-                    addeidtoq=' and e/ehr_id/value='+"'"+eid+"'"
+                    addeidtoq=' e/ehr_id/value='+"'"+eid+"'"
                     if 'where' in aqltext.lower():
-                        aqltext=aqltext+addeidtoq
+                        aqltext=aqltext+' and'+addeidtoq
                     else:
-                        alqtext=aqltext+'where'+addeidtoq                    
+                        aqltext=aqltext+' where'+addeidtoq                    
                 if(qparam != ""):
                     qplist=qparam.split(",")
                     for qp in qplist:
