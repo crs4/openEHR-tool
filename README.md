@@ -186,8 +186,7 @@ docker-compose -f docker-compose-total.yml
 ```
 if you run an updated version of openEHRTool rebuild it and run it with:
 ```
-docker-compose -f docker-compose-total.yml openehrtool --build
-docker-compose -f docker-compose-total.yml up
+docker-compose -f docker-compose-total.yml openehrtool up --build
 ```
 #### Production
 Run with:
@@ -196,8 +195,7 @@ docker-compose -f docker-compose-total_prod.yml
 ```
 if you run an updated version of openEHRTool rebuild it and run it with:
 ```
-docker-compose -f docker-compose-total_prod.yml openehrtool --build
-docker-compose -f docker-compose-total_prod.yml up
+docker-compose -f docker-compose-total_prod.yml openehrtool up --build
 ```
 
 [//]: # ( ### <span style="color:red"> Docker "Separated"</span> )
@@ -216,7 +214,7 @@ docker-compose up --build
 ```
 For macOS run with:
 ```
-docker-compose -f docker-compose.yml.mac
+docker-compose -f docker-compose.yml.mac up
 ```
 and again if a previous version is there:
 ```
@@ -256,4 +254,3 @@ python -m pytest --capture=tee-sys  -v
 ![examplecomp](/../screenshots/screenshots/examplecomp.png?raw=true "Composition example from Template")
 ![postcomp](/../screenshots/screenshots/postcomp.png?raw=true "Post a Composition")
 ![sessionlog](/../screenshots/screenshots/sessionlog.png?raw=true "Session Activities")
-
