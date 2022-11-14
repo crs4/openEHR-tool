@@ -39,6 +39,7 @@ reventsrecorded = 0
 currentposition=0
 sessiontotalevents=0
 r=''
+client=''
 
 def init_redis(redishostname,redisport):
     global r
@@ -63,7 +64,7 @@ def insertlogline(line):
 def create_app():
     global hostname,port,username,password,lastehrid,lastcompositionid,nodename,adusername, \
         adpassword,redishostname,redisport,reventsrecorded,currentposition,sessiontotalevents,auth, \
-            adauth,r
+            adauth,r,client
     app = Flask(__name__)
     app.app_context()
     app.config.from_object('config')
