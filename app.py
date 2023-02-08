@@ -501,6 +501,9 @@ def create_app():
                 elif('flat' in msg):
                     myformat='flat'
                     compflat=msg['flat']
+                elif('structured' in msg):
+                    myformat='structured'
+                    compjson=msg['structured']            
                 else:
                     myformat='json'
                     compjson=msg['json']
@@ -519,6 +522,8 @@ def create_app():
                     myformat='xml'
                 elif(filetype=='JSON'):
                     myformat='json'
+                elif(filetype=='STRUCTURED'):
+                    myformat='structured'
                 else:
                     myformat='flat'
                 insertlogline('Get Composition: composition '+compid+' di ehrid='+ehrid+' retrieval failure in format '+myformat)
@@ -1024,6 +1029,9 @@ def create_app():
                 elif('flat' in msg):
                     myformat='flat'
                     compflat=msg['flat']
+                elif('structured' in msg):
+                    myformat='structured'
+                    compjson=msg['structured']               
                 else:
                     myformat='json'
                     compjson=msg['json']
@@ -1037,6 +1045,8 @@ def create_app():
                     myformat='xml'
                 elif(filetype=='JSON'):
                     myformat='json'
+                elif(filetype=='STRUCTURED'):
+                    myformat='structured'
                 else:
                     myformat='flat'        
                 yourresults=str(msg['status'])+ " "+ str(msg['status_code']) +"\n"+ \

@@ -211,7 +211,8 @@ if (window.innerWidth < 992) {
                     <label class="form-label" for="format">Composition Format</label><br>
                     <input class="form-check-input" type="radio" name="filetype" value="XML">XML</input>
                     <input class="form-check-input" type="radio" name="filetype" value="JSON">JSON</input>
-                    <input class="form-check-input" type="radio" name="filetype" value="FLAT" checked>FLAT JSON</input>
+                    <input class="form-check-input" type="radio" name="filetype" value="STRUCTURED">STRUCTURED</input>
+                    <input class="form-check-input" type="radio" name="filetype" value="FLAT" checked>FLAT</input>
                     <br><br>
 
                     <input   id='pippo' name='pippo' class="btn btn-primary" type="submit" value="Submit">
@@ -277,7 +278,7 @@ if (window.innerWidth < 992) {
       if ( {{format|tojson}} == "xml" ) {
         document.getElementById("savexml").style.display = 'block';
       }else{
-          if ( {{format|tojson}} == "json" ){
+          if ( {{format|tojson}} == "json" || {{format|tojson}} == "structured" ){
             document.getElementById("savejson").style.display = 'block';
           }else{
             document.getElementById("saveflat").style.display = 'block';

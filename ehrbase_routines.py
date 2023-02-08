@@ -524,7 +524,50 @@ def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,fil
             current_app.logger.warning(f"POST composition failure. format={filetype} template={tid}  ehr={eid}")
         myresp['text']=response.text
         myresp["headers"]=response.headers
-        return myresp       
+        return myresp  
+    elif(filetype=="STRUCTURED"):   #STRUCTURED
+        if hostname.startswith('http'):
+            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+        else:
+            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'composition')
+        comp = json.loads(composition)
+        compositionjson=json.dumps(comp)
+        response = client.post(myurl,
+                       params={'ehrId':eid,'templateId':tid,'format':'STRUCTURED'},
+                       headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
+                       data=compositionjson
+                      )           
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            myresp['compositionid']=response.headers['Location'].split("composition/")[1]
+            current_app.logger.info(f"POST composition success. format={filetype} template={tid}  ehr={eid}")
+            if(check=="Yes"):
+                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                if(checkinfo==None):
+                    myresp['check']='Retrieved and posted Compositions match'
+                    myresp['checkinfo']=""
+                    current_app.logger.info(f"check success. Retrieved and posted Compositions match")
+                else:
+                    myresp['check']='WARNING: Retrieved different from posted Composition'
+                    myresp['checkinfo']=checkinfo
+                    current_app.logger.warning(f"check failure. Retrieved and posted Compositions do not match")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.warning(f"POST composition failure. format={filetype} template={tid}  ehr={eid}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp
     else:#FLAT JSON
         if hostname.startswith('http'):
             EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
@@ -631,6 +674,38 @@ def getcomp(client,auth,hostname,port,username,password,compid,eid,filetype):
         else:
             myresp["status"]="failure"
             current_app.logger.info(f"GET Composition failure for compositionid={compid} ehrid={eid} format={filetype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp
+    elif(filetype=='STRUCTURED'):
+        if hostname.startswith('http'):
+            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+        else:
+            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'composition/'+compid)
+        response = client.get(myurl,
+                       params={'ehrId':eid,'format':'STRUCTURED'},
+                       headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
+                      )           
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        myresp['compositionid']=compid
+        myresp['ehrid']=eid
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            myresp['structured']=json.dumps(json.loads(response.text)['composition'],sort_keys=True, indent=1, separators=(',', ': '))
+            current_app.logger.info(f"GET Composition success for compositionid={compid} ehrid={eid} format={filetype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.warning(f"GET Composition failure for compositionid={compid} ehrid={eid} format={filetype}")
         myresp['text']=response.text
         myresp["headers"]=response.headers
         return myresp
@@ -1042,7 +1117,28 @@ def compcheck(client,auth,hostname,port,composition,eid,filetype,compid):
             if(ndiff>0):
                 return comparison_results
             else:
-                return None                  
+                return None  
+    elif(filetype=='STRUCTURED'):
+        if hostname.startswith('http'):
+            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+        else:
+            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'composition/'+compid)
+        response = client.get(myurl,
+                       params={'ehrId':eid,'format':'STRUCTURED'},
+                       headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
+                      )           
+        origcomposition=json.loads(composition)
+        if(response.status_code<210 and response.status_code>199):
+            retrievedcomposition=json.loads(response.text)['composition']
+            origchanged=myutils.change_naming(origcomposition)
+            retrchanged=myutils.change_naming(retrievedcomposition)
+            comparison_results=myutils.compare_jsons(origchanged,retrchanged)
+            ndiff=myutils.analyze_comparison_json(comparison_results)
+            if(ndiff>0):
+                return comparison_results
+            else:
+                return None                        
     else:
         if hostname.startswith('http'):
             EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
@@ -2170,6 +2266,36 @@ def examplecomp(client,auth,hostname,port,username,password,template_name,filety
         myresp['text']=response.text
         myresp["headers"]=response.headers
         return myresp
+    elif(filetype=='STRUCTURED'):#STRUCTURED
+        if hostname.startswith('http'):
+            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+        else:
+            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+        myurl=url_normalize(EHR_SERVER_BASE_URL+'template/'+template_name+'/example')  
+        response = client.get(myurl,
+                       params={'format':'STRUCTURED'},
+                       headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'}
+                        )           
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            myresp['structured']=json.dumps(json.loads(response.text),sort_keys=True, indent=1, separators=(',', ': '))
+            current_app.logger.info(f"GET Example composition success for template={template_name} in format={filetype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.warning(f"GET Example composition success for template={template_name} in format={filetype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp        
     else:#FLAT JSON
         if hostname.startswith('http'):
             EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
