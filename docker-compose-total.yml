@@ -21,7 +21,7 @@ services:
     networks:
       - ehrbase-net
     volumes:
-      - ./.pgdata:/var/lib/postgresql/pgdata
+      - ./.pgdata:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
