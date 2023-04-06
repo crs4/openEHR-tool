@@ -798,7 +798,10 @@ def create_app():
                 gen_properties=msg['gen_properties']
                 aql=msg['aqlinfo']
                 db=msg['db']
-                disk=msg['disk']
+                if 'disk' in msg:
+                    disk=msg['disk']
+                else:
+                    disk=msg['text']
                 return render_template('dashboard.html',total_ehrs=total_ehrs,
                     total_templates=total_templates, total_templates_in_use=total_templates_in_use,
                     total_compositions=total_compositions,

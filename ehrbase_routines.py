@@ -262,12 +262,12 @@ def createehrid(client,auth,hostname,port,username,password,eid):
     if(response.status_code<210 and response.status_code>199):
         myresp['status']="success"
         if(withehrid):
-            ehrid=response.headers['Location'].split("ehr/")[4]
+            ehrid=response.headers['ETag'].replace('"','')
             current_app.logger.info(f'EHR creation PUT success with given ehrid={eid}')
             if(eid != ehrid):
                 current_app.logger.debug('ehrid given and obtained do not match')
         else:
-            ehrid=response.headers['Location'].split("ehr/")[4]
+            ehrid=response.headers['ETag'].replace('"','')
             current_app.logger.info(f'EHR creation POST success with ehrid={ehrid}')
         myresp["ehrid"]=ehrid
         myresp['text']=response.text
@@ -349,12 +349,12 @@ def createehrsub(client,auth,hostname,port,username,password,sid,sna,eid):
     if(response.status_code<210 and response.status_code>199):
         myresp['status']="success"
         if(withehrid):
-            ehrid=response.headers['Location'].split("ehr/")[4]
+            ehrid=response.headers['ETag'].replace('"','')
             current_app.logger.info(f'EHR creation PUT success with given ehrid={eid}')
             if(eid != ehrid):
                 current_app.logger.debug('ehrid given and obtain do not match')
         else:            
-            ehrid=response.headers['Location'].split("ehr/")[4]
+            ehrid=response.headers['ETag'].replace('"','')
             current_app.logger.info(f'EHR creation POST success with ehrid={ehrid}')
         myresp["ehrid"]=ehrid
         myresp['text']=response.text
