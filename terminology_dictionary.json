@@ -1,0 +1,1152 @@
+{
+  "compression_algorithms": [
+    {
+      "value": "compress"
+    },
+    {
+      "value": "deflate"
+    },
+    {
+      "value": "gzip"
+    },
+    {
+      "value": "zlib"
+    },
+    {
+      "value": "other"
+    }
+  ],
+  "integrity_check_algorithms": [
+    {
+      "value": "SHA-1"
+    },
+    {
+      "value": "SHA-256"
+    }
+  ],
+  "normal_statuses": [
+    {
+      "value": "HHH"
+    },
+    {
+      "value": "HH"
+    },
+    {
+      "value": "H"
+    },
+    {
+      "value": "N"
+    },
+    {
+      "value": "L"
+    },
+    {
+      "value": "LL"
+    },
+    {
+      "value": "LLL"
+    }
+  ],
+  "attestation_reason": [
+    {
+      "id": "240",
+      "rubric": "signed"
+    },
+    {
+      "id": "648",
+      "rubric": "witnessed"
+    }
+  ],
+  "audit_change_type": [
+    {
+      "id": "249",
+      "rubric": "creation"
+    },
+    {
+      "id": "250",
+      "rubric": "amendment"
+    },
+    {
+      "id": "251",
+      "rubric": "modification"
+    },
+    {
+      "id": "252",
+      "rubric": "synthesis"
+    },
+    {
+      "id": "523",
+      "rubric": "deleted"
+    },
+    {
+      "id": "666",
+      "rubric": "attestation"
+    },
+    {
+      "id": "253",
+      "rubric": "unknown"
+    }
+  ],
+  "composition_category": [
+    {
+      "id": "431",
+      "rubric": "persistent"
+    },
+    {
+      "id": "433",
+      "rubric": "event"
+    }
+  ],
+  "MultiMedia": [
+    {
+      "id": "387",
+      "rubric": "audio/DVI4"
+    },
+    {
+      "id": "388",
+      "rubric": "audio/G722"
+    },
+    {
+      "id": "389",
+      "rubric": "audio/G723"
+    },
+    {
+      "id": "390",
+      "rubric": "audio/G726-16"
+    },
+    {
+      "id": "391",
+      "rubric": "audio/G726-24"
+    },
+    {
+      "id": "392",
+      "rubric": "audio/G726-32"
+    },
+    {
+      "id": "393",
+      "rubric": "audio/G726-40"
+    },
+    {
+      "id": "394",
+      "rubric": "audio/G728"
+    },
+    {
+      "id": "395",
+      "rubric": "audio/L8"
+    },
+    {
+      "id": "396",
+      "rubric": "audio/L16"
+    },
+    {
+      "id": "397",
+      "rubric": "audio/LPC"
+    },
+    {
+      "id": "398",
+      "rubric": "audio/G729"
+    },
+    {
+      "id": "399",
+      "rubric": "audio/G729D"
+    },
+    {
+      "id": "400",
+      "rubric": "audio/G729E"
+    },
+    {
+      "id": "401",
+      "rubric": "video/BT656"
+    },
+    {
+      "id": "402",
+      "rubric": "video/CelB"
+    },
+    {
+      "id": "403",
+      "rubric": "video/JPEG"
+    },
+    {
+      "id": "404",
+      "rubric": "video/H261"
+    },
+    {
+      "id": "405",
+      "rubric": "video/H263"
+    },
+    {
+      "id": "406",
+      "rubric": "video/H263-1998"
+    },
+    {
+      "id": "407",
+      "rubric": "video/H263-2000"
+    },
+    {
+      "id": "408",
+      "rubric": "video/MPV"
+    },
+    {
+      "id": "409",
+      "rubric": "audio/mpeg"
+    },
+    {
+      "id": "410",
+      "rubric": "audio/mpeg4-generic"
+    },
+    {
+      "id": "411",
+      "rubric": "audio/L20"
+    },
+    {
+      "id": "412",
+      "rubric": "audio/L24"
+    },
+    {
+      "id": "413",
+      "rubric": "audio/telephone-event"
+    },
+    {
+      "id": "414",
+      "rubric": "video/quicktime"
+    },
+    {
+      "id": "415",
+      "rubric": "text/calendar"
+    },
+    {
+      "id": "416",
+      "rubric": "text/directory"
+    },
+    {
+      "id": "417",
+      "rubric": "text/html"
+    },
+    {
+      "id": "418",
+      "rubric": "text/plain"
+    },
+    {
+      "id": "419",
+      "rubric": "text/rtf"
+    },
+    {
+      "id": "420",
+      "rubric": "text/sgml"
+    },
+    {
+      "id": "421",
+      "rubric": "text/tab-separated-values"
+    },
+    {
+      "id": "422",
+      "rubric": "text/uri-list"
+    },
+    {
+      "id": "423",
+      "rubric": "text/xml"
+    },
+    {
+      "id": "424",
+      "rubric": "text/xml-external-parsed-entity"
+    },
+    {
+      "id": "425",
+      "rubric": "image/cgm"
+    },
+    {
+      "id": "426",
+      "rubric": "image/gif"
+    },
+    {
+      "id": "427",
+      "rubric": "image/png"
+    },
+    {
+      "id": "428",
+      "rubric": "image/tiff"
+    },
+    {
+      "id": "429",
+      "rubric": "image/jpeg"
+    },
+    {
+      "id": "517",
+      "rubric": "application/msword"
+    },
+    {
+      "id": "518",
+      "rubric": "application/pdf"
+    },
+    {
+      "id": "519",
+      "rubric": "application/rtf"
+    },
+    {
+      "id": "637",
+      "rubric": "application/dicom"
+    },
+    {
+      "id": "682",
+      "rubric": "application/vnd.oasis.opendocument.text"
+    },
+    {
+      "id": "683",
+      "rubric": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    }
+  ],
+  "property": [
+    {
+      "id": "339",
+      "rubric": "Acceleration"
+    },
+    {
+      "id": "342",
+      "rubric": "Acceleration, angular"
+    },
+    {
+      "id": "381",
+      "rubric": "Amount (Eq)"
+    },
+    {
+      "id": "384",
+      "rubric": "Amount (mole)"
+    },
+    {
+      "id": "497",
+      "rubric": "Angle, plane"
+    },
+    {
+      "id": "500",
+      "rubric": "Angle, solid"
+    },
+    {
+      "id": "335",
+      "rubric": "Area"
+    },
+    {
+      "id": "119",
+      "rubric": "Concentration"
+    },
+    {
+      "id": "350",
+      "rubric": "Density"
+    },
+    {
+      "id": "362",
+      "rubric": "Diffusion coefficient"
+    },
+    {
+      "id": "501",
+      "rubric": "Electrical capacitance"
+    },
+    {
+      "id": "498",
+      "rubric": "Electrical charge"
+    },
+    {
+      "id": "502",
+      "rubric": "Electrical conductance"
+    },
+    {
+      "id": "334",
+      "rubric": "Electrical current"
+    },
+    {
+      "id": "377",
+      "rubric": "Electrical field strength"
+    },
+    {
+      "id": "655",
+      "rubric": "Electrical potential time"
+    },
+    {
+      "id": "121",
+      "rubric": "Energy"
+    },
+    {
+      "id": "366",
+      "rubric": "Energy density"
+    },
+    {
+      "id": "508",
+      "rubric": "Energy dose"
+    },
+    {
+      "id": "365",
+      "rubric": "Energy per area"
+    },
+    {
+      "id": "364",
+      "rubric": "Energy, linear"
+    },
+    {
+      "id": "347",
+      "rubric": "Flow rate, mass"
+    },
+    {
+      "id": "352",
+      "rubric": "Flow rate, mass/force"
+    },
+    {
+      "id": "351",
+      "rubric": "Flow rate, mass/volume"
+    },
+    {
+      "id": "126",
+      "rubric": "Flow rate, volume"
+    },
+    {
+      "id": "348",
+      "rubric": "Flux, mass"
+    },
+    {
+      "id": "355",
+      "rubric": "Force"
+    },
+    {
+      "id": "358",
+      "rubric": "Force per mass"
+    },
+    {
+      "id": "357",
+      "rubric": "Force, body"
+    },
+    {
+      "id": "382",
+      "rubric": "Frequency"
+    },
+    {
+      "id": "586",
+      "rubric": "Glomerular filtration rate"
+    },
+    {
+      "id": "373",
+      "rubric": "Heat transfer coefficient"
+    },
+    {
+      "id": "505",
+      "rubric": "Illuminance"
+    },
+    {
+      "id": "379",
+      "rubric": "Inductance"
+    },
+    {
+      "id": "122",
+      "rubric": "Length"
+    },
+    {
+      "id": "499",
+      "rubric": "Light intensity"
+    },
+    {
+      "id": "123",
+      "rubric": "Loudness"
+    },
+    {
+      "id": "504",
+      "rubric": "Luminous flux"
+    },
+    {
+      "id": "378",
+      "rubric": "Magnetic flux"
+    },
+    {
+      "id": "503",
+      "rubric": "Magnetic flux density"
+    },
+    {
+      "id": "124",
+      "rubric": "Mass"
+    },
+    {
+      "id": "385",
+      "rubric": "Mass (IU)"
+    },
+    {
+      "id": "445",
+      "rubric": "Mass (Units)"
+    },
+    {
+      "id": "349",
+      "rubric": "Mass per area"
+    },
+    {
+      "id": "344",
+      "rubric": "Moment inertia, area"
+    },
+    {
+      "id": "345",
+      "rubric": "Moment inertia, mass"
+    },
+    {
+      "id": "340",
+      "rubric": "Momentum"
+    },
+    {
+      "id": "346",
+      "rubric": "Momentum, flow rate"
+    },
+    {
+      "id": "343",
+      "rubric": "Momentum, angular"
+    },
+    {
+      "id": "363",
+      "rubric": "Power"
+    },
+    {
+      "id": "369",
+      "rubric": "Power density"
+    },
+    {
+      "id": "368",
+      "rubric": "Power flux"
+    },
+    {
+      "id": "367",
+      "rubric": "Power, linear"
+    },
+    {
+      "id": "125",
+      "rubric": "Pressure"
+    },
+    {
+      "id": "507",
+      "rubric": "Proportion"
+    },
+    {
+      "id": "380",
+      "rubric": "Qualified real"
+    },
+    {
+      "id": "506",
+      "rubric": "Radioactivity"
+    },
+    {
+      "id": "375",
+      "rubric": "Resistance"
+    },
+    {
+      "id": "370",
+      "rubric": "Specific energy"
+    },
+    {
+      "id": "371",
+      "rubric": "Specific heat, gas constant"
+    },
+    {
+      "id": "337",
+      "rubric": "Specific surface"
+    },
+    {
+      "id": "336",
+      "rubric": "Specific volume"
+    },
+    {
+      "id": "354",
+      "rubric": "Specific weight"
+    },
+    {
+      "id": "356",
+      "rubric": "Surface tension"
+    },
+    {
+      "id": "127",
+      "rubric": "Temperature"
+    },
+    {
+      "id": "372",
+      "rubric": "Thermal conductivity"
+    },
+    {
+      "id": "128",
+      "rubric": "Time"
+    },
+    {
+      "id": "359",
+      "rubric": "Torque"
+    },
+    {
+      "id": "338",
+      "rubric": "Velocity"
+    },
+    {
+      "id": "341",
+      "rubric": "Velocity, angular"
+    },
+    {
+      "id": "360",
+      "rubric": "Velocity, dynamic"
+    },
+    {
+      "id": "361",
+      "rubric": "Velocity, kinematic"
+    },
+    {
+      "id": "374",
+      "rubric": "Voltage, electrical"
+    },
+    {
+      "id": "129",
+      "rubric": "Volume"
+    },
+    {
+      "id": "130",
+      "rubric": "Work"
+    },
+    {
+      "id": "685",
+      "rubric": "Refractive power"
+    }
+  ],
+  "version_lifecycle_state": [
+    {
+      "id": "532",
+      "rubric": "complete"
+    },
+    {
+      "id": "553",
+      "rubric": "incomplete"
+    },
+    {
+      "id": "523",
+      "rubric": "deleted"
+    }
+  ],
+  "participation_function": [
+    {
+      "id": "253",
+      "rubric": "unknown"
+    }
+  ],
+  "null_flavours": [
+    {
+      "id": "271",
+      "rubric": "no information"
+    },
+    {
+      "id": "253",
+      "rubric": "unknown"
+    },
+    {
+      "id": "272",
+      "rubric": "masked"
+    },
+    {
+      "id": "273",
+      "rubric": "not applicable"
+    }
+  ],
+  "participation_mode": [
+    {
+      "id": "193",
+      "rubric": "not specified"
+    },
+    {
+      "id": "216",
+      "rubric": "face-to-face communication"
+    },
+    {
+      "id": "223",
+      "rubric": "interpreted face-to-face communication"
+    },
+    {
+      "id": "217",
+      "rubric": "signing (face-to-face)"
+    },
+    {
+      "id": "195",
+      "rubric": "live audiovisual; videoconference; videophone"
+    },
+    {
+      "id": "198",
+      "rubric": "videoconferencing"
+    },
+    {
+      "id": "197",
+      "rubric": "videophone"
+    },
+    {
+      "id": "218",
+      "rubric": "signing over video"
+    },
+    {
+      "id": "224",
+      "rubric": "interpreted video communication"
+    },
+    {
+      "id": "194",
+      "rubric": "asynchronous audiovisual; recorded video"
+    },
+    {
+      "id": "196",
+      "rubric": "recorded video"
+    },
+    {
+      "id": "202",
+      "rubric": "live audio-only; telephone; internet phone; teleconference"
+    },
+    {
+      "id": "204",
+      "rubric": "telephone"
+    },
+    {
+      "id": "203",
+      "rubric": "teleconference"
+    },
+    {
+      "id": "205",
+      "rubric": "internet telephone"
+    },
+    {
+      "id": "222",
+      "rubric": "interpreted audio-only"
+    },
+    {
+      "id": "199",
+      "rubric": "asynchronous audio-only; dictated; voice mail"
+    },
+    {
+      "id": "200",
+      "rubric": "dictated"
+    },
+    {
+      "id": "201",
+      "rubric": "voice-mail"
+    },
+    {
+      "id": "212",
+      "rubric": "live text-only; internet chat; SMS chat; interactive written note"
+    },
+    {
+      "id": "213",
+      "rubric": "internet chat"
+    },
+    {
+      "id": "214",
+      "rubric": "SMS chat"
+    },
+    {
+      "id": "215",
+      "rubric": "interactive written note"
+    },
+    {
+      "id": "206",
+      "rubric": "asynchronous text; email; fax; letter; handwritten note; SMS message"
+    },
+    {
+      "id": "211",
+      "rubric": "handwritten note"
+    },
+    {
+      "id": "210",
+      "rubric": "printed/typed letter"
+    },
+    {
+      "id": "207",
+      "rubric": "email"
+    },
+    {
+      "id": "208",
+      "rubric": "facsimile/telefax"
+    },
+    {
+      "id": "221",
+      "rubric": "translated text"
+    },
+    {
+      "id": "209",
+      "rubric": "SMS message"
+    },
+    {
+      "id": "219",
+      "rubric": "physically present"
+    },
+    {
+      "id": "220",
+      "rubric": "physically remote"
+    }
+  ],
+  "instruction_states": [
+    {
+      "id": "524",
+      "rubric": "initial"
+    },
+    {
+      "id": "526",
+      "rubric": "planned"
+    },
+    {
+      "id": "527",
+      "rubric": "postponed"
+    },
+    {
+      "id": "528",
+      "rubric": "cancelled"
+    },
+    {
+      "id": "529",
+      "rubric": "scheduled"
+    },
+    {
+      "id": "245",
+      "rubric": "active"
+    },
+    {
+      "id": "530",
+      "rubric": "suspended"
+    },
+    {
+      "id": "531",
+      "rubric": "aborted"
+    },
+    {
+      "id": "532",
+      "rubric": "completed"
+    },
+    {
+      "id": "533",
+      "rubric": "expired"
+    }
+  ],
+  "instruction_transitions": [
+    {
+      "id": "535",
+      "rubric": "initiate"
+    },
+    {
+      "id": "536",
+      "rubric": "plan step"
+    },
+    {
+      "id": "537",
+      "rubric": "postpone"
+    },
+    {
+      "id": "538",
+      "rubric": "restore"
+    },
+    {
+      "id": "166",
+      "rubric": "cancel"
+    },
+    {
+      "id": "542",
+      "rubric": "postponed step"
+    },
+    {
+      "id": "539",
+      "rubric": "schedule"
+    },
+    {
+      "id": "540",
+      "rubric": "start"
+    },
+    {
+      "id": "541",
+      "rubric": "do"
+    },
+    {
+      "id": "543",
+      "rubric": "active step"
+    },
+    {
+      "id": "544",
+      "rubric": "suspend"
+    },
+    {
+      "id": "545",
+      "rubric": "suspended step"
+    },
+    {
+      "id": "546",
+      "rubric": "resume"
+    },
+    {
+      "id": "547",
+      "rubric": "abort"
+    },
+    {
+      "id": "548",
+      "rubric": "finish"
+    },
+    {
+      "id": "549",
+      "rubric": "time out"
+    },
+    {
+      "id": "550",
+      "rubric": "notify aborted"
+    },
+    {
+      "id": "551",
+      "rubric": "notify completed"
+    },
+    {
+      "id": "552",
+      "rubric": "notify cancelled"
+    }
+  ],
+  "subject_relationship": [
+    {
+      "id": "0",
+      "rubric": "self"
+    },
+    {
+      "id": "3",
+      "rubric": "foetus"
+    },
+    {
+      "id": "10",
+      "rubric": "mother"
+    },
+    {
+      "id": "9",
+      "rubric": "father"
+    },
+    {
+      "id": "6",
+      "rubric": "donor"
+    },
+    {
+      "id": "253",
+      "rubric": "unknown"
+    },
+    {
+      "id": "261",
+      "rubric": "adopted daughter"
+    },
+    {
+      "id": "260",
+      "rubric": "adopted son"
+    },
+    {
+      "id": "259",
+      "rubric": "adoptive father"
+    },
+    {
+      "id": "258",
+      "rubric": "adoptive mother"
+    },
+    {
+      "id": "256",
+      "rubric": "biological father"
+    },
+    {
+      "id": "255",
+      "rubric": "biological mother"
+    },
+    {
+      "id": "23",
+      "rubric": "brother"
+    },
+    {
+      "id": "28",
+      "rubric": "child"
+    },
+    {
+      "id": "265",
+      "rubric": "cohabitee"
+    },
+    {
+      "id": "257",
+      "rubric": "cousin"
+    },
+    {
+      "id": "29",
+      "rubric": "daughter"
+    },
+    {
+      "id": "264",
+      "rubric": "guardian"
+    },
+    {
+      "id": "39",
+      "rubric": "maternal aunt"
+    },
+    {
+      "id": "8",
+      "rubric": "maternal"
+    },
+    {
+      "id": "7",
+      "rubric": "maternal "
+    },
+    {
+      "id": "38",
+      "rubric": "maternal uncle"
+    },
+    {
+      "id": "189",
+      "rubric": "neonate"
+    },
+    {
+      "id": "254",
+      "rubric": "parent"
+    },
+    {
+      "id": "22",
+      "rubric": "partner/spouse"
+    },
+    {
+      "id": "41",
+      "rubric": "paternal aunt"
+    },
+    {
+      "id": "36",
+      "rubric": "paternal grandfa-"
+    },
+    {
+      "id": "37",
+      "rubric": "paternal grand-"
+    },
+    {
+      "id": "40",
+      "rubric": "paternal uncle"
+    },
+    {
+      "id": "27",
+      "rubric": "sibling"
+    },
+    {
+      "id": "24",
+      "rubric": "sister"
+    },
+    {
+      "id": "31",
+      "rubric": "son"
+    },
+    {
+      "id": "263",
+      "rubric": "step father"
+    },
+    {
+      "id": "262",
+      "rubric": "step mother"
+    },
+    {
+      "id": "25",
+      "rubric": "step or half brother"
+    },
+    {
+      "id": "26",
+      "rubric": "step or half sister"
+    }
+  ],
+  "term_mapping_purpose": [
+    {
+      "id": "669",
+      "rubric": "public health"
+    },
+    {
+      "id": "670",
+      "rubric": "reimbursement"
+    },
+    {
+      "id": "671",
+      "rubric": "research study"
+    }
+  ],
+  "event_math_function": [
+    {
+      "id": "145",
+      "rubric": "minimum"
+    },
+    {
+      "id": "144",
+      "rubric": "maximum"
+    },
+    {
+      "id": "267",
+      "rubric": "mode"
+    },
+    {
+      "id": "268",
+      "rubric": "median"
+    },
+    {
+      "id": "146",
+      "rubric": "mean"
+    },
+    {
+      "id": "147",
+      "rubric": "change"
+    },
+    {
+      "id": "148",
+      "rubric": "total"
+    },
+    {
+      "id": "149",
+      "rubric": "variation"
+    },
+    {
+      "id": "521",
+      "rubric": "decrease"
+    },
+    {
+      "id": "522",
+      "rubric": "increase"
+    },
+    {
+      "id": "640",
+      "rubric": "actual"
+    }
+  ],
+  "setting": [
+    {
+      "id": "225",
+      "rubric": "home"
+    },
+    {
+      "id": "227",
+      "rubric": "emergency care"
+    },
+    {
+      "id": "228",
+      "rubric": "primary medical care"
+    },
+    {
+      "id": "229",
+      "rubric": "primary nursing care"
+    },
+    {
+      "id": "230",
+      "rubric": "primary allied health care"
+    },
+    {
+      "id": "231",
+      "rubric": "midwifery care"
+    },
+    {
+      "id": "232",
+      "rubric": "secondary medical care"
+    },
+    {
+      "id": "233",
+      "rubric": "secondary nursing care"
+    },
+    {
+      "id": "234",
+      "rubric": "secondary allied health care"
+    },
+    {
+      "id": "235",
+      "rubric": "complementary health care"
+    },
+    {
+      "id": "236",
+      "rubric": "dental care"
+    },
+    {
+      "id": "237",
+      "rubric": "nursing home care"
+    },
+    {
+      "id": "238",
+      "rubric": "other care"
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import string,random
 import sys
 from flask import request
 from myutils import myutils
+from myutils import structuredMarand2EHRBase
 from flask import current_app
 
 def init_ehrbase():
@@ -568,6 +569,57 @@ def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,fil
         myresp['text']=response.text
         myresp["headers"]=response.headers
         return myresp
+    elif(filetype=="STRUCTMARAND"):   #STRUCTURED MARAND from Archetype Designer
+        if hostname.startswith('http'):
+            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+        else:
+            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'composition')
+        compMARAND = json.loads(composition)
+        current_app.logger.debug('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa')
+        compEHRBaseresp = structuredMarand2EHRBase.structuredMarand2EHRBase(compMARAND,client,auth,hostname,port,username,password,composition,eid,tid)                  
+        myresp={}
+        if compEHRBaseresp['status']=='failure':
+            myresp['status']='failure'
+            current_app.logger.warning(f"composition conversion from Structured Marand to Structured EHRBase failure")
+            myresp["headers"]=compEHRBaseresp['headers']
+            return myresp 
+        compositionjson=json.dumps(compEHRBaseresp['composition'])
+        response = client.post(myurl,
+                       params={'ehrId':eid,'templateId':tid,'format':'STRUCTURED'},
+                       headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
+                       data=compositionjson
+                      )    
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            myresp['compositionid']=response.headers['Location'].split("composition/")[1]
+            current_app.logger.info(f"POST composition success. format={filetype} template={tid}  ehr={eid}")
+            if(check=="Yes"):
+                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                if(checkinfo==None):
+                    myresp['check']='Retrieved and posted Compositions match'
+                    myresp['checkinfo']=""
+                    current_app.logger.info(f"check success. Retrieved and posted Compositions match")
+                else:
+                    myresp['check']='WARNING: Retrieved different from posted Composition'
+                    myresp['checkinfo']=checkinfo
+                    current_app.logger.warning(f"check failure. Retrieved and posted Compositions do not match")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.warning(f"POST composition failure. format={filetype} template={tid}  ehr={eid}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp    
     else:#FLAT JSON
         if hostname.startswith('http'):
             EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
