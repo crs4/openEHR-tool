@@ -735,83 +735,49 @@ def create_app():
         msg=ehrbase_routines.get_dashboard_info(client,auth,hostname,port,username,password,adauth,adusername,adpassword)
 
         if('success' in msg['status']):
-            info=disk=aql=db=gen_properties=end_properties=terminology=plugin=env={}
-            if(msg['status']=='success1'):#only AQL queries stored
-                total_aql_queries=msg['aql']
-                return render_template('dashboard.html',total_aql_queries=total_aql_queries,
-                info=info,disk=disk,aql=aql,db=db,gen_properties=gen_properties,end_properties=end_properties,
-                terminology=terminology,plugin=plugin,env=env)
-            elif(msg['status']=='success2'):#and total EHRS
-                total_ehrs=msg['ehr']
-                return render_template('dashboard.html',total_ehrs=total_ehrs,total_aql_queries=total_aql_queries,
-                info=info,disk=disk,aql=aql,db=db,gen_properties=gen_properties,end_properties=end_properties,
-                terminology=terminology,plugin=plugin,env=env)
-            elif(msg['status']=='success3'):#and EHRS in use, templates in use, compositions
-                total_ehrs=msg['ehr']
-                total_ehrs_in_use=msg['uehr']
-                total_templates_in_use=msg['utemplate']
-                total_compositions=msg['composition']
-                total_aql_queries=msg['aql']
-                return render_template('dashboard.html',total_ehrs=total_ehrs,total_templates_in_use=total_templates_in_use,
-                    total_ehrs_in_use=total_ehrs_in_use,total_compositions=total_compositions, total_aql_queries=total_aql_queries,
-                    info=info,disk=disk,aql=aql,db=db,gen_properties=gen_properties,end_properties=end_properties,
-                terminology=terminology,plugin=plugin,env=env)
-            elif(msg['status']=='success4'):#and total templates
-                total_ehrs=msg['ehr']
-                total_ehrs_in_use=msg['uehr']
-                total_compositions=msg['composition']
-                total_templates=msg['template']
-                total_templates_in_use=msg['utemplate']
-                total_aql_queries=msg['aql']
-                bar_labels=msg['bar_label']
-                bar_values=msg['bar_value']
-                bar_max=msg['bar_max']
-                pie_labels=msg['pie_label']
-                pie_values=msg['pie_value']
-                return render_template('dashboard.html',total_ehrs=total_ehrs,
-                    total_templates=total_templates, total_templates_in_use=total_templates_in_use,
-                    total_compositions=total_compositions,
-                    total_aql_queries=total_aql_queries,bar_labels=bar_labels,
-                    bar_values=bar_values,pie_labels=pie_labels,
-                    pie_values=pie_values,bar_max=bar_max,
-                    total_ehrs_in_use=total_ehrs_in_use,
-                    info=info,disk=disk,aql=aql,db=db,gen_properties=gen_properties,end_properties=end_properties,
-                terminology=terminology,plugin=plugin,env=env)
-            else: #management endpoint allowed
-                total_ehrs=msg['ehr']
-                total_ehrs_in_use=msg['uehr']
-                total_compositions=msg['composition']
-                total_templates=msg['template']
-                total_templates_in_use=msg['utemplate']
-                total_aql_queries=msg['aql']
-                bar_labels=msg['bar_label']
-                bar_values=msg['bar_value']
-                bar_max=msg['bar_max']
-                pie_labels=msg['pie_label']
-                pie_values=msg['pie_value']
-                #other parameters
-                info=msg['info']
-                env=msg['env']
-                terminology=msg['terminology']
-                plugin=msg['plugin']
-                end_properties=msg['end_properties']
-                gen_properties=msg['gen_properties']
-                aql=msg['aqlinfo']
-                db=msg['db']
-                if 'disk' in msg:
-                    disk=msg['disk']
-                else:
-                    disk=msg['text']
-                return render_template('dashboard.html',total_ehrs=total_ehrs,
-                    total_templates=total_templates, total_templates_in_use=total_templates_in_use,
-                    total_compositions=total_compositions,
-                    total_aql_queries=total_aql_queries,bar_labels=bar_labels,
-                    bar_values=bar_values,pie_labels=pie_labels,
-                    pie_values=pie_values,bar_max=bar_max,info=info,
-                    end_properties=end_properties,terminology=terminology,
-                    env=env,plugin=plugin,aql=aql,db=db,disk=disk,
-                    gen_properties=gen_properties,
-                    total_ehrs_in_use=total_ehrs_in_use)
+            info=health=aql=db=gen_properties=end_properties=terminology=plugin=env={}
+            parameters={}
+            parameters['info']=info
+            parameters['health']=health
+            parameters['aql']=aql
+            parameters['db']=db
+            parameters['gen_properties']=gen_properties
+            parameters['end_properties']=end_properties
+            parameters['terminology']=terminology
+            parameters['plugin']=plugin
+            parameters['env']=env
+            if msg['success1']:#AQL queries stored
+                parameters['total_aql_queries']=msg['aql']
+            if msg['success2']:#total EHRS
+                parameters['total_ehrs']=msg['ehr']
+            if msg['success3']:#EHRS in use, templates in use, compositions
+                parameters['total_ehrs_in_use']=msg['uehr']
+                parameters['total_templates_in_use']=msg['utemplate']
+                parameters['total_compositions']=msg['composition']
+            if msg['success4']:#total_templates
+                parameters['total_templates']=msg['template']
+                parameters['bar_labels']=msg['bar_label']
+                parameters['bar_values']=msg['bar_value']
+                parameters['bar_max']=msg['bar_max']
+                parameters['pie_labels']=msg['pie_label']
+                parameters['pie_values']=msg['pie_value']  
+            if msg['success5']:#info
+                parameters['info']=msg['info']
+            if 'success6' in msg:
+                if msg['success6']:
+                    parameters['env']=msg['env']
+                    parameters['end_properties']=msg['end_properties']
+                    parameters['db']=msg["db"]
+                    parameters['aql']=msg["aqlinfo"]
+                    parameters['gen_properties']=msg["gen_properties"]
+                    parameters['terminology']=msg["terminology"]
+                    parameters['plugin']=msg["plugin"]
+            if 'success7' in msg:
+                if msg['success7']:
+                    parameters['db']=msg["db"]
+                    parameters['health']=msg['health']
+            
+            return render_template('dashboard.html',**parameters)
         else:
             myerror='Error. No data available\n text:'+str(msg['text'])+' headers='+str(msg['headers'])
             return render_template('dashboard.html',error=myerror)

@@ -1241,12 +1241,14 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
         resultsaql=json.loads(responseaql.text)['versions']
         myresp['aql']=len(resultsaql) 
         myresp['status']='success1'
+        myresp['success1']=True
         current_app.logger.debug('Dashboard: GET AQL stored success')
     else:
+        myresp['success1']=False
         myresp['text']=responseaql.text
         myresp['headers']=responseaql.headers
         current_app.logger.warning("Dashboard: GET AQL failure")
-        return myresp
+        #return myresp
     # get total ehrs  
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/aql')
     data={}
@@ -1266,12 +1268,14 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
         results=json.loads(response.text)['rows']
         myresp['ehr']=len(results) 
         myresp['status']='success2'
+        myresp['success2']=True
         current_app.logger.debug('Dashboard: GET list ehrs success')
     else:
+        myresp['success2']=False
         myresp['text']=response.text
         myresp['headers']=response.headers
         current_app.logger.warning('Dashboard: GET list ehrs failure')
-        return myresp
+        #return myresp
 
     #get ehrid,compid, templateid list
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/aql')
@@ -1293,12 +1297,14 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
         results=json.loads(response.text)['rows']
         myresp['composition']=len(results)
         myresp['status']='success3'
+        myresp['success3']=True
         current_app.logger.debug('Dashboard: GET list ehrs,compositions,templates used success')
     else:
+        myresp['success3']=False
         myresp['text']=response.text
         myresp['headers']=response.headers
         current_app.logger.warning('Dashboard: GET list ehrs,compositions,templates used failure')
-        return myresp 
+        #return myresp 
     #calculate total ehr in use    
     ehr=set(r[0] for r in results)
     myresp['uehr']=len(ehr)     
@@ -1323,6 +1329,7 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
         myresp['template']=len(resultstemp)
         templates=[rt['template_id'] for rt in resultstemp]
         myresp['status']='success4'
+        myresp['success4']=True
         #compositions per ehr
         c=[0]*len(ehr)
         for i,e in enumerate(ehr):
@@ -1348,10 +1355,11 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
         myresp['pie_label']=list(d.keys())
         myresp['pie_value']=list(d.values())
     else:
+        myresp['success4']=False
         current_app.logger.warning(f"Dashboard: Get all templates failure")
         myresp['text']=response2.text
         myresp['headers']=response2.headers
-        return myresp               
+        #return myresp               
 
 #   additional info from management/env management/info if available and admin credentials provided
 # The first,second,third,fourth and sixth for env,info in .env.ehrbase must be set 
@@ -1382,6 +1390,7 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
         if(resp.status_code<210 and resp.status_code>199):
             current_app.logger.debug("Dashboard: GET management info success")
             myresp['status']='success5'
+            myresp['success5']=True
             info=json.loads(resp.text)['build']
             myinfo={}
             myinfo['openehr_sdk']=info['openEHR_SDK']['version']
@@ -1389,10 +1398,11 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
             myinfo['archie']=info['archie']['version']
             myresp['info']=myinfo
         else:
+            myresp['success5']=False
             current_app.logger.warning("Dashboard: GET management info failure")
             myresp['text']=resp.text
             myresp['headers']=resp.headers
-            return myresp 
+            #return myresp 
     
         myurl=url_normalize(EHR_SERVER  + 'management/env')
         resp2 = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
@@ -1408,6 +1418,7 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
             current_app.logger.debug("Dashboard: GET management env success")
             env=json.loads(resp2.text)
             myresp['status']='success6'
+            myresp['success6']=True
             myenv={}
             myenv["activeProfiles"]=env["activeProfiles"]    
             myenv['Java']= env["propertySources"][2]["properties"]["java.specification.vendor"]["value"] + " " \
@@ -1474,10 +1485,11 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
             plugin["plugin-manager.plugin-context-path"]=env["propertySources"][5]['properties']["plugin-manager.plugin-context-path"]["value"]
             myresp['plugin']=plugin   
         else:
+            myresp['success6']=False
             current_app.logger.warning(f"Dashboard: GET management env failure")
             myresp['text']=resp2.text
             myresp['headers']=resp2.headers
-            return myresp 
+            #return myresp 
     
         myurl=url_normalize(EHR_SERVER  + 'management/health')
         resp3 = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
@@ -1489,20 +1501,23 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
         current_app.logger.debug(resp3.text)
         current_app.logger.debug('Response Headers')
         current_app.logger.debug(resp3.headers)       
-        if(resp3.status_code<210 and resp3.status_code>199):
+        if(resp3.status_code<210 and resp3.status_code>199) or resp3.status_code==503:
             current_app.logger.info("Dashboard: GET management health success")
             health=json.loads(resp3.text)
             myresp["db"]["db"]=health["components"]["db"]["details"]["database"]
-            disk={}
-            disk["total_space"]=health["components"]["diskSpace"]["details"]["total"]
-            disk["free_space"]=health["components"]["diskSpace"]["details"]["free"]
-            myresp["disk"]=disk
+            #disk={}
+            #disk["total_space"]=health["components"]["diskSpace"]["details"]["total"]
+            #disk["free_space"]=health["components"]["diskSpace"]["details"]["free"]
+            #myresp["disk"]=disk
             myresp['status']='success7'
+            myresp['health']=health
+            myresp['success7']=True
         else:
+            myresp['success7']=False
             current_app.logger.warning("Dashboard: GET management health failure")
             myresp['text']=resp3.text
             myresp['headers']=resp3.headers
-            return myresp             
+            #return myresp             
         return myresp
 
 
