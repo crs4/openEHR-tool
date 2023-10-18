@@ -92,8 +92,25 @@ def create_app():
 
 
     settingsfile='./config/openehrtool.cfg'
+    #get vars from env
+    env_varset = [os.environ.get('EHRBASESERVER_hostname', None), 
+                  os.environ.get('EHRBASESERVER_port', None),
+                  os.environ.get('EHRBASESERVER_nodename', None),
+                  os.environ.get('EHRBASEUSERS_username', None),
+                  os.environ.get('EHRBASEUSERS_password', None),
+                  os.environ.get('EHRBASEUSERS_adusername', None),
+                  os.environ.get('EHRBASEUSERS_adpassword', None),
+                  os.environ.get('REDISSERVER_hostname', None),
+                  os.environ.get('REDISSERVER_port', None),
+                  os.environ.get('REDISSERVER_eventsrecorded', None)]
     if (os.path.exists(settingsfile)):
         varset=readconfig.readconfigfromfile(settingsfile)
+        #build varset from environment variables
+        for i in ([0,1,2,3,4] +([5,6] if len(varset)==10 else []) +[-3,-2,-1]):
+            if env_varset[i] is None:
+                env_varset[i] = varset[i]
+    varset = tuple(env_varset)
+    if (len([v for v in varset if v is not None])>0):
         if(len(varset)==10):
             hostname,port,nodename,username,password,adusername,adpassword,redishostname,redisport,reventsrecorded=varset        
             reventsrecorded=int(reventsrecorded)
