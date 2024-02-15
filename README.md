@@ -21,13 +21,16 @@ openEHRTool settings can be written in a file named openehrtool.cfg in the confi
 The examples available are:
 * openehrtool.cfg.example.local for locally installed openEHRTool (and Redis). Any platform
 * openehrtool.cfg.example.total for docker "All in One" installation. See below for explanation on installation. Any platform
-* openehrtool.cfg.example.linux  for docker "Separed" installation. openEHRTool separated from EHRBase. Linux host 
-* openehrtool.cfg.example.mac for docker "Separated" installation. openEHRTool separated from EHRBase. MacOS host
-* openehrtool.cfg.example.win for docker "Separated" installation. openEHRTool separated from EHRBase. Windows host
+* openehrtool.cfg.example.linux.1 and openehrtool.cfg.example.linux.2  for docker "Separed" installation. openEHRTool separated from EHRBase. Linux host. (openehrtool.cfg.example.linux.1 refers to docker-compose_prod.yml.linux.1/docker-compose.yml.linux.1 whereas openehrtool.cfg.example.linux.2 refers to docker-compose_prod.yml.linux.2/docker-compose.yml.linux.2)
+* openehrtool.cfg.example.mac for docker "Separated" installation. openEHRTool separated from EHRBase. MacOS host. (It applies to both mac.1 and mac.2 docker-compose)
+* openehrtool.cfg.example.win for docker "Separated" installation. openEHRTool separated from EHRBase. Windows host (It applies to both win.1 and win.2 docker-compose)
 
 As an alternative, settings can be written at runtime in the application. Note that this way they are nor persisted and must be reentered when the application is stopped and rerun. 
 
-If you are using Docker on Mac or Windows, in the "Separated" mode, and see networking problems (unable to connect or sluggishness) you can try and connect the network where resides openEHR-tool to the EHRBase network. First find the network of ehrbase:
+### Networking problems
+If you are using Docker on Linux, in the "Separated" mode, you can start with the docker-compose file that ends in linux.1 and if you experience networking problems(unable to connect or sluggishness) you can try linux.2 . The version 1 adopts the host network mode so the openEHRTool container behave as if it was run from the host machine. The version 2 is similar to the other OS and it publishes ports to the host machine. 
+
+If you are using Docker on Mac or Windows, in the "Separated" mode, you can start with the docker-compose file that ends in mac.1 or win.1 respectively and if you experience networking problems (unable to connect or sluggishness) you can first try the second compose mac.2 or win.2 . If the change does not solve the problem then connect the network where resides openEHR-tool to the EHRBase network. First find the network of ehrbase:
 ```
 docker ps | grep ehrbase
 
@@ -70,7 +73,7 @@ For the EHRBase server the following properties are needed:
 * (Optional) adusername : username for the admin user to authenticate with basic authentication on ehrbase
 * (Optional) adpassword : password for the admin user to authenticate with basic authentication on ehrbase
 
-The last two are optional but the "update template" method and the "dashboard" will not work properly if not set.
+The last two are optional but the "update template" and "delete template" methods and the "dashboard" will not work properly if not set.
 
 ### Redis-related settings
 For the Redis server the following properties are needed:
@@ -204,38 +207,39 @@ docker-compose -f docker-compose-total_prod.yml openehrtool up --build
 EHRBase is run in a network/docker-compose separated from openEHRTool.
 
 #### Development
-For linux run with:
+For linux choose which composer to run between docker-compose.yml.linux.1 and docker-compose.yml.linux.2 and then run:
+Note: In the following we show the lines to run for linux.1 but they apply to linux.2 too. Remember to adopt the right cfg file. There is one separate configuration file .cfg for each of them):
 ```
-docker-compose up
+docker-compose -f docker-compose.yml.linux1 
 ```
 if a previous version was already used then rebuild the containers before running with:
 ```
-docker-compose up --build
+docker-compose -f docker-compose.yml.linux1 up --build
 ```
 For macOS run with:
 ```
-docker-compose -f docker-compose.yml.mac up
+docker-compose -f docker-compose.yml.mac.1 up
 ```
 and again if a previous version is there:
 ```
-docker-compose -f docker-compose.yml.mac up --build
+docker-compose -f docker-compose.yml.mac.1 up --build
 ```
 #### Production
 For Linux run with:
 ```
-docker-compose -f docker-compose_prod.yml up
+docker-compose -f docker-compose_prod.yml.linux1 up
 ```
 if a previous version was already used then rebuild the containers before running it:
 ```
-docker-compose -f docker-compose_prod.yml up --build
+docker-compose -f docker-compose_prod.yml.linux1 up --build
 ```
 For macOS run with:
 ```
-docker-compose -f docker-compose_prod.yml.mac
+docker-compose -f docker-compose_prod.yml.mac.1
 ```
 and again if a previous version is there:
 ```
-docker-compose -f docker-compose_prod.yml.mac up --build
+docker-compose -f docker-compose_prod.yml.mac.1 up --build
 ```
 
 ## &#x1F335; Testing (for developers)&#x1F335;

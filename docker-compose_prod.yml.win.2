@@ -3,24 +3,25 @@ services:
     openehrtool:
         build: 
           context: .
-          dockerfile: ./Dockerfile
-        image: surfercrs4/openehrtool
+          dockerfile: ./Dockerfile.prod
+        image: surfercrs4/openehrtoolprod
         volumes:
-            - .:/code
+            - .:/code                 
         env_file:
-            - ./.env.dev
+            - ./.env.prod
         depends_on:
-            - redis
+            - redis    
         ports:
-            - 9000:9000        
+            - 9000:9000               
         networks:
             - mynet
+
 
     redis:
         image: redis:alpine
         command:  redis-server  /redis.conf
         volumes:
-        - ./redis.conf:/redis.conf
+        - ./redis.conf:/redis.conf          
         networks:
             - mynet
 

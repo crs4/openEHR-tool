@@ -13,11 +13,20 @@ services:
             - redis    
         ports:
             - 9000:9000               
+        networks:
+            - mynet
+
 
     redis:
         image: redis:alpine
-        ports:
-        - 6379:6379
         command:  redis-server  /redis.conf
         volumes:
-        - ./redis.conf:/redis.conf          
+        - ./redis.conf:/redis.conf 
+        networks:
+            - mynet
+
+networks:
+       mynet:
+         name: ehrbase_ehrbase-net
+         external: true
+
