@@ -985,7 +985,7 @@ def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,off
                     except ValueError:
                         val=value
                     myqp[key]=val
-                params["query_parameters"]=myqp
+                params['query_parameters']=myqp
             params['q']=aqltext
             current_app.logger.debug(f'q={aqltext}')
             current_app.logger.debug(f"params={params}")
