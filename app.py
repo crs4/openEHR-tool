@@ -313,7 +313,7 @@ def create_app():
 
     @app.route("/dtemp.html",methods=["GET"])
     def dtemp():
-        global hostname,port,username,password,auth,nodename,mymsg
+        global hostname,port,adusername,adpassword,auth,adauth,nodename,mymsg,username,password
         if(hostname=="" or port=="" or adusername=="" or adpassword=="" or nodename==""):
             return redirect(url_for("ehrbase"))
         yourresults=""
@@ -435,6 +435,34 @@ def create_app():
                 insertlogline('Get EHR by SubjectId and SubjectNamespace: Sid,Sna='+sid+','+sna+' ehr retrieval failure')        
             return render_template('gehr.html',yourresults=yourresults,ehr=ehr,lastehr=lastehrid,status=status)
         return render_template('gehr.html',lastehr=lastehrid,status=status)
+
+    @app.route("/dehr.html",methods=["GET"])
+    def dehr():
+        global hostname,port,adusername,adpassword,auth,adauth,nodename
+        if(hostname=="" or port=="" or adusername=="" or adpassword=="" or nodename==""):       
+            return redirect(url_for("ehrbase"))
+        status="failed"
+        yourresults=''
+        if request.args.get("fform1")=="Delete": 
+            ehrid=request.args.get("ename","") 
+            if(ehrid==""):
+                return render_template('dehr.html')
+            msg=ehrbase_routines.delehrid(client,adauth,hostname,port,adusername,adpassword,ehrid)
+            if(msg['status']=="success"):
+                ehrid=msg["ehrid"]
+                yourresults=f"EHR deleted successfully. status_code={msg['status_code']} EHRID={msg['ehrid']}"
+                ehr=msg['text']
+                status='success'
+                insertlogline('Delete EHR by ehrid: ehr '+ehrid+' deleted successfully')
+            else:
+                ehr={}
+                yourresults=f"EHR deletion failure. status_code={msg['status_code']} headers={msg['headers']} text={msg['text']}"        
+                insertlogline('Delete EHR by ehrid: ehr '+ehrid+' deletion failure')
+            return render_template('dehr.html',yourresults=yourresults,ehr=ehr,status=status)
+        else:
+            return render_template('dehr.html',status=status)
+
+
 
     @app.route("/pcomp.html",methods=["GET","POST"])
     def pcomp():

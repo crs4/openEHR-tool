@@ -449,6 +449,40 @@ def getehrid(client,auth,hostname,port,username,password,ehrid):
     myresp['status_code']=response.status_code 
     return myresp
 
+
+def delehrid(client,adauth,hostname,port,adusername,adpassword,ehrid):
+    current_app.logger.debug('inside deleteehrid')
+    current_app.logger.info(f'Deleting ehr: ehrid={ehrid}')
+    if hostname.startswith('http'):
+        EHR_SERVER_URL = hostname+":"+port+"/ehrbase/"
+    else:
+        EHR_SERVER_URL = "http://"+hostname+":"+port+"/ehrbase/"
+    client.auth = (adusername,adpassword)   
+    myurl=url_normalize(EHR_SERVER_URL  + 'rest/admin/ehr/'+ehrid)
+    response=client.delete(myurl,headers={'Authorization':adauth })
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
+    myresp={}
+    myresp['headers']=response.headers
+    myresp['status_code']=response.status_code
+    myresp['text']=response.text
+    if(response.status_code<210 and response.status_code>199):
+        myresp['status']='success'
+        myresp['ehrid']=ehrid
+        current_app.logger.info(f'Delete ehr success for template={ehrid}')        
+        return myresp
+    else:
+        myresp['status']='failure'
+        current_app.logger.warning(f'Delete ehr failure for template={ehrid}')    
+        return myresp    
+
+
 def getehrsub(client,auth,hostname,port,username,password,sid,sna):
     
     if hostname.startswith('http'):
