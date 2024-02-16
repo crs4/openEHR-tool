@@ -317,6 +317,7 @@ def create_app():
         if(hostname=="" or port=="" or adusername=="" or adpassword=="" or nodename==""):
             return redirect(url_for("ehrbase"))
         yourresults=""
+        yourjson='{}'
         mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'dtempbase.html','dtemp.html')
         if(mymsg['status']=='failure'):
             return redirect(url_for("ehrbase"))
@@ -327,9 +328,24 @@ def create_app():
                 yourresults=msg['status']+ " "+ str(msg['status_code']) + "\nTemplate "+template_name+ " successfully deleted"
                 insertlogline('Delete template:template '+template_name+' deleted successfully')
             else:
-                yourresults=msg['status']+ " "+ str(msg['status_code']) + "\nTemplate "+template_name+ " successfully deleted"
+                yourresults=msg['status']+ " "+ str(msg['status_code']) + "\nTemplate "+template_name+ " unsuccessfully deleted"
                 insertlogline('Delete template:template '+template_name+' deletion failure')            
             return render_template('dtemp.html',yourresults=yourresults)
+        elif request.args.get("pippo")=="Delete all":
+            msg=ehrbase_routines.delalltemp(client,adauth,hostname,port,adusername,adpassword)
+            if(msg['status']=='success'):
+                yourresults=msg['status']+ " "+ str(msg['status_code']) + "\nAll Templates successfully deleted"
+                insertlogline('Delete template: all templates deleted successfully')
+                return render_template('dtemp.html',yourresults=yourresults)
+            else:
+                yourresults=msg['status']+ " "+ str(msg['status_code']) + "\nAll Templates unsuccessfully deleted"
+                insertlogline('Delete template: all templates deletion failure')
+                if msg['status_code']==422:
+                    yourjson=msg['error422']    
+                    return render_template('dtemp.html',yourresults=yourresults,yourjson=yourjson) 
+                else:
+                    insertlogline('Delete template: all templates deletion failure')            
+                    return render_template('dtemp.html',yourresults=yourresults) 
         else:
             return render_template('dtemp.html',yourresults=yourresults)
 

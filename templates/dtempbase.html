@@ -176,59 +176,129 @@ if (window.innerWidth < 992) {
 /* ============ small devices .end// ============ */
 </style>
 
- 
+
 <div class="container">
-  <h1>Delete a specific template<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
-    data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
-    title="<h4>Instructions:</h4>
-      <ul><li>Select the template name from the dropdown list</li>
-      <li>Click the 'Delete Template' button</li>
-      <li>View results below the word 'Results'</li>
-    </ul>">
-      <img src='/static/img/975.png' 
-      style="width:50%;height:40%;"  alt="Question Mark" >
-    </button></h1>
+  <h1>Delete all the Templates or a specific one</h1>
   (Requires admin credentials)
-          <div class="position-relative">
-                <div id="forms" class="position-absolute" data-tor="place.top(100px)">
-                      <br><br>
-                      <h3>Delete Template</h3> 
-                      <form id="form1">
-                        <label  class="form-label" for="template">Template Name:</label><br>
-                        <!--dropdownmenustart-->
-                        <select  class="form-select" type="text" id="tname" name="tname">
-                          <option>1</option>
-                          <option>2</option>
-                          <option>3</option>
-                          <option>4</option>
-                        </select> 
-                        <!--dropdownmenustop-->
-                        <br><br>
-                        <input   id='pippo' name='pippo' class="btn btn-primary" type="submit" value="Delete Template">
-                        <br><br><br>
 
-                      </form>
-                  <br>
-                   <div id="results">
-                      <h2>Results</h2>
-                      {% macro linebreaks_for_string( the_string ) -%}
-                      {% if the_string %}
-                      {% for line in the_string.split('\n') %}
-                      <br />
-                      {{ line }}
-                      {% endfor %}
-                      {% else %}
-                      {{ the_string }}
-                      {% endif %}
-                      {%- endmacro %}
-                      {{linebreaks_for_string(yourresults) if yourresults!= ''}}
+  <div class="position-relative">
+    <div id="forms" class="position-absolute" data-tor="place.top(100px)">
+      <div class="row">
+        <div class="col pe-5">
+          <br><br>
+
+          <h3>Delete Template
+            <button type="button" class="btn btn-sm btn-light h3" style="width:35px; tooltip-font-size-sm;"
+              data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true" title="<h4>Instructions:</h4>
+              <ul><li>Select the template name from the dropdown list</li>
+                <li>Click the 'Delete Template' button</li>
+                <li>View results below the word 'Results'</li>
+              </ul>">
+              <img src='/static/img/975.png' style="width:140%;height:130%;" alt="Question Mark">
+            </button>
+          </h3>
+          <form id="form1">
+            <label  class="form-label" for="template">Template Name:</label><br>
+            <!--dropdownmenustart-->
+            <select  class="form-select" type="text" id="tname" name="tname">
+              <option>1</option>
+              <option>2</option>
+              <option>3</option>
+              <option>4</option>
+            </select> 
+            <!--dropdownmenustop-->
+            <br><br>
+            <input   id='pippo' name='pippo' class="btn btn-primary" type="submit" value="Delete Template">
+            <br><br><br>
+
+          </form>
+        </div>
+
+        <br><br><br><br><br>
+        <div class="col ps-5">
+          <br><br>
+          <form id="form2">
+            <h3>Delete all Templates <button type="button" class="btn btn-sm btn-light"
+                style="width:35px; tooltip-font-size-sm;" data-bs-toggle="tooltip" data-bs-placement="right"
+                data-bs-html="true" title="<h4>Instructions:</h4>
+                      <ul><li>Click the 'Delete all' button</li>
+                        <li>View results below the word 'Results'</li>
+                        </ul>">
+                <img src='/static/img/975.png' style="width:140%;height:130%;" alt="Question Mark">
+              </button></h3>
+            <br><br><br><br>
+            <input id='pippo' name='pippo' class="btn btn-primary" type="submit" value="Delete all">
+
+          </form>
+        </div>
+      </div>
+
+                  <div id="results">
+                    <h2>Results</h2>
+                    {% macro linebreaks_for_string( the_string ) -%}
+                    {% if the_string %}
+                    {% for line in the_string.split('\n') %}
+                    <br />
+                    {{ line }}
+                    {% endfor %}
+                    {% else %}
+                    {{ the_string }}
+                    {% endif %}
+                    {%- endmacro %}
+                    {{linebreaks_for_string(yourresults) if yourresults!= ''}}
+                    <pre id="json">{{yourjson if yourjson!=''}}</pre>
                   </div>
-              </div>
-           </div>     
-  
-  </div>
+                 
 
-
+                  <style>
+                    /*Tooltip container */
+                    .tooltip {
+                      position: relative;
+                      display: inline-block;
+                      border-bottom: 1px dotted black;
+                      /* If you want dots under the hoverable text */
+                    }
+            
+                    /* Tooltip text */
+                    .tooltip .tooltiptext {
+                      visibility: hidden;
+                      width: 120px;
+                      background-color: #555;
+                      color: #fff;
+                      text-align: center;
+                      padding: 5px 0;
+                      border-radius: 6px;
+            
+                      /* Position the tooltip text */
+                      position: absolute;
+                      z-index: 1;
+                      bottom: 125%;
+                      left: 50%;
+                      margin-left: -60px;
+            
+                      /* Fade in tooltip */
+                      opacity: 0;
+                      transition: opacity 0.3s;
+                    }
+            
+                    /* Tooltip arrow */
+                    .tooltip .tooltiptext::after {
+                      content: "";
+                      position: absolute;
+                      top: 100%;
+                      left: 50%;
+                      margin-left: -5px;
+                      border-width: 5px;
+                      border-style: solid;
+                      border-color: #555 transparent transparent transparent;
+                    }
+            
+                    /* Show the tooltip text when you mouse over the tooltip container */
+                    .tooltip:hover .tooltiptext {
+                      visibility: visible;
+                      opacity: 1;
+                    }
+                  </style>
 
   <style>
     body{

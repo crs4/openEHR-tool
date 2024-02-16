@@ -14,6 +14,7 @@ MANAGEMENT_ENDPOINT_METRICS_ENABLED=true
 MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED=false
 MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED=true
 ADMIN_API_ACTIVE=true
+ADMINAPI_ALLOWDELETEALL=true
 ```
 ## Settings
 openEHRTool settings can be written in a file named openehrtool.cfg in the config dir. In the same dir different examples are available and must be copied onto openehrtool.cfg in order to be read. That file is loaded at application boot or can be reloaded at runtime using the related method "Settings->Reload Settings".
@@ -73,7 +74,7 @@ For the EHRBase server the following properties are needed:
 * (Optional) adusername : username for the admin user to authenticate with basic authentication on ehrbase
 * (Optional) adpassword : password for the admin user to authenticate with basic authentication on ehrbase
 
-The last two are optional but the "update template" and "delete template" methods and the "dashboard" will not work properly if not set.
+The admin credentials are optional but if they are not available the "update template", "delete template" and "delete all templates" methods will not work and the "dashboard" will not have access to all the information it needs to fill its sections.
 
 ### Redis-related settings
 For the Redis server the following properties are needed:

@@ -231,6 +231,50 @@ def deltemp(client,adauth,hostname,port,adusername,adpassword,templateid):
         current_app.logger.warning(f'Delete Template failure for template={templateid}')    
         return myresp
 
+def delalltemp(client,adauth,hostname,port,adusername,adpassword):
+    
+    current_app.logger.debug('inside deletealltemp')
+    current_app.logger.info(f'Deleting all template')
+    if hostname.startswith('http'):
+        EHR_SERVER_URL = hostname+":"+port+"/ehrbase/"
+    else:
+        EHR_SERVER_URL = "http://"+hostname+":"+port+"/ehrbase/"
+    client.auth = (adusername,adpassword)   
+    myurl=url_normalize(EHR_SERVER_URL  + 'rest/admin/template/all')
+    response=client.delete(myurl,headers={'Authorization':adauth })
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
+    myresp={}
+    myresp['headers']=response.headers
+    myresp['status_code']=response.status_code
+    if(response.status_code<210 and response.status_code>199):
+        myresp['status']='success'
+        myresp['deleted']=json.loads(response.text)['deleted']
+        current_app.logger.info(f'Delete all Templates success')        
+        return myresp
+    else:
+        if response.status_code==422:
+            #"Cannot delete template BBMRI-ERIC_Colorectal_Cancer_Cohort_Report since the following compositions are still using it +------------------------------------+\n|composition_id                      |\n+------------------------------------+\n|2a9e5aca-c26e-4787-88f9-21a1d879902c|\n|45860049-01c6-4707-a183-7437b03c50a3|\n|a7bbd870-ab6e-4919-9b1a-8f08b5bd9814|\n+------------------------------------+\n"
+            errorjson=json.loads(response.text)
+            message=errorjson['message']
+            msplit=message.split('+')
+            errorjson.pop('message', None)
+            errorjson['message_line1']=msplit[0]
+            errorjson['message_line2']=msplit[2].split('|')[1].rstrip()+':'+msplit[4].replace('\n','').replace('||',',').replace('|','')
+            myresp['error422']=json.dumps(errorjson,sort_keys=True, indent=1, separators=(',', ': '))
+        myresp['status']='failure'
+        current_app.logger.warning(f'Delete all Templates failure')    
+        return myresp
+
+
+
+
 def createehrid(client,auth,hostname,port,username,password,eid):
     
     if hostname.startswith('http'):
