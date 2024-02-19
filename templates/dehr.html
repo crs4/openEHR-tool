@@ -63,6 +63,7 @@
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="gcomp.html">Get Composition</a></li>
               <li><a class="dropdown-item" href="pcomp.html">Post Composition</a></li>
+              <li><a class="dropdown-item" href="dcomp.html">Delete Composition</a></li>
               <li><a class="dropdown-item" href="ecomp.html">Example Composition</a></li>
               <li><a class="dropdown-item" href="#" > Batch Compositions &#9656; </a>
               <ul class="submenu dropdown-menu">
@@ -182,7 +183,7 @@ if (window.innerWidth < 992) {
   <h1>Delete a EHR<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
     data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
     title="<h4>Instructions:</h4><ul>
-      <li>Write the EHRid</li>
+      <li>Type the EHRid</li>
       <li>Click the 'Delete' button</li>
       <li>View results below the word 'Results'</li>
    </ul>">
@@ -210,13 +211,6 @@ if (window.innerWidth < 992) {
    </div>
    
 </div>
-<!-- </div> -->
-<script type="text/javascript">
-  if ( {{status|tojson}} == "success" ) {
-    document.getElementById("save").style.display = 'block';}
-    else {   
-    document.getElementById("save").style.display = 'none';}
-</script> 
 
 <style>
    body{

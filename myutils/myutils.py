@@ -150,6 +150,11 @@ def reorderbytime(fvalues_noorder,posfilled,sessiontotalevents,currentposition,r
     fvalues.extend(fvalues_noorder[0:currentposition])
     return fvalues
 
+def reorderbytime2(fvalues_noorder):
+    #reorder log lines with first line created first
+    fvalues_noorder.sort()
+    return fvalues_noorder
+
 def findvaluesfromsearch(fv,logsearch,andornot):
     #custom search of multiple keys in and/or or both not
     #fv lines of log

@@ -451,16 +451,14 @@ def create_app():
             if(msg['status']=="success"):
                 ehrid=msg["ehrid"]
                 yourresults=f"EHR deleted successfully. status_code={msg['status_code']} EHRID={msg['ehrid']}"
-                ehr=msg['text']
                 status='success'
                 insertlogline('Delete EHR by ehrid: ehr '+ehrid+' deleted successfully')
             else:
-                ehr={}
                 yourresults=f"EHR deletion failure. status_code={msg['status_code']} headers={msg['headers']} text={msg['text']}"        
                 insertlogline('Delete EHR by ehrid: ehr '+ehrid+' deletion failure')
-            return render_template('dehr.html',yourresults=yourresults,ehr=ehr,status=status)
+            return render_template('dehr.html',yourresults=yourresults)
         else:
-            return render_template('dehr.html',status=status)
+            return render_template('dehr.html')
 
 
 
@@ -553,7 +551,7 @@ def create_app():
                     compjson=msg['json']
                 ehrid=msg["ehrid"]
                 compositionid=msg['compositionid']
-                insertlogline('Get Composition: composition '+compositionid+' di ehrid='+ehrid+' retrieved successfully in format '+myformat)
+                insertlogline('Get Composition: composition '+compositionid+' from ehrid='+ehrid+' retrieved successfully in format '+myformat)
                 yourresults=f"Composition retrieved successfully. status_code={msg['status_code']} \n \
                 EHRID={msg['ehrid']} versionUID={msg['compositionid']}\n headers={msg['headers']}"
                 lastehrid=ehrid
@@ -570,13 +568,39 @@ def create_app():
                     myformat='structured'
                 else:
                     myformat='flat'
-                insertlogline('Get Composition: composition '+compid+' di ehrid='+ehrid+' retrieval failure in format '+myformat)
+                insertlogline('Get Composition: composition '+compid+' from ehrid='+ehrid+' retrieval failure in format '+myformat)
                 yourresults=f"Composition retrieval failure. status_code={msg['status_code']} \n \
                     headers={msg['headers']}\n text={msg['text']}"        
             return render_template('gcomp.html',yourresults=yourresults,last=lastcompositionid,
                     lastehr=lastehrid,compxml=compxml,compjson=compjson,compflat=compflat,status=status,format=myformat)
         else:
             return render_template('gcomp.html',last=lastcompositionid,lastehr=lastehrid,compflat=compflat,status=status,format=myformat)
+
+    @app.route("/dcomp.html",methods=["GET"])
+    def dcomp():
+        global hostname,port,adusername,adpassword,auth,adauth,nodename
+        if(hostname=="" or port=="" or adusername=="" or adpassword=="" or nodename==""):       
+            return redirect(url_for("ehrbase"))
+        status="failed"
+        yourresults=''
+        if request.args.get("fform1")=="Delete": 
+            compid=request.args.get("cname","") 
+            eid=request.args.get("ename","") 
+            app.logger.debug(f'compid={compid} eid={eid}')
+            if(compid=="" or eid==""): 
+                return render_template('dcomp.html')
+            compid=compid.split('::')[0]
+            msg=ehrbase_routines.delcomp(client,adauth,hostname,port,adusername,adpassword,compid,eid)
+            if(msg['status']=="success"):
+                yourresults=f"Composition deleted successfully. \nstatus_code={msg['status_code']} \nid={compid} \nehrid={eid}"
+                status='success'
+                insertlogline('Delete Composition: composition '+compid+' from ehr='+eid+' deleted successfully')
+            else:
+                yourresults=f"Composition deletion failure. \nstatus_code={msg['status_code']} \nheaders={msg['headers']} \ntext={msg['text']}"        
+                insertlogline('Delete Composition: composition '+compid+' from ehr='+eid+' deletion failure')
+            return render_template('dcomp.html',yourresults=yourresults)
+        else:
+            return render_template('dcomp.html')
 
     @app.route("/paql.html",methods=["GET"])
     def paql():
@@ -1158,7 +1182,8 @@ def create_app():
         fvalues_noorder=r.mget(fkeys)
 
         #rearrange in time order with first operation first
-        fvalues=myutils.reorderbytime(fvalues_noorder,posfilled,sessiontotalevents,currentposition,reventsrecorded)
+#        fvalues=myutils.reorderbytime(fvalues_noorder,posfilled,sessiontotalevents,currentposition,reventsrecorded)
+        fvalues=myutils.reorderbytime2(fvalues_noorder)
 
         if request.args.get("pippolippo")=="SUBMIT YOUR CHOICE":
             if request.args.get('search')=='custom':#custom search

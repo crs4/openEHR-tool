@@ -9,6 +9,7 @@ from flask import request
 from myutils import myutils
 from myutils import structuredMarand2EHRBase
 from flask import current_app
+import uuid
 
 def init_ehrbase():
     current_app.logger.debug('inside init_ehrbase')
@@ -451,7 +452,7 @@ def getehrid(client,auth,hostname,port,username,password,ehrid):
 
 
 def delehrid(client,adauth,hostname,port,adusername,adpassword,ehrid):
-    current_app.logger.debug('inside deleteehrid')
+    current_app.logger.debug('inside delehrid')
     current_app.logger.info(f'Deleting ehr: ehrid={ehrid}')
     if hostname.startswith('http'):
         EHR_SERVER_URL = hostname+":"+port+"/ehrbase/"
@@ -518,6 +519,37 @@ def getehrsub(client,auth,hostname,port,username,password,sid,sna):
     myresp['status_code']=response.status_code 
     return myresp
 
+def delcomp(client,adauth,hostname,port,adusername,adpassword,compid,ehrid):
+    current_app.logger.debug('inside delcomp')
+    current_app.logger.info(f'Deleting comp: versionUID={compid}')
+    if hostname.startswith('http'):
+        EHR_SERVER_URL = hostname+":"+port+"/ehrbase/"
+    else:
+        EHR_SERVER_URL = "http://"+hostname+":"+port+"/ehrbase/"
+    client.auth = (adusername,adpassword)   
+    myurl=url_normalize(EHR_SERVER_URL  + 'rest/admin/ehr/'+ehrid+'/composition/'+compid)
+#    response=client.delete(myurl)
+    response=client.delete(myurl,headers={'Authorization':adauth })    
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
+    myresp={}
+    myresp['headers']=response.headers
+    myresp['status_code']=response.status_code
+    myresp['text']=response.text
+    if(response.status_code<210 and response.status_code>199):
+        myresp['status']='success'
+        current_app.logger.info(f'Delete composition success for id={compid} from ehr={ehrid}')        
+        return myresp
+    else:
+        myresp['status']='failure'
+        current_app.logger.warning(f'Delete composition failure for id={compid} from ehr={ehrid}')    
+        return myresp    
 
 
 def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,filetype,check):

@@ -178,121 +178,62 @@ if (window.innerWidth < 992) {
 /* ============ small devices .end// ============ */
 </style>
 
- 
 
-<div class="container">
-  <h1>Post Compositions with the same EHRID in batch<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
+<div class="container" >
+  <h1>Delete a Composition<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
     data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
-    title="<h4>Instructions:</h4>
-    <ul>
-      <li>Click the 'Browse' button and select the compositions files</li>
-      <li>Click the 'Submit' button</li>
-      <li>Choose one of the two for each composition:<ol><li>random ehr</li>
-                                    <li>ehr typed</li> </ol>
-      <li>Select the composition format</li>
-      <li>Select the templateid from the dropdown menu</li>
-      <li>Select if you want to check the inserted and retrieved composition vs the original one</li>
+    title="<h4>Instructions:</h4><ul>
+      <li>Type the composition id without version</li>
+      <li>Click the 'Delete' button</li>
       <li>View results below the word 'Results'</li>
    </ul>">
       <img src='/static/img/975.png' 
       style="width:50%;height:40%;"  alt="Question Mark" >
     </button></h1>
-
-           <br>
-            <div class="position-relative">
-                <div id="forms" class="position-absolute" data-tor="place.top(30px)">
-                
-                  <form method="POST" action="" enctype="multipart/form-data">
-                    <label class="form-label"  for="path">Files:</label><br>
-                    <p><input class="form-control" type="file" name="file" multiple="multiple"></p>
-                    <p><input class="btn btn-primary" type="submit" value="Submit"></p>
-                  </form>                
-                  {{yourfile}}
-                <br><br>
-              <div class="form-check form-switch">
-                <h2>Parameters:</h2>
-                <form id="form1">     
-                  <br><br>           
-                  <input class="form-check-input" type="checkbox" autocomplete="off" id="mySwitch" name="random" value="yes" checked>
-                  <label class="form-check-label" for="mySwitch">Random EHR</label>
-              </div> 
-
-
-
-                <div id="path" style="display:none;">
-                  <br><br>
-                  <label class="form-label"  for="path">EHRID:</label><br>
-                  <input class="form-control"  type="text" id="eid" name="eid"><br><br>      
-                </div>    
-                <br><br>
-                <label class="form-label" for="format">Format</label><br> 
-                <input class="form-check-input" type="radio" name="filetype" value="XML">XML</input>
-                <input class="form-check-input" type="radio" name="filetype" value="JSON">JSON</input>
-                <input class="form-check-input" type="radio" name="filetype" value="FLAT" checked>FLAT JSON</input>
+  (Requires admin credentials)
+  <br><br>
+   <div class="position-relative">
+       <div id="forms" class="position-absolute" data-tor="place.top(30px)">
+      <form id="form1">
+        <label class="form-label" for="format">EHRID</label><br>
+        <input class="form-control" type="text" id="ename" name="ename" value={{lastehr}} > <br>
+        <label class="form-label" for="format">CompositionID </label><br>
+        <input class="form-control"  type="text" id="cname" name="cname"><br>
+        <input class="btn btn-primary" id="fform1" name="fform1" type="submit" value="Delete">
+      </form>   
+    </div>
+    
+                <br><br><br><br><br><br><br><br>
             
-                <div id="forform1"> 
-                  <br><br> 
-                    <label class="form-label"  for="tname">Template:</label><br>
-                    <!--dropdownmenustart-->
-                    <select  class="form-select" type="text" id="tname" name="tname">
-                      <option>1</option>
-                      <option>2</option>
-                      <option>3</option>
-                      <option>4</option>
-                    </select> 
-                    <!--dropdownmenustop-->
-                    <br>     
-                </div>
-                <br><br>
-                <label class="form-label" for="ehrid">Check Against original Composition</label><br>
-                <input class="form-check-input" type="radio" name="check" value="Yes">Yes</input>
-                <input class="form-check-input" type="radio" name="check" value="No" checked>No</input>
-
-                <br><br>
-                <input class="btn btn-primary" name="pippolippo" type="submit" value="POST THE COMPOSITIONS">
-              </form>
-              <script>
-
-const checkbox = document.getElementById('mySwitch')
-const path = document.getElementById("path")
-checkbox.addEventListener('change', (event) => {
-  if (event.currentTarget.checked) {
-    path.style.display = "none";
-  } else {
-    path.style.display = "block";
-  }
-})
-
-              </script>
-
-              <br><br>
-                  <div id="results">
+                <div id="results">
+                <br><br><br>
                     <h2>Results</h2>
                     {% macro linebreaks_for_string( the_string ) -%}
-              {% if the_string %}
-              {% for line in the_string.split('\n') %}
-              <br />
-              {{ line }}
-              {% endfor %}
-              {% else %}
-              {{ the_string }}
-              {% endif %}
-              {%- endmacro %}
-              {{ linebreaks_for_string( yourresults ) }} 
-                  </div>
-                </div>
-              </div>
-
-
-
+                    {% if the_string %}
+                    {% for line in the_string.split('\n') %}
+                    <br />
+                    {{ line }}
+                    {% endfor %}
+                    {% else %}
+                    {{ the_string }}
+                    {% endif %}
+                    {%- endmacro %}
+                    {{ linebreaks_for_string( yourresults) }}
+               </div>
   </div>
+   </div>
+</div>
 
-  <style>
-    body{
- background-image: url('/static/img/Medicine-icons2.png');
- background-size: auto;
-   }
- </style>
+<style>
+   body{
+background-image: url('/static/img/Medicine-icons2.png');
+/* background-image: url('./Medicine-icons2.png'); */
+background-size: auto;
+  }
+</style>
+
+  
+
 
 
 
