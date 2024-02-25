@@ -230,49 +230,62 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 
  
 <div class="container">
-  <h1>Post a template<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
+  <h1>Delete Directory FOLDER<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
     data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
-    title="<h4>Instructions:</h4><ul><li>Click the 'Browse' button and select the template file</li>
+    title="<h4>Instructions:</h4>
+      <li>Type the EHRID or accept the last created if exists</li>
+      <li>Type the directory FOLDER versionUID</li>
       <li>Click the 'Submit' button</li>
-      <li>View results below the word 'Results'</li>
-   </ul>">
+      <li>View results below the word 'Results'</li>">
       <img src='/static/img/975.png' 
       style="width:50%;height:40%;"  alt="Question Mark" >
     </button></h1>
+  <br><br>
 
-           <br>
+            <br>
             <div class="position-relative">
                 <div id="forms" class="position-absolute" data-tor="place.top(30px)">
+                  <form id="form1">
+                    <label class="form-label" for="format">EHRID</label><br>
+                    <input class="form-control" type="text" id="ename" name="ename" value={{lastehr}} > <br>
+    
+                        <label class="form-label"  for="versionuid">directory FOLDER VersionUID</label><br>
+                        <input class="form-control"  type="text" id="vid" name="vid" placeholder="1b0083a6-c0f2-4992-b1f1-50acb292ea7c::local.ehrbase.org::1" >
                 
-                  <form method="POST" action="" enctype="multipart/form-data">
-                    <label class="form-label" for="choofile">Choose the file</label><br>
-                    <p><input class="form-control" type="file" name="file"></p>
-                    <p><input class="btn btn-primary" type="submit" value="Submit"></p>
-                  </form>                
+                    <br><br>
 
-                <br><br><br><br><br>
-            
-     
+
+
+                    <input class="btn btn-primary" id="fform1" name="fform1" type="submit" value="Submit">
+                  
+                  </form> 
+
+
+                <br><br><br><br>
+
                   <div id="results">
                     <h2>Results</h2>
+                    
                     {% macro linebreaks_for_string( the_string ) -%}
-              {% if the_string %}
-              {% for line in the_string.split('\n') %}
-              <br />
-              {{ line }}
-              {% endfor %}
-              {% else %}
-              {{ the_string }}
-              {% endif %}
-              {%- endmacro %}
-              {{ linebreaks_for_string( yourresults ) }} 
+                    {% if the_string %}
+                    {% for line in the_string.split('\n') %}
+                    <br />
+                    {{ line }}
+                    {% endfor %}
+                    {% else %}
+                    {{ the_string }}
+                    {% endif %}
+                    {%- endmacro %}
+                    {{ linebreaks_for_string( yourresults) }}
+                    
                   </div>
                 </div>
               </div>
 
-
+             
 
   </div>
+
 
   <style>
     body{
@@ -280,6 +293,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
  background-size: auto;
    }
  </style>
+
 
 
 <style>

@@ -230,15 +230,19 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 
  
 <div class="container">
-  <h1>Post a template<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
+  <h2>Update a Directory FOLDER<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
     data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
-    title="<h4>Instructions:</h4><ul><li>Click the 'Browse' button and select the template file</li>
-      <li>Click the 'Submit' button</li>
+    title="<h4>Instructions:</h4><ul><li>Click the 'Browse' button and select the directory FOLDER file</li>
+      <li>Click the 'Submit' button under the 'Browse' button</li>
+      <li>Type the EHRID or accept the last one if it exists</li>
+      <li>Type the directory FOLDER versionUID</li>
+      <li>Choose the results format</li>
+      <li>Click the 'Submit' button under that box</li>
       <li>View results below the word 'Results'</li>
    </ul>">
       <img src='/static/img/975.png' 
       style="width:50%;height:40%;"  alt="Question Mark" >
-    </button></h1>
+    </button></h2>
 
            <br>
             <div class="position-relative">
@@ -247,14 +251,43 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                   <form method="POST" action="" enctype="multipart/form-data">
                     <label class="form-label" for="choofile">Choose the file</label><br>
                     <p><input class="form-control" type="file" name="file"></p>
-                    <p><input class="btn btn-primary" type="submit" value="Submit"></p>
+                    <p><input class="btn btn-primary" id="mypost" name="mypost" type="submit" value="Submit"></p>
                   </form>                
+                  {{yourfile}}
+                <br><br>
+                <form id="form1">
+                  <label class="form-label" for="ehrid">EHRID</label><br>
+                    <input class="form-control" type="text" id="ename" name="ename" value={{laste}} >
+                   <br>
+                   <label class="form-label" for="vid">directory FOLDER versionUID</label><br>
+                   <input class="form-control" type="text" id="vid" name="vid" placeholder="0241dcd2-2bfd-49c2-a3ef-5a36adadcb60::local.ehrbase.org::1" >
+                  <br>
+                  <label class="form-label" for="format">Format</label><br>
+                    <input class="form-check-input" type="radio" name="filetype" value="XML">XML</input>
+                    <input class="form-check-input" type="radio" name="filetype" value="JSON" checked>JSON</input>
 
-                <br><br><br><br><br>
-            
-     
+                   <br><br>
+                  <input class="btn btn-primary" id="fform1" name="fform1" type="submit" value="Submit">
+                </form>             
+                <br><br>
                   <div id="results">
                     <h2>Results</h2>
+                    <div id="savexml" style="display:none;">
+                      <br><br>
+                      <a class="btn btn-danger" role="button" href="data:application/xml;charset=utf-8,{{compxml}}"
+                         download="posted_directory.xml">
+                         Save to file
+                       </a>
+                       <br><br>
+                   </div>
+                   <div id="savejson" style="display:none;">
+                    <br><br>
+                    <a class="btn btn-danger" role="button" href="data:text/plain;charset=utf-8,{{compjson}}"
+                       download="posted_dir.json">
+                       Save to file
+                     </a>
+                     <br><br>
+                    </div>
                     {% macro linebreaks_for_string( the_string ) -%}
               {% if the_string %}
               {% for line in the_string.split('\n') %}
@@ -266,13 +299,33 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
               {% endif %}
               {%- endmacro %}
               {{ linebreaks_for_string( yourresults ) }} 
-                  </div>
-                </div>
-              </div>
+              <br><br>
+              <pre id="xml">{{compxml if compxml != '' }}</pre> 
+              <pre id="json">{{compjson}}</pre>
+          </div>
+        </div>
+      </div>
 
 
 
   </div>
+
+
+  <script type="text/javascript">
+    if ( {{status|tojson}} == "success" ){
+        if ( {{format|tojson}} == "xml" ) {
+          document.getElementById("savexml").style.display = 'block';
+        }else{
+              document.getElementById("savejson").style.display = 'block';
+            }
+          }else
+          {
+        document.getElementById("savexml").style.display = 'none';
+        document.getElementById("savejson").style.display = 'none';
+      }
+      
+    </script> 
+
 
   <style>
     body{

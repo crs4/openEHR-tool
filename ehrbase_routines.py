@@ -519,9 +519,468 @@ def getehrsub(client,auth,hostname,port,username,password,sid,sna):
     myresp['status_code']=response.status_code 
     return myresp
 
+def postehrstatus(client,auth,hostname,port,username,password,uploaded_ehrstatus):
+    
+    if hostname.startswith('http'):
+        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    else:
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    current_app.logger.debug('inside postehrstatus')
+    client.auth = (username,password)
+    ehrs = json.loads(uploaded_ehrstatus)
+    ehrsjson=json.dumps(ehrs)
+    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr')
+    response=client.post(myurl,headers={'Authorization':auth,\
+        'Content-Type':'application/json','Prefer': 'return=representation'},
+        data=ehrsjson)
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
+    myresp={}
+    myresp['headers']=response.headers
+    myresp['status_code']=response.status_code
+    myresp['text']=response.text
+    if(response.status_code<210 and response.status_code>199):
+        myresp['status']='success'
+        current_app.logger.info(f'EHR creation.EHR_STATUS POST success')
+    else:
+        myresp['status']='failure'
+        current_app.logger.warning(f'EHR creation.EHR_STATUS POST FAILURE')
+    return myresp
+
+
+def getehrstatus(client,auth,hostname,port,username,password,eid,outtype,vat,vid):
+
+    client.auth = (username,password)
+    current_app.logger.debug('inside getehrstatus')
+    if hostname.startswith('http'):
+        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    else:
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    if outtype=='VAT':
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/ehr_status')
+        if vat=="":
+            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        else:
+            response = client.get(myurl,params={'version_at_time':vat},headers={'Authorization':auth,'Content-Type':'application/json'} )
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            current_app.logger.info(f"GET EHR_STATUS success for ehrid={eid} outtype={outtype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.info(f"GET EHR_STATUS failure for ehrid={eid} outtype={outtype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp
+    else: #outtype='VBV'
+        if vid=='':
+            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/ehr_status/')
+        else:
+            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/ehr_status/'+vid)
+        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            current_app.logger.info(f"GET EHR_STATUS success for ehrid={eid} outtype={outtype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.info(f"GET EHR_STATUS failure for ehrid={eid} outtype={outtype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers    
+        return myresp
+
+def updateehrstatus(client,auth,hostname,port,username,password,ehrfile,eid,vid):
+    
+    client.auth = (username,password)
+    current_app.logger.debug('inside updateehrstatus')
+    if hostname.startswith('http'):
+        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    else:
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/ehr_status')
+    ehrstat = json.loads(ehrfile)
+    ehrstatusjson=json.dumps(ehrstat)
+    response = client.put(myurl,params={'format': 'RAW'},headers={'Authorization':auth,'Content-Type':'application/json', \
+            'accept':'application/json','If-Match':vid, \
+        'Prefer': 'return=representation'}, data=ehrstatusjson) 
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
+    myresp={}
+    myresp["status_code"]=response.status_code
+    if(response.status_code<210 and response.status_code>199):
+        myresp["status"]="success"
+        current_app.logger.info(f"PUT EHR_STATUS success. ehr={eid} versionid={vid}")
+    else:
+        myresp["status"]="failure"
+        current_app.logger.warning(f"PUT EHR_STATUS failure.ehr={eid} versionid={vid}")
+    myresp['text']=response.text
+    myresp["headers"]=response.headers
+    return myresp  
+
+
+def getehrstatusversioned(client,auth,hostname,port,username,password,eid,outtype,vat,vid):
+
+    client.auth = (username,password)
+    current_app.logger.debug('inside getehrstatus')
+    if hostname.startswith('http'):
+        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    else:
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    if outtype=='INFO':
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_ehr_status')
+        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            current_app.logger.info(f"GET EHR_STATUS Versioned success for ehrid={eid} outtype={outtype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.info(f"GET EHR_STATUS Versioned failure for ehrid={eid} outtype={outtype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers    
+        return myresp
+    elif outtype=='REVHIST':
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_ehr_status/revision_history')
+        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            current_app.logger.info(f"GET EHR_STATUS Versioned success for ehrid={eid} outtype={outtype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.info(f"GET EHR_STATUS Versioned failure for ehrid={eid} outtype={outtype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers    
+        return myresp
+    elif outtype=='VAT':
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_ehr_status/version')
+        if vat=="":
+            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        else:
+            response = client.get(myurl,params={'version_at_time':vat},headers={'Authorization':auth,'Content-Type':'application/json'} )
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            current_app.logger.info(f"GET EHR_STATUS Versioned success for ehrid={eid} outtype={outtype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.info(f"GET EHR_STATUS VErsioned failure for ehrid={eid} outtype={outtype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp
+    else: #outtype='VBV'
+        if vid=='':
+            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_ehr_status/version')
+        else:
+            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_ehr_status/version/'+vid)
+        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            current_app.logger.info(f"GET EHR_STATUS Versioned success for ehrid={eid} outtype={outtype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.info(f"GET EHR_STATUS Versioned failure for ehrid={eid} outtype={outtype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers    
+        return myresp
+
+def getdir(client,auth,hostname,port,username,password,eid,outtype,vat,vid,path,filetype):
+
+    client.auth = (username,password)
+    current_app.logger.debug('inside getehrstatus')
+    if hostname.startswith('http'):
+        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    else:
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    if outtype=='VAT':
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/directory')
+        if vat=="":
+            if filetype=='JSON':
+                response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation','accept':'application/json'} )
+            else:
+                response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'} )
+        else:
+            if filetype=='JSON':
+                response = client.get(myurl,params={'version_at_time':vat,'path':path},headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation','accept':'application/json'} )
+            else:
+                response = client.get(myurl,params={'version_at_time':vat,'path':path},headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'} )
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            if filetype=='JSON':
+                myresp['json']=response.text
+            else:
+                xmlstringwithencoding=response.text
+                positionfirstgreaterthan=xmlstringwithencoding.find('>')
+                if 'encoding' in xmlstringwithencoding[0:positionfirstgreaterthan+1]:
+                    xmlstring=xmlstringwithencoding[positionfirstgreaterthan+1:]
+                else:
+                    xmlstring=xmlstringwithencoding
+                root = etree.fromstring(xmlstring)
+                myresp['xml']=etree.tostring(root,  encoding='unicode', method='xml', pretty_print=True)
+            current_app.logger.info(f"GET Directory success for ehrid={eid} outtype={outtype} path={path} filetype={filetype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.info(f"GET Directory failure for ehrid={eid} outtype={outtype} path={path} filetype={filetype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp
+    else: #outtype='VBV'
+        if vid=='':
+            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/directory/')
+        else:
+            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/directory/'+vid)
+        if filetype=='JSON':
+            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation','accept':'application/json'} )
+        else:
+            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'} )
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            if filetype=='JSON':
+                myresp['json']=response.text
+            else:
+                xmlstringwithencoding=response.text
+                positionfirstgreaterthan=xmlstringwithencoding.find('>')
+                if 'encoding' in xmlstringwithencoding[0:positionfirstgreaterthan+1]:
+                    xmlstring=xmlstringwithencoding[positionfirstgreaterthan+1:]
+                else:
+                    xmlstring=xmlstringwithencoding
+                root = etree.fromstring(xmlstring)
+                myresp['xml']=etree.tostring(root,  encoding='unicode', method='xml', pretty_print=True)            
+            current_app.logger.info(f"GET Directory success for ehrid={eid} outtype={outtype} path={path} filetype={filetype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.info(f"GET Directory failure for ehrid={eid} outtype={outtype} path={path} filetype={filetype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers    
+        return myresp
+
+def postdir(client,auth,hostname,port,username,password,eid,uploaded_dir,filetype):
+    
+    if hostname.startswith('http'):
+        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    else:
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    current_app.logger.debug('inside postdir')
+    client.auth = (username,password)
+    dir = json.loads(uploaded_dir)
+    dirjson=json.dumps(dir)
+    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/directory')
+    if filetype=='JSON':  
+        response=client.post(myurl,headers={'Authorization':auth,\
+        'Content-Type':'application/json','Prefer': 'return=representation', \
+            'accept':'application/json'}, \
+        data=dirjson)
+    else:
+        response=client.post(myurl,headers={'Authorization':auth,\
+        'Content-Type':'application/json','Prefer': 'return=representation'}, \
+        data=dirjson)
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
+    myresp={}
+    myresp['headers']=response.headers
+    myresp['status_code']=response.status_code
+    myresp['text']=response.text
+    if(response.status_code<210 and response.status_code>199):
+        myresp['status']='success'
+        if filetype=='XML':
+            xmlstringwithencoding=response.text
+            positionfirstgreaterthan=xmlstringwithencoding.find('>')
+            if 'encoding' in xmlstringwithencoding[0:positionfirstgreaterthan+1]:
+                xmlstring=xmlstringwithencoding[positionfirstgreaterthan+1:]
+            else:
+                xmlstring=xmlstringwithencoding
+            root = etree.fromstring(xmlstring)
+            myresp['xml']=etree.tostring(root,  encoding='unicode', method='xml', pretty_print=True)
+        else:
+            myresp['json']=response.text
+        current_app.logger.info(f'Directory FOLDER POST success filetype={filetype}')
+    else:
+        myresp['status']='failure'
+        current_app.logger.warning(f'Directory FOLDER POST FAILURE')
+    return myresp
+
+def updatedir(client,auth,hostname,port,username,password,eid,vid,uploaded_dir,filetype):
+    
+    if hostname.startswith('http'):
+        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    else:
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    current_app.logger.debug('inside updatedir')
+    client.auth = (username,password)
+    dir = json.loads(uploaded_dir)
+    dirjson=json.dumps(dir)
+    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/directory')
+    if filetype=='JSON':
+        response=client.put(myurl,headers={'Authorization':auth,\
+        'Content-Type':'application/json','Prefer': 'return=representation',
+        'If-Match':vid,'accept':'application/json'},
+        data=dirjson)    
+    else:
+        response=client.put(myurl,headers={'Authorization':auth,\
+        'Content-Type':'application/json','Prefer': 'return=representation',
+        'If-Match':vid},
+        data=dirjson)
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
+    myresp={}
+    myresp['headers']=response.headers
+    myresp['status_code']=response.status_code
+    myresp['text']=response.text
+    if(response.status_code<210 and response.status_code>199):
+        myresp['status']='success'
+        if filetype=='XML':
+            xmlstringwithencoding=response.text
+            positionfirstgreaterthan=xmlstringwithencoding.find('>')
+            if 'encoding' in xmlstringwithencoding[0:positionfirstgreaterthan+1]:
+                xmlstring=xmlstringwithencoding[positionfirstgreaterthan+1:]
+            else:
+                xmlstring=xmlstringwithencoding
+            root = etree.fromstring(xmlstring)
+            myresp['xml']=etree.tostring(root,  encoding='unicode', method='xml', pretty_print=True)
+        else:
+            myresp['json']=response.text
+        current_app.logger.info(f'Directory FOLDER PUT success')
+    else:
+        myresp['status']='failure'
+        current_app.logger.warning(f'Directory FOLDER PUT FAILURE')
+    return myresp
+
+def deldir(client,auth,hostname,port,username,password,eid,vid):
+
+    client.auth = (username,password)
+    current_app.logger.debug('inside deldir')
+    if hostname.startswith('http'):
+        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    else:
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/directory')
+    response = client.delete(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation','accept':'application/json',\
+                                            'If-Match':vid} )
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
+    myresp={}
+    myresp["status_code"]=response.status_code
+    if(response.status_code<210 and response.status_code>199):
+        myresp["status"]="success"
+        current_app.logger.info(f"ELETE Directory success for ehrid={eid} vid={vid}")
+    else:
+        myresp["status"]="failure"
+        current_app.logger.info(f"DELETE Directory failure for ehrid={eid} vid={vid}")
+    myresp['text']=response.text
+    myresp["headers"]=response.headers
+    return myresp
+
+
+
 def delcomp(client,adauth,hostname,port,adusername,adpassword,compid,ehrid):
+    #ADMIN DELETE COMPOSITION
     current_app.logger.debug('inside delcomp')
-    current_app.logger.info(f'Deleting comp: versionUID={compid}')
+    current_app.logger.info(f'Deleting comp: id={compid}')
     if hostname.startswith('http'):
         EHR_SERVER_URL = hostname+":"+port+"/ehrbase/"
     else:
@@ -544,13 +1003,148 @@ def delcomp(client,adauth,hostname,port,adusername,adpassword,compid,ehrid):
     myresp['text']=response.text
     if(response.status_code<210 and response.status_code>199):
         myresp['status']='success'
-        current_app.logger.info(f'Delete composition success for id={compid} from ehr={ehrid}')        
+        current_app.logger.info(f'Delete composition success for id={compid} from ehr={ehrid}. ADMIN method')        
         return myresp
     else:
         myresp['status']='failure'
-        current_app.logger.warning(f'Delete composition failure for id={compid} from ehr={ehrid}')    
+        current_app.logger.warning(f'Delete composition failure for id={compid} from ehr={ehrid}. ADMIN method')    
         return myresp    
 
+def delcompuser(client,auth,hostname,port,username,password,compid,ehrid):
+    #USER DELETE COMPOSITION
+    current_app.logger.debug('inside delcompuser')
+    current_app.logger.info(f'Deleting comp: versionUID={compid}')
+    if hostname.startswith('http'):
+        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    else:
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    client.auth = (username,password)   
+    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+ehrid+'/composition/'+compid)
+    response=client.delete(myurl,headers={'Authorization':auth })    
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
+    myresp={}
+    myresp['headers']=response.headers
+    myresp['status_code']=response.status_code
+    myresp['text']=response.text
+    if(response.status_code<210 and response.status_code>199):
+        myresp['status']='success'
+        current_app.logger.info(f'Delete composition success for versionid={compid} from ehr={ehrid}')        
+        return myresp
+    else:
+        myresp['status']='failure'
+        current_app.logger.warning(f'Delete composition failure for versionid={compid} from ehr={ehrid}')    
+        return myresp   
+
+
+def getcompversioned(client,auth,hostname,port,username,password,compid,eid,outtype,vat,vid):
+
+    client.auth = (username,password)
+    current_app.logger.debug('inside getcompversioned')
+    if hostname.startswith('http'):
+        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    else:
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    if outtype=='INFO':
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_composition/'+compid)
+        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            current_app.logger.info(f"GET CompositionVersioned success for compositionid={compid} ehrid={eid} outtype={outtype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.info(f"GET CompositionVersioned failure for compositionid={compid} ehrid={eid} outtype={outtype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp
+    elif outtype=='REVHIST':
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_composition/'+compid+'/revision_history')
+        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            current_app.logger.info(f"GET CompositionVersioned success for compositionid={compid} ehrid={eid} outtype={outtype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.info(f"GET CompositionVersioned failure for compositionid={compid} ehrid={eid} outtype={outtype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp
+    elif outtype=='VAT':
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_composition/'+compid+'/version')
+        if vat=="":
+            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        else:
+            response = client.get(myurl,params={'version_at_time':vat},headers={'Authorization':auth,'Content-Type':'application/json'} )
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            current_app.logger.info(f"GET CompositionVersioned success for compositionid={compid} ehrid={eid} outtype={outtype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.info(f"GET CompositionVersioned failure for compositionid={compid} ehrid={eid} outtype={outtype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp
+    else: #outtype='VBV'
+        if vid=='':
+            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_composition/'+compid+'/version')
+        else:
+            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_composition/'+compid+'/version/'+vid)
+        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            current_app.logger.info(f"GET CompositionVersioned success for compositionid={compid} ehrid={eid} outtype={outtype}")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.info(f"GET CompositionVersioned failure for compositionid={compid} ehrid={eid} outtype={outtype}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers    
+        return myresp
 
 def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,filetype,check):
     
@@ -774,8 +1368,200 @@ def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,fil
         myresp["headers"]=response.headers
         return myresp
 
-def getcomp(client,auth,hostname,port,username,password,compid,eid,filetype):
+
+def updatecomp(client,auth,hostname,port,username,password,composition,eid,tid,compid,filetype,check):
     
+    client.auth = (username,password)
+    current_app.logger.debug('inside updatecomp')
+    versionid=compid
+    compid=compid.split('::')[0]
+    if(filetype=="XML"):
+        if hostname.startswith('http'):
+            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+        else:
+            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+        myurl=url_normalize(EHR_SERVER_BASE_URL + 'ehr/'+eid+'/composition/'+compid)
+        root=etree.fromstring(composition)
+        response = client.put(myurl,
+                       params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml', \
+                           'accept':'application/xml','If-Match':versionid, \
+            'Prefer': 'return=representation'}, data=etree.tostring(root)) 
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            myresp['compositionid']=response.headers['ETag'].replace('"','')
+            current_app.logger.info(f"PUT composition success. format={filetype} template={tid} ehr={eid} versionid={versionid}")
+            if(check=="Yes"):
+                checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,myresp['compositionid'])
+                if(checkinfo==None):
+                    myresp['check']='Retrieved and posted Compositions match'
+                    myresp['checkinfo']=""
+                    current_app.logger.info(f"check success. Retrieved and posted Compositions match")
+                else:
+                    myresp['check']='WARNING: Retrieved different from posted Composition'
+                    myresp['checkinfo']=checkinfo 
+                    current_app.logger.warning(f"check failure. Retrieved and posted Compositions do not match")  
+        else:
+            current_app.logger.warning(f"PUT composition failure. format={filetype} template={tid} ehr={eid} versionid={versionid}")
+            myresp["status"]="failure"
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp
+    elif(filetype=="JSON"):
+        if hostname.startswith('http'):
+            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+        else:
+            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition/'+compid)
+        comp = json.loads(composition)
+        compositionjson=json.dumps(comp)
+        response = client.put(myurl,params={'format': 'RAW'},headers={'Authorization':auth,'Content-Type':'application/json', \
+             'accept':'application/json','If-Match':versionid, \
+            'Prefer': 'return=representation'}, data=compositionjson) 
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            myresp['compositionid']=response.headers['ETag'].replace('"','')
+            current_app.logger.info(f"PUT composition success. format={filetype} template={tid} ehr={eid} versionid={versionid}")
+            if(check=="Yes"):
+                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                if(checkinfo==None):
+                    myresp['check']='Retrieved and posted Compositions match'
+                    myresp['checkinfo']=""
+                    current_app.logger.info(f"check success. Retrieved and posted Compositions match")
+                else:
+                    myresp['check']='WARNING: Retrieved different from posted Composition'
+                    myresp['checkinfo']=checkinfo
+                    current_app.logger.warning(f"check failure. Retrieved and posted Compositions do not match")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.warning(f"PUT composition failure. format={filetype} template={tid} ehr={eid} versionid={versionid}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp  
+    elif(filetype=="STRUCTURED"):   #STRUCTURED
+        if hostname.startswith('http'):
+            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+        else:
+            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'composition/'+compid)
+        comp = json.loads(composition)
+        compositionjson=json.dumps(comp)
+        response = client.put(myurl,
+                       params={'ehrId':eid,'templateId':tid,'format':'STRUCTURED'},
+                       headers={'Authorization':auth,'Content-Type':'application/json',\
+                                'Prefer':'return=representation',\
+                                    'accept':'application/json','If-Match':versionid},
+                       data=compositionjson
+                      )           
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+           #doesn't return versionid so we have to update it manually
+            try:
+                vsplit=versionid.split('::')
+                version=int(vsplit[2])
+                myresp['compositionid']=vsplit[0]+'::'+vsplit[1]+'::'+str(version+1)
+            except:
+                myresp['compositionid']=versionid+'+1'
+                check='No'
+            current_app.logger.info(f"PUT composition success. format={filetype} template={tid} ehr={eid} versionid={myresp['compositionid']}")
+            if(check=="Yes"):
+                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                if(checkinfo==None):
+                    myresp['check']='Retrieved and posted Compositions match'
+                    myresp['checkinfo']=""
+                    current_app.logger.info(f"check success. Retrieved and posted Compositions match")
+                else:
+                    myresp['check']='WARNING: Retrieved different from posted Composition'
+                    myresp['checkinfo']=checkinfo
+                    current_app.logger.warning(f"check failure. Retrieved and posted Compositions do not match")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.warning(f"PUT composition failure. format={filetype} template={tid} ehr={eid} versionid={versionid}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp
+    else:#FLAT JSON
+        if hostname.startswith('http'):
+            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+        else:
+            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + '/composition/'+compid)
+        comp = json.loads(composition)
+        compositionjson=json.dumps(comp)
+        response = client.put(myurl,params={'ehrId':eid,'templateId':tid,\
+                                            'format':'FLAT'},\
+                              headers={'Authorization':auth,'Content-Type':'application/json', \
+             'accept':'application/json','If-Match':versionid, \
+            'Prefer': 'return=representation'}, data=compositionjson)          
+        current_app.logger.debug('Response Url')
+        current_app.logger.debug(response.url)
+        current_app.logger.debug('Response Status Code')
+        current_app.logger.debug(response.status_code)
+        current_app.logger.debug('Response Text')
+        current_app.logger.debug(response.text)
+        current_app.logger.debug('Response Headers')
+        current_app.logger.debug(response.headers)
+        myresp={}
+        myresp["status_code"]=response.status_code
+        if(response.status_code<210 and response.status_code>199):
+            myresp["status"]="success"
+            #doesn't return versionid so we have to update it manually
+            try:
+                vsplit=versionid.split('::')
+                version=int(vsplit[2])
+                myresp['compositionid']=vsplit[0]+'::'+vsplit[1]+'::'+str(version+1)
+            except:
+                myresp['compositionid']=versionid+'+1'
+                check='No'
+            current_app.logger.info(f"PUT composition success. format={filetype} template={tid} ehr={eid} versionid={myresp['compositionid']}")
+            if(check=="Yes"):
+                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                if(checkinfo==None):
+                    myresp['check']='Retrieved and posted Compositions match'
+                    myresp['checkinfo']=""
+                    current_app.logger.info(f"check success. Retrieved and posted Compositions match")
+                else:
+                    myresp['check']='WARNING: Retrieved different from posted Composition'
+                    myresp['checkinfo']=checkinfo
+                    current_app.logger.warning(f"check failure. Retrieved and posted Compositions do not match")
+        else:
+            myresp["status"]="failure"
+            current_app.logger.warning(f"PUT composition failure. format={filetype} template={tid} ehr={eid} versionid={versionid}")
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        return myresp
+
+
+def getcomp(client,auth,hostname,port,username,password,compid,eid,filetype):
     client.auth = (username,password)
     current_app.logger.debug('inside getcomp')
     if(filetype=="XML"):
@@ -1241,6 +2027,7 @@ def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,off
         #     myresp["headers"]=response.headers
         #     current_app.logger.warning(f"RUN stored AQL failure. qmethod={qmethod} qname={qname} version={version}")
         # return myresp  
+
 
 
 def compcheck(client,auth,hostname,port,composition,eid,filetype,compid):

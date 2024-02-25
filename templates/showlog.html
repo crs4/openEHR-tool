@@ -40,9 +40,7 @@
           <ul class="dropdown-menu " >
             <li><a class="dropdown-item" href="gtemp.html">Get Template</a></li>
             <li><a class="dropdown-item" href="ptemp.html">Post Template</a></li>
-            <li><a class="dropdown-item" href="utemp.html">Update Template</a></li>
-            <li><a class="dropdown-item" href="dtemp.html">Delete Template</a></li>
-          </ul>
+         </ul>
         </li>
 
         <li class="nav-item dropdown dropend">
@@ -52,9 +50,33 @@
             <ul class="dropdown-menu" >
               <li><a class="dropdown-item" href="gehr.html">Get EHR</a></li>
               <li><a class="dropdown-item" href="pehr.html">Post EHR</a></li>
-              <li><a class="dropdown-item" href="dehr.html">Delete EHR</a></li>
+              <li><a class="dropdown-item" href="pehrstatus.html">Post EHR with EHR_STATUS</a></li>
             </ul>
           </li>
+          <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
+              EHR_STATUS
+            </a>
+            <ul class="dropdown-menu" >
+              <li><a class="dropdown-item" href="pehrstatus.html">Post EHR with EHR_STATUS</a></li>
+              <li><a class="dropdown-item" href="gehrstatus.html">Get EHR_STATUS</a></li>
+              <li><a class="dropdown-item" href="uehrstatus.html">Update EHR_STATUS</a></li>
+              <li><a class="dropdown-item" href="gehrstatusversioned.html">GET Versioned EHR_STATUS</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
+              Directory
+            </a>
+            <ul class="dropdown-menu" >
+              <li><a class="dropdown-item" href="gdir.html">GET Folder/Directory</a></li>
+              <li><a class="dropdown-item" href="pdir">Post Directory</a></li>
+              <li><a class="dropdown-item" href="udir.html">Update Directory</a></li>
+              <li><a class="dropdown-item" href="ddir.html">Delete Directory</a></li>
+            </ul>
+          </li>
+
 
           <li class="nav-item dropdown dropend">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
@@ -63,16 +85,30 @@
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="gcomp.html">Get Composition</a></li>
               <li><a class="dropdown-item" href="pcomp.html">Post Composition</a></li>
-              <li><a class="dropdown-item" href="dcomp.html">Delete Composition</a></li>
+              <li><a class="dropdown-item" href="ucomp.html">Update Composition</a></li>
+              <li><a class="dropdown-item" href="dcompuser.html">Delete Composition</a></li>
               <li><a class="dropdown-item" href="ecomp.html">Example Composition</a></li>
+              <li><a class="dropdown-item" href="gcompversioned.html">GET Versioned Composition</a></li>
               <li><a class="dropdown-item" href="#" > Batch Compositions &#9656; </a>
               <ul class="submenu dropdown-menu">
                   <li><a class="dropdown-item second" href="pbatch1.html">Post Batch Compositions different ehrid</a></li>
                   <li><a class="dropdown-item second" href="pbatch2.html">Post Batch Compositions same ehrid</a></li>
               </ul>
               </li>
+             </ul>            
+          </li>
+
+          <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
+              Contribution
+            </a>
+            <ul class="dropdown-menu" >
+              <li><a class="dropdown-item" href="dehr.html">Post Contribution</a></li>
+              <li><a class="dropdown-item" href="dehr.html">GET Contribution</a></li>
             </ul>
           </li>
+
+
           <li class="nav-item dropdown dropend">
             <a class="nav-link dropdown-toggle" href="#"  data-bs-toggle="dropdown" >
               Form
@@ -91,95 +127,109 @@
               <li><a class="dropdown-item" href="gaql.html">Get AQL Query</a></li>
               <li><a class="dropdown-item" href="paql.html">Post AQL Query</a></li>
               <li><a class="dropdown-item" href="raql.html">Run AQL Query</a></li>
+              <li><a class="dropdown-item" href="raqlstored.html">Run AQL Stored Query</a></li>
            </ul>
+          </li>
+
+          <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#"  data-bs-toggle="dropdown" >
+              ADMIN methods
+            </a>
+            <ul class="dropdown-menu" >
+              <li><a class="dropdown-item" href="dehr.html">Delete EHR</a></li>
+              <li><a class="dropdown-item" href="dfolder.html">Delete Folder</a></li>
+              <li><a class="dropdown-item" href="utemp.html">Update Template</a></li>
+              <li><a class="dropdown-item" href="dtemp.html">Delete Template</a></li>
+              <li><a class="dropdown-item" href="dcomp.html">Delete Composition</a></li>
+               </ul>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="slog.html">Session log</a>
-          </li> 
+          </li>   
     </div>
   </div>
 </nav>
 
 <script>
-     document.addEventListener("DOMContentLoaded", function(){
+  document.addEventListener("DOMContentLoaded", function(){
 // make it as accordion for smaller screens
 if (window.innerWidth < 992) {
 
-  // close all inner dropdowns when parent is closed
-  document.querySelectorAll('.navbar .dropdown').forEach(function(everydropdown){
-    everydropdown.addEventListener('hidden.bs.dropdown', function () {
-      // after dropdown is hidden, then find all submenus
-        this.querySelectorAll('.submenu').forEach(function(everysubmenu){
-          // hide every submenu as well
-          everysubmenu.style.display = 'none';
-        });
-    })
-  });
+// close all inner dropdowns when parent is closed
+document.querySelectorAll('.navbar .dropdown').forEach(function(everydropdown){
+ everydropdown.addEventListener('hidden.bs.dropdown', function () {
+   // after dropdown is hidden, then find all submenus
+     this.querySelectorAll('.submenu').forEach(function(everysubmenu){
+       // hide every submenu as well
+       everysubmenu.style.display = 'none';
+     });
+ })
+});
 
-  document.querySelectorAll('.dropdown-menu a').forEach(function(element){
-    element.addEventListener('click', function (e) {
-        let nextEl = this.nextElementSibling;
-        if(nextEl && nextEl.classList.contains('submenu')) {	
-          // prevent opening link if link needs to open dropdown
-          e.preventDefault();
-          if(nextEl.style.display == 'block'){
-            nextEl.style.display = 'none';
-          } else {
-            nextEl.style.display = 'block';
-          }
+document.querySelectorAll('.dropdown-menu a').forEach(function(element){
+ element.addEventListener('click', function (e) {
+     let nextEl = this.nextElementSibling;
+     if(nextEl && nextEl.classList.contains('submenu')) {	
+       // prevent opening link if link needs to open dropdown
+       e.preventDefault();
+       if(nextEl.style.display == 'block'){
+         nextEl.style.display = 'none';
+       } else {
+         nextEl.style.display = 'block';
+       }
 
-        }
-    });
-  })
+     }
+ });
+})
 }
 // end if innerWidth
 }); 
 // DOMContentLoaded  end
 
 </script>
- <style>
-  /* ============ desktop view ============ */
+<style>
+/* ============ desktop view ============ */
 @media all and (min-width: 992px) {
-	.dropdown-menu li{ position: relative; 	}
-	.nav-item .submenu{ 
-		display: none;
-    /* position:relative;
-    left:100%; top: -7px; */
-		/* position: absolute;
-		left:100%; top:-7px; */
-	}
+.dropdown-menu li{ position: relative; 	}
+.nav-item .submenu{ 
+ display: none;
+ /* position:relative;
+ left:100%; top: -7px; */
+ /* position: absolute;
+ left:100%; top:-7px; */
+}
 
-  .dropdown-item {
-    position: relative;
-    top: 0%; left: 2%;
-  }
+.dropdown-item {
+ position: relative;
+ top: 0%; left: 2%;
+}
 
-  .second {
-    position: relative;
-    top: 0%; left: 6%;
-  }
+.second {
+ position: relative;
+ top: 0%; left: 6%;
+}
 
 
-	.nav-item .submenu-right{ 
-		right:auto; left:auto;
-	}
-	.dropdown-menu > li:hover{ background-color: #262626 }
-	.dropdown-menu > li:hover > .submenu{ display: block; }
- 
+.nav-item .submenu-right{ 
+ right:auto; left:auto;
+}
+.dropdown-menu > li:hover{ background-color: #262626 }
+.dropdown-menu > li:hover > .submenu{ display: block; }
+
 }	
 /* ============ desktop view .end// ============ */
 
 /* ============ small devices ============ */
 /* @media (max-width: 991px) {
-  .dropdown-menu .dropdown-menu{
-      margin-left:0.7rem; margin-right:0.7rem; margin-bottom: .5rem;
-  } 
+.dropdown-menu .dropdown-menu{
+   margin-left:0.7rem; margin-right:0.7rem; margin-bottom: .5rem;
+} 
 }	 */
 /* ============ small devices .end// ============ */
 </style>
 
  
-<div class="container">
+<div class="container-fluid">
   <h1>Session Activities</h1>
  Showing last {{rediseventsrecorded}} session operations. Tweak the "eventsrecorded" number to your satisfaction in settings.
  <p>Filter your logs with predefined keyword (lefthandside) or use yours(righthandside).</p>
@@ -188,7 +238,8 @@ if (window.innerWidth < 992) {
             <form id="form0">
            
               <div class="row">
-                  <div class="col">                    
+                  <div class="col pe-6">    
+                   
                     <input type="radio" class="btn-check" name="search" id="b" value='structured' autocomplete="off" checked>
                     <label class="btn btn-outline-dark" for="b">Structured Filter</label>
                     <button type="button" class="btn btn-sm btn-light" style="width:35px; tooltip-font-size-sm;" 
@@ -206,8 +257,69 @@ if (window.innerWidth < 992) {
                         <img src='/static/img/975.png'
                         style="width:140%;height:130%;"  alt="Question Mark" >
                       </button>
-                  </div>
-                  <div class="col">
+       
+                        <div class="btn-group d-grid d-md-flex justify-content-md-start" id="buttons">
+                          <input type="radio" class="btn-check" name="methods" id="a" value='a' autocomplete="off" disabled>
+                          <label class="btn btn-outline-dark btn-sm" for="a">METHOD</label>
+                          <input type="radio" class="btn-check" name="methods" id="all" value='all' autocomplete="off" checked>
+                          <label class="btn btn-outline-dark btn-sm" for="all">ALL</label>
+                          <input type="radio" class="btn-check" name="methods" id="post" value='post' autocomplete="off" >
+                          <label class="btn btn-outline-danger btn-sm" for="post">POST</label>
+                          <input type="radio" class="btn-check" name="methods" id="get" value='get' autocomplete="off" >
+                          <label class="btn btn-outline-primary btn-sm" for="get">GET</label>
+                          <input type="radio" class="btn-check" name="methods" id="put" value='put' autocomplete="off" >
+                          <label class="btn btn-outline-secondary btn-sm" for="put">PUT</label>
+                          <input type="radio" class="btn-check" name="methods" id="del" value='del' autocomplete="off" >
+                          <label class="btn btn-outline-dark btn-sm" for="del">DEL</label>                        
+                          <input type="radio" class="btn-check" name="methods" id="run" value='run' autocomplete="off" >
+                          <label class="btn btn-outline-warning btn-sm" for="run">RUN</label> 
+                          </div>
+                        <div class="btn-group d-grid d-md-flex flex-wrap justify-content-md-start" id="buttons2">
+                          <input type="radio" class="btn-check" name="type" id="a2" value='all' autocomplete="off" disabled>
+                          <label class="btn btn-outline-dark btn-sm" for="a2">TYPE</label>
+                          <input type="radio" class="btn-check" name="type" id="all2" value='all' autocomplete="off" checked>
+                          <label class="btn btn-outline-dark btn-sm" for="all2">ALL</label>
+                          <input type="radio" class="btn-check" name="type" id="template" value='template' autocomplete="off" >
+                          <label class="btn btn-outline-danger btn-sm" for="template">Template</label>
+                          <input type="radio" class="btn-check" name="type" id="ehr" value='ehr' autocomplete="off" >
+                          <label class="btn btn-outline-primary btn-sm" for="ehr">EHR</label>
+                          <input type="radio" class="btn-check" name="type" id="ehrstatus" value='ehrstatus' autocomplete="off" >
+                          <label class="btn btn-outline-info btn-sm" for="ehrstatus">EHR_STATUS</label>                          
+                          <input type="radio" class="btn-check" name="type" id="composition" value='composition' autocomplete="off" >
+                          <label class="btn btn-outline-secondary btn-sm" for="composition">Composition</label>
+                          <input type="radio" class="btn-check" name="type" id="query" value='query' autocomplete="off" >
+                          <label class="btn btn-outline-warning btn-sm" for="query">Query</label>
+                          <input type="radio" class="btn-check" name="type" id="form" value='form' autocomplete="off" >
+                          <label class="btn btn-outline-info btn-sm" for="form">Form</label>
+                          <input type="radio" class="btn-check" name="type" id="dir" value='dir' autocomplete="off" >
+                          <label class="btn btn-outline-primary btn-sm" for="dir">Directory</label>                          
+                          <input type="radio" class="btn-check" name="type" id="cont" value='cont' autocomplete="off" >
+                          <label class="btn btn-outline-danger btn-sm" for="cont">Contribution</label>  
+                          </div>                    
+                 
+                        <div class="btn-group d-grid d-md-flex justify-content-md-start" id="buttons3">
+                          <input type="radio" class="btn-check" name="outcome" id="a3" value='all' autocomplete="off" disabled >
+                          <label class="btn btn-outline-dark btn-sm" for="a3">OUTCOME</label>
+                          <input type="radio" class="btn-check" name="outcome" id="all3" value='all' autocomplete="off" checked >
+                          <label class="btn btn-outline-dark btn-sm" for="all3">ALL</label>
+                          <input type="radio" class="btn-check" name="outcome" id="successful" value="successful" autocomplete="off" >
+                          <label class="btn btn-outline-danger btn-sm" for="successful">Successful</label>
+                          <input type="radio" class="btn-check" name="outcome" id="unsuccessful" value='unsuccessful' autocomplete="off" >
+                          <label class="btn btn-outline-primary btn-sm" for="unsuccessful">Unsuccessful</label>
+                        </div>  
+             
+                          <div class="btn-group d-grid d-md-flex justify-content-md-start" id="buttons4">
+                            <input type="radio" class="btn-check" name="order" id="f4" value='first' autocomplete="off" disabled >
+                            <label class="btn btn-outline-dark btn-sm" for="f4">ORDER</label>
+                            <input type="radio" class="btn-check" name="order" id="first" value='first' autocomplete="off" checked >
+                            <label class="btn btn-outline-dark btn-sm" for="first">Oldest First</label>
+                            <input type="radio" class="btn-check" name="order" id="last" value='last' autocomplete="off" >
+                            <label class="btn btn-outline-danger btn-sm" for="last">Oldest Last</label>
+                          </div>
+                    
+                    </div>
+                  <div class="col ps-6">
+                    
                     <input type="radio" class="btn-check" name="search" id="mySwitch" value='custom' autocomplete="off" >
                     <label class="btn btn-outline-danger" for="mySwitch">Search for keywords</label>
                     <button type="button" class="btn btn-sm btn-light" style="width:35px; tooltip-font-size-sm;" 
@@ -224,109 +336,37 @@ if (window.innerWidth < 992) {
                       <img src='/static/img/975.png'
                       style="width:140%;height:130%;"  alt="Question Mark" >
                     </button>
-                  </div>
-              </div>
-              <div class="row">
-                  <div class="col">
-                      <div class="btn-group" id="buttons">
-                        <input type="radio" class="btn-check" name="methods" id="a" value='a' autocomplete="off" disabled>
-                        <label class="btn btn-outline-dark" for="a">METHOD</label>
-                        <input type="radio" class="btn-check" name="methods" id="all" value='all' autocomplete="off" checked>
-                        <label class="btn btn-outline-dark" for="all">ALL</label>
-                        <input type="radio" class="btn-check" name="methods" id="post" value='post' autocomplete="off" >
-                        <label class="btn btn-outline-danger" for="post">POST</label>
-                        <input type="radio" class="btn-check" name="methods" id="get" value='get' autocomplete="off" >
-                        <label class="btn btn-outline-primary" for="get">GET</label>
-                        <input type="radio" class="btn-check" name="methods" id="put" value='put' autocomplete="off" >
-                        <label class="btn btn-outline-secondary" for="put">PUT</label>
-                        <input type="radio" class="btn-check" name="methods" id="del" value='del' autocomplete="off" >
-                        <label class="btn btn-outline-dark" for="del">DEL</label>                        
-                        <input type="radio" class="btn-check" name="methods" id="run" value='run' autocomplete="off" >
-                        <label class="btn btn-outline-warning" for="run">RUN</label>                   
-                      </div>
-                  </div>
-                  <div class="col">
-                    <div class="btn-group" id="buttons1bis">
-                      <input type="radio" class="btn-check" name="order2" id="f2" value='first' autocomplete="off" disabled >
-                      <label class="btn btn-outline-dark" for="f2">ORDER</label>
-                      <input type="radio" class="btn-check" name="order2" id="first2" value='first' autocomplete="off" checked >
-                      <label class="btn btn-outline-dark" for="first2">Oldest First</label>
-                      <input type="radio" class="btn-check" name="order2" id="last2" value='last' autocomplete="off" >
-                      <label class="btn btn-outline-danger" for="last2">Oldest Last</label>
-                      </div>
-                  </div>
-              </div>
                 
-              <div class="row">
-                <div class="col">
-                  <div class="btn-group" id="buttons2">
-                    <input type="radio" class="btn-check" name="type" id="a2" value='all' autocomplete="off" disabled>
-                    <label class="btn btn-outline-dark" for="a2">TYPE</label>
-                    <input type="radio" class="btn-check" name="type" id="all2" value='all' autocomplete="off" checked>
-                    <label class="btn btn-outline-dark" for="all2">ALL</label>
-                    <input type="radio" class="btn-check" name="type" id="template" value='template' autocomplete="off" >
-                    <label class="btn btn-outline-danger" for="template">Template</label>
-                    <input type="radio" class="btn-check" name="type" id="ehr" value='ehr' autocomplete="off" >
-                    <label class="btn btn-outline-primary" for="ehr">EHR</label>
-                    <input type="radio" class="btn-check" name="type" id="composition" value='composition' autocomplete="off" >
-                    <label class="btn btn-outline-secondary" for="composition">Composition</label>
-                    <input type="radio" class="btn-check" name="type" id="query" value='query' autocomplete="off" >
-                    <label class="btn btn-outline-warning" for="query">Query</label>
-                    <input type="radio" class="btn-check" name="type" id="form" value='form' autocomplete="off" >
-                    <label class="btn btn-outline-info" for="form">Form</label>
+                   
+               
+               
+                  <div id="searchid" style="display:block;">
+                    <input class="form-control"  type="text" id="logsearch" name="logsearch" placeholder="Keywords to search for in log" >      
                   </div>
-                  </div>     
-                  <div class="col">
-                    <div id="searchid" style="display:block;">
-                      <input class="form-control"  type="text" id="logsearch" name="logsearch" placeholder="Keywords to search for in log" >      
-                      
-                  </div>          
-                  </div>
-                </div>
-
-                <div class="row">
-                  <div class="col">
-                    <div class="btn-group" id="buttons3">
-                      <input type="radio" class="btn-check" name="outcome" id="a3" value='all' autocomplete="off" disabled >
-                      <label class="btn btn-outline-dark" for="a3">OUTCOME</label>
-                      <input type="radio" class="btn-check" name="outcome" id="all3" value='all' autocomplete="off" checked >
-                      <label class="btn btn-outline-dark" for="all3">ALL</label>
-                      <input type="radio" class="btn-check" name="outcome" id="successful" value="successful" autocomplete="off" >
-                      <label class="btn btn-outline-danger" for="successful">Successful</label>
-                      <input type="radio" class="btn-check" name="outcome" id="unsuccessful" value='unsuccessful' autocomplete="off" >
-                      <label class="btn btn-outline-primary" for="unsuccessful">Unsuccessful</label>
-                    </div>  
-                  </div>
-                  <div class="col">
-                    <div class="btn-group" id="buttons3bis">
+           
+                   <div class="btn-group d-grid d-md-flex justify-content-md-start" id="buttons3bis">
                       <input type="radio" class="btn-check" name="andornot" id="a0" value='and' autocomplete="off" disabled >
-                    <label class="btn btn-outline-dark" for="a0">OPERATORS (not is for all keywords)</label>
+                    <label class="btn btn-outline-dark btn-sm" for="a0">OPERATORS (not is for all keywords)</label>
                     <input type="radio" class="btn-check" name="andornot" id="and" value='and' autocomplete="off" checked >
-                    <label class="btn btn-outline-dark" for="and">AND</label>
+                    <label class="btn btn-outline-dark btn-sm" for="and">AND</label>
                     <input type="radio" class="btn-check" name="andornot" id="or" value='or' autocomplete="off"  >
-                    <label class="btn btn-outline-danger" for="or">OR</label>
+                    <label class="btn btn-outline-danger btn-sm" for="or">OR</label>
                     <input type="radio" class="btn-check" name="andornot" id="not" value='not' autocomplete="off"  >
-                    <label class="btn btn-outline-primary" for="not">NOT</label>
+                    <label class="btn btn-outline-primary btn-sm" for="not">NOT</label>
                     </div>  
-    
-                  </div>
-                </div>
-                
-                 <div class="row">
-                  <div class="col">
-                    <div class="btn-group" id="buttons4">
-                    <input type="radio" class="btn-check" name="order" id="f4" value='first' autocomplete="off" disabled >
-                    <label class="btn btn-outline-dark" for="f4">ORDER</label>
-                    <input type="radio" class="btn-check" name="order" id="first" value='first' autocomplete="off" checked >
-                    <label class="btn btn-outline-dark" for="first">Oldest First</label>
-                    <input type="radio" class="btn-check" name="order" id="last" value='last' autocomplete="off" >
-                    <label class="btn btn-outline-danger" for="last">Oldest Last</label>
-                 </div> 
-                 </div> 
-                 <div class="col">
-                 
-                 </div>
-                 </div>
+       
+                    <div class="btn-group d-grid d-md-flex justify-content-md-start" id="buttons1bis">
+                      <input type="radio" class="btn-check" name="order2" id="f2" value='first' autocomplete="off" disabled >
+                      <label class="btn btn-outline-dark btn-sm" for="f2">ORDER</label>
+                      <input type="radio" class="btn-check" name="order2" id="first2" value='first' autocomplete="off" checked >
+                      <label class="btn btn-outline-dark btn-sm" for="first2">Oldest First</label>
+                      <input type="radio" class="btn-check" name="order2" id="last2" value='last' autocomplete="off" >
+                      <label class="btn btn-outline-danger btn-sm" for="last2">Oldest Last</label>
+                    </div>
+              </div>
+              
+              </div>
+        
         
               <div class="container">
                 <br><br>

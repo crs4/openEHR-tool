@@ -230,15 +230,15 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 
  
 <div class="container">
-  <h1>Post a template<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
+  <h2>Create an EHR by posting an EHR_STATUS<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
     data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
-    title="<h4>Instructions:</h4><ul><li>Click the 'Browse' button and select the template file</li>
+    title="<h4>Instructions:</h4><ul><li>Click the 'Browse' button and select the EHR_STATUS file</li>
       <li>Click the 'Submit' button</li>
       <li>View results below the word 'Results'</li>
    </ul>">
       <img src='/static/img/975.png' 
       style="width:50%;height:40%;"  alt="Question Mark" >
-    </button></h1>
+    </button></h2>
 
            <br>
             <div class="position-relative">
@@ -250,11 +250,19 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                     <p><input class="btn btn-primary" type="submit" value="Submit"></p>
                   </form>                
 
-                <br><br><br><br><br>
+                <br><br>
             
      
                   <div id="results">
                     <h2>Results</h2>
+                    <div id="savejson" style="display:none;">
+                      <br><br>
+                      <a class="btn btn-danger" role="button" href="data:text/plain;charset=utf-8,{{compjson}}"
+                         download="results.json">
+                         Save to file
+                       </a>
+                       <br><br>
+                   </div>
                     {% macro linebreaks_for_string( the_string ) -%}
               {% if the_string %}
               {% for line in the_string.split('\n') %}
@@ -266,13 +274,27 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
               {% endif %}
               {%- endmacro %}
               {{ linebreaks_for_string( yourresults ) }} 
-                  </div>
-                </div>
-              </div>
+              <br><br>
+              <pre id="json">{{compjson}}</pre>
+          </div>
+        </div>
+      </div>
 
 
 
   </div>
+
+
+  <script type="text/javascript">
+    if ( {{status|tojson}} == "success" ){
+            document.getElementById("savejson").style.display = 'block';
+          }else 
+        {
+      document.getElementById("savejson").style.display = 'none';
+        }
+    
+  </script> 
+
 
   <style>
     body{

@@ -40,9 +40,7 @@
           <ul class="dropdown-menu " >
             <li><a class="dropdown-item" href="gtemp.html">Get Template</a></li>
             <li><a class="dropdown-item" href="ptemp.html">Post Template</a></li>
-            <li><a class="dropdown-item" href="utemp.html">Update Template</a></li>
-            <li><a class="dropdown-item" href="dtemp.html">Delete Template</a></li>
-          </ul>
+         </ul>
         </li>
 
         <li class="nav-item dropdown dropend">
@@ -52,9 +50,33 @@
             <ul class="dropdown-menu" >
               <li><a class="dropdown-item" href="gehr.html">Get EHR</a></li>
               <li><a class="dropdown-item" href="pehr.html">Post EHR</a></li>
-              <li><a class="dropdown-item" href="dehr.html">Delete EHR</a></li>
+              <li><a class="dropdown-item" href="pehrstatus.html">Post EHR with EHR_STATUS</a></li>
             </ul>
           </li>
+          <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
+              EHR_STATUS
+            </a>
+            <ul class="dropdown-menu" >
+              <li><a class="dropdown-item" href="pehrstatus.html">Post EHR with EHR_STATUS</a></li>
+              <li><a class="dropdown-item" href="gehrstatus.html">Get EHR_STATUS</a></li>
+              <li><a class="dropdown-item" href="uehrstatus.html">Update EHR_STATUS</a></li>
+              <li><a class="dropdown-item" href="gehrstatusversioned.html">GET Versioned EHR_STATUS</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
+              Directory
+            </a>
+            <ul class="dropdown-menu" >
+              <li><a class="dropdown-item" href="gdir.html">GET Folder/Directory</a></li>
+              <li><a class="dropdown-item" href="pdir">Post Directory</a></li>
+              <li><a class="dropdown-item" href="udir.html">Update Directory</a></li>
+              <li><a class="dropdown-item" href="ddir.html">Delete Directory</a></li>
+            </ul>
+          </li>
+
 
           <li class="nav-item dropdown dropend">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
@@ -63,16 +85,30 @@
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="gcomp.html">Get Composition</a></li>
               <li><a class="dropdown-item" href="pcomp.html">Post Composition</a></li>
-              <li><a class="dropdown-item" href="dcomp.html">Delete Composition</a></li>
+              <li><a class="dropdown-item" href="ucomp.html">Update Composition</a></li>
+              <li><a class="dropdown-item" href="dcompuser.html">Delete Composition</a></li>
               <li><a class="dropdown-item" href="ecomp.html">Example Composition</a></li>
+              <li><a class="dropdown-item" href="gcompversioned.html">GET Versioned Composition</a></li>
               <li><a class="dropdown-item" href="#" > Batch Compositions &#9656; </a>
               <ul class="submenu dropdown-menu">
                   <li><a class="dropdown-item second" href="pbatch1.html">Post Batch Compositions different ehrid</a></li>
                   <li><a class="dropdown-item second" href="pbatch2.html">Post Batch Compositions same ehrid</a></li>
               </ul>
               </li>
+             </ul>            
+          </li>
+
+          <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" >
+              Contribution
+            </a>
+            <ul class="dropdown-menu" >
+              <li><a class="dropdown-item" href="dehr.html">Post Contribution</a></li>
+              <li><a class="dropdown-item" href="dehr.html">GET Contribution</a></li>
             </ul>
           </li>
+
+
           <li class="nav-item dropdown dropend">
             <a class="nav-link dropdown-toggle" href="#"  data-bs-toggle="dropdown" >
               Form
@@ -91,7 +127,21 @@
               <li><a class="dropdown-item" href="gaql.html">Get AQL Query</a></li>
               <li><a class="dropdown-item" href="paql.html">Post AQL Query</a></li>
               <li><a class="dropdown-item" href="raql.html">Run AQL Query</a></li>
+              <li><a class="dropdown-item" href="raqlstored.html">Run AQL Stored Query</a></li>
            </ul>
+          </li>
+
+          <li class="nav-item dropdown dropend">
+            <a class="nav-link dropdown-toggle" href="#"  data-bs-toggle="dropdown" >
+              ADMIN methods
+            </a>
+            <ul class="dropdown-menu" >
+              <li><a class="dropdown-item" href="dehr.html">Delete EHR</a></li>
+              <li><a class="dropdown-item" href="dfolder.html">Delete Folder</a></li>
+              <li><a class="dropdown-item" href="utemp.html">Update Template</a></li>
+              <li><a class="dropdown-item" href="dtemp.html">Delete Template</a></li>
+              <li><a class="dropdown-item" href="dcomp.html">Delete Composition</a></li>
+               </ul>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="slog.html">Session log</a>
@@ -101,79 +151,79 @@
 </nav>
 
 <script>
-     document.addEventListener("DOMContentLoaded", function(){
+  document.addEventListener("DOMContentLoaded", function(){
 // make it as accordion for smaller screens
 if (window.innerWidth < 992) {
 
-  // close all inner dropdowns when parent is closed
-  document.querySelectorAll('.navbar .dropdown').forEach(function(everydropdown){
-    everydropdown.addEventListener('hidden.bs.dropdown', function () {
-      // after dropdown is hidden, then find all submenus
-        this.querySelectorAll('.submenu').forEach(function(everysubmenu){
-          // hide every submenu as well
-          everysubmenu.style.display = 'none';
-        });
-    })
-  });
+// close all inner dropdowns when parent is closed
+document.querySelectorAll('.navbar .dropdown').forEach(function(everydropdown){
+ everydropdown.addEventListener('hidden.bs.dropdown', function () {
+   // after dropdown is hidden, then find all submenus
+     this.querySelectorAll('.submenu').forEach(function(everysubmenu){
+       // hide every submenu as well
+       everysubmenu.style.display = 'none';
+     });
+ })
+});
 
-  document.querySelectorAll('.dropdown-menu a').forEach(function(element){
-    element.addEventListener('click', function (e) {
-        let nextEl = this.nextElementSibling;
-        if(nextEl && nextEl.classList.contains('submenu')) {	
-          // prevent opening link if link needs to open dropdown
-          e.preventDefault();
-          if(nextEl.style.display == 'block'){
-            nextEl.style.display = 'none';
-          } else {
-            nextEl.style.display = 'block';
-          }
+document.querySelectorAll('.dropdown-menu a').forEach(function(element){
+ element.addEventListener('click', function (e) {
+     let nextEl = this.nextElementSibling;
+     if(nextEl && nextEl.classList.contains('submenu')) {	
+       // prevent opening link if link needs to open dropdown
+       e.preventDefault();
+       if(nextEl.style.display == 'block'){
+         nextEl.style.display = 'none';
+       } else {
+         nextEl.style.display = 'block';
+       }
 
-        }
-    });
-  })
+     }
+ });
+})
 }
 // end if innerWidth
 }); 
 // DOMContentLoaded  end
 
 </script>
- <style>
-  /* ============ desktop view ============ */
+<style>
+/* ============ desktop view ============ */
 @media all and (min-width: 992px) {
-	.dropdown-menu li{ position: relative; 	}
-	.nav-item .submenu{ 
-		display: none;
-    /* position:relative;
-    left:100%; top: -7px; */
-		/* position: absolute;
-		left:100%; top:-7px; */
-	}
+.dropdown-menu li{ position: relative; 	}
+.nav-item .submenu{ 
+ display: none;
+ /* position:relative;
+ left:100%; top: -7px; */
+ /* position: absolute;
+ left:100%; top:-7px; */
+}
 
-  .dropdown-item {
-    position: relative;
-    top: 0%; left: 2%;
-  }
+.dropdown-item {
+ position: relative;
+ top: 0%; left: 2%;
+}
 
-  .second {
-    position: relative;
-    top: 0%; left: 6%;
-  }
+.second {
+ position: relative;
+ top: 0%; left: 6%;
+}
 
 
-	.nav-item .submenu-right{ 
-		right:auto; left:auto;
-	}
-	.dropdown-menu > li:hover{ background-color: #262626 }
-	.dropdown-menu > li:hover > .submenu{ display: block; }
- 
+.nav-item .submenu-right{ 
+ right:auto; left:auto;
+}
+.dropdown-menu > li:hover{ background-color: #262626 }
+.dropdown-menu > li:hover > .submenu{ display: block; }
+
 }	
 /* ============ desktop view .end// ============ */
 
 /* ============ small devices ============ */
 /* @media (max-width: 991px) {
-  .dropdown-menu .dropdown-menu{
-      margin-left:0.7rem; margin-right:0.7rem; margin-bottom: .5rem;
-  } 
+.dropdown-menu .dropdown-menu{
+   margin-left:0.7rem; margin-right:0.7rem; margin-bottom: .5rem;
+} 
 }	 */
 /* ============ small devices .end// ============ */
 </style>

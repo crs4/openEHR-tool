@@ -229,33 +229,70 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 </style>
 
  
-<div class="container">
-  <h1>Post a template<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
-    data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
-    title="<h4>Instructions:</h4><ul><li>Click the 'Browse' button and select the template file</li>
-      <li>Click the 'Submit' button</li>
-      <li>View results below the word 'Results'</li>
-   </ul>">
-      <img src='/static/img/975.png' 
-      style="width:50%;height:40%;"  alt="Question Mark" >
-    </button></h1>
+  
+<div class="container" >
+  <h1>Run AQL query</h1>
+  <br>
 
-           <br>
-            <div class="position-relative">
-                <div id="forms" class="position-absolute" data-tor="place.top(30px)">
-                
-                  <form method="POST" action="" enctype="multipart/form-data">
-                    <label class="form-label" for="choofile">Choose the file</label><br>
-                    <p><input class="form-control" type="file" name="file"></p>
-                    <p><input class="btn btn-primary" type="submit" value="Submit"></p>
-                  </form>                
+  <div class="row">
+    <!-- <div class="row gx-5"> -->
+    <div id="forform1" class="col">
+        <form id="form1">
+          <h2>Paste and run your AQL query<button type="button" class="btn btn-sm btn-light" style="width:35px; tooltip-font-size-sm;" 
+            data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+            title="<h4>Instructions:</h4>
+            <ul>
+              <li>Type your query in the box</li>
+              <li>Select GET or POST method</li>
+              <li>Optionally select a pre-set query</li>
+              <li>Optionally select Limit and Offset</li>
+              <li>Optionally select EHRID </li>
+              <li>Optionally add query parameters</li>
+              <li>Click the 'Run pasted query' button</li>
+              <li>View results below the word 'Results'</li>
+              <li>Optionally Save the query results by clicking the 'Save to file' button</li>
+              </ul>">
+              <img src='/static/img/975.png'
+              style="width:140%;height:130%;"  alt="Question Mark" >
+            </button></h2>
+            <textarea class="form-control" id='aqltext' form='form1' name="aqltext" rows="6"></textarea><br>
+            <label class="form-label" for="li">Pre-set Queries</label><br>
+            <input class="form-check-input" type="radio" name="psquery" id="q0" value="q0" checked>None</input><br>
+            <input class="form-check-input" type="radio" name="psquery" id="q1" value="q1">Get all EHRids</input><br>
+            <input class="form-check-input" type="radio" name="psquery" id="q2" value="q2">Get all EHRids,Compositionids</input><br>
+            <input class="form-check-input" type="radio" name="psquery" id="q3" value="q3">Get all EHRids,Compositionids,Templateids</input>
+            <br><br>
 
-                <br><br><br><br><br>
+            <label class="form-label" for="li">Query Method</label><br>
+            <input class="form-check-input" type="radio" name="qmethod" value="GET" checked>GET</input>
+            <input class="form-check-input" type="radio" name="qmethod" value="POST">POST</input><br><br><br>  
+            <div class='row'>
+              <div class='col'>
+                <label class="form-label" for="li">Limit (Optional)</label><br>
+                <input class="form-control" type="text" id="limit" name="limit"><br>
+              </div>
+              <div class='col'>
+                <label class="form-label" for="of">Offset (Optional with Limit)</label><br>
+                <input  class="form-control" type="text" id="offset" name="offset"><br>
+              </div>
+            </div>
+            <!--
+            <label for="fe">Fetch</label><br>
+            <input type="text" id="fetch" name="offset"> <br><br>       -->
+            <label class="form-label" for="ehr">EHRID (Optional)</label><br>
+            <input class="form-control" type="text" id="ehrid" name="ehrid" value={{lastehr}}> <br>
+            <label class="form-label" for="qp">Query parameters (Optional)</label><br>
+            <input class="form-control" type="text" id="qparam" name="qparam">  <br>                       
+            <input class="btn btn-primary" name="pippo" type="submit" value="Run pasted query">
+        </form>
+  
+  
+                <br><br>
             
-     
-                  <div id="results">
-                    <h2>Results</h2>
-                    {% macro linebreaks_for_string( the_string ) -%}
+                <div id="results">
+                  <h2>Results</h2>
+
+              {% macro linebreaks_for_string( the_string ) -%}
               {% if the_string %}
               {% for line in the_string.split('\n') %}
               <br />
@@ -265,21 +302,94 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
               {{ the_string }}
               {% endif %}
               {%- endmacro %}
-              {{ linebreaks_for_string( yourresults ) }} 
-                  </div>
-                </div>
-              </div>
+              <pre id="aqlt"></pre>
+              <pre id="result">{{ linebreaks_for_string( yourresults ) }}</pre> 
+              <pre id="jjson"></pre>
+               </div>
+               <div id="boh" style="display:none;">
+                <br><br>
+                <a class="btn btn-danger" role="button" href="data:text/plain;charset=utf-8,{{temp}}"
+                   download="queryresult.json">
+                   Save results to file
+                 </a>
+                 <br><br>
+             </div>
+
+   </div>
+   
+</div>
+<!-- </div> -->
+
+<script>
+  const checkbox1 = document.getElementById('q0')
+  const checkbox2 = document.getElementById('q1')
+  const checkbox3 = document.getElementById('q2')
+  const checkbox4 = document.getElementById('q3')
+  const mybox = document.getElementById('aqltext')
+  checkbox1.addEventListener('change', (event) => {
+    if (event.currentTarget.checked) {
+      mybox.value =''
+    } 
+  })
+  checkbox2.addEventListener('change', (event) => {
+  if (event.currentTarget.checked) {
+    mybox.value ='SELECT e/ehr_id/value FROM EHR e'
+    } 
+  })
+  checkbox3.addEventListener('change', (event) => {
+  if (event.currentTarget.checked) {
+    mybox.value ='SELECT e/ehr_id/value,c/uid/value FROM EHR e CONTAINS composition c'
+    } 
+  })
+  checkbox4.addEventListener('change', (event) => {
+  if (event.currentTarget.checked) {
+    mybox.value ='SELECT e/ehr_id/value,c/archetype_details/template_id/value,c/uid/value FROM EHR e CONTAINS composition c'
+    } 
+  })
+
+</script>
 
 
 
-  </div>
 
-  <style>
-    body{
- background-image: url('/static/img/Medicine-icons2.png');
- background-size: auto;
-   }
- </style>
+
+
+
+<style>
+  .pippobox{
+    background-color: white;
+    width: 100%;
+    border: 1px solid black;
+    padding: 50px;
+    margin: 0px;
+  }
+</style>
+<script type="text/javascript">
+  var obj={{aqltext|tojson}};
+  if (!( obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype)) {
+    document.getElementById("aqlt").innerHTML = 'Query: {{aqltext|tojson}}';}
+    
+    if ( {{resultsave|tojson}} == "true" ) {
+      document.getElementById("boh").style.display = 'block';}
+      else {   
+      document.getElementById("boh").style.display = 'none';}
+
+</script> 
+<script type="text/javascript">
+  if ( {{status|tojson}} == "success" ){
+          document.getElementById("jjson").textContent = JSON.stringify({{res|tojson}}, undefined, 2);
+      }
+  
+</script> 
+<style>
+   body{
+background-image: url('/static/img/Medicine-icons2.png');
+/* background-image: url('./Medicine-icons2.png'); */
+background-size: auto;
+  }
+</style>
+
+  
 
 
 <style>

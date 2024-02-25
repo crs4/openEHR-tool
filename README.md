@@ -74,7 +74,7 @@ For the EHRBase server the following properties are needed:
 * (Optional) adusername : username for the admin user to authenticate with basic authentication on ehrbase
 * (Optional) adpassword : password for the admin user to authenticate with basic authentication on ehrbase
 
-The admin credentials are optional but if they are not available the "update template", "delete template" and "delete all templates" methods will not work and the "dashboard" will not have access to all the information it needs to fill its sections.
+The admin credentials are optional but if they are not available the methods in the ADMIN section will not work and the "dashboard" will not have access to all the information it needs to fill its sections.
 
 ### Redis-related settings
 For the Redis server the following properties are needed:
