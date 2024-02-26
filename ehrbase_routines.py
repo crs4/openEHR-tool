@@ -944,6 +944,37 @@ def updatedir(client,auth,hostname,port,username,password,eid,vid,uploaded_dir,f
         current_app.logger.warning(f'Directory FOLDER PUT FAILURE')
     return myresp
 
+def delfolder(client,adauth,hostname,port,adusername,adpassword,eid,vid):
+
+    client.adauth = (adusername,adpassword)
+    current_app.logger.debug('inside delfolder')
+    if hostname.startswith('http'):
+        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/admin/"
+    else:
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/admin/"
+    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/directory/'+vid)
+    response = client.delete(myurl,headers={'Authorization':adauth,'Content-Type':'application/json'} )
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
+    myresp={}
+    myresp["status_code"]=response.status_code
+    if(response.status_code<210 and response.status_code>199):
+        myresp["status"]="success"
+        current_app.logger.info(f"DELETE Directory success for ehrid={eid} vid={vid}")
+    else:
+        myresp["status"]="failure"
+        current_app.logger.info(f"DELETE Directory failure for ehrid={eid} vid={vid}")
+    myresp['text']=response.text
+    myresp["headers"]=response.headers
+    return myresp
+
+
 def deldir(client,auth,hostname,port,username,password,eid,vid):
 
     client.auth = (username,password)
@@ -967,7 +998,7 @@ def deldir(client,auth,hostname,port,username,password,eid,vid):
     myresp["status_code"]=response.status_code
     if(response.status_code<210 and response.status_code>199):
         myresp["status"]="success"
-        current_app.logger.info(f"ELETE Directory success for ehrid={eid} vid={vid}")
+        current_app.logger.info(f"DELETE Directory success for ehrid={eid} vid={vid}")
     else:
         myresp["status"]="failure"
         current_app.logger.info(f"DELETE Directory failure for ehrid={eid} vid={vid}")

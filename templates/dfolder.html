@@ -230,99 +230,63 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 
  
 <div class="container">
-  <h1>Update EHR_STATUS<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
+  <h1>Delete Directory FOLDER<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
     data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
     title="<h4>Instructions:</h4>
-    <ul>
-      <li>Click the 'Browse' button and select the EHR_STATUS file</li>
+      <li>Type the EHRID or accept the last created if exists</li>
+      <li>Type the directory FOLDER id</li>
       <li>Click the 'Submit' button</li>
-      <li>Type the EHRID or accept the last one if it exists</li>
-      <li>Type the EHR_STATUS versionUID</li>
-      <li>View results below the word 'Results'</li>
-   </ul>">
+      <li>View results below the word 'Results'</li>">
       <img src='/static/img/975.png' 
       style="width:50%;height:40%;"  alt="Question Mark" >
     </button></h1>
+    (Requires admin credentials)
+  <br><br>
 
-            <br>
+            
             <div class="position-relative">
                 <div id="forms" class="position-absolute" data-tor="place.top(30px)">
-                  <label class="form-label" for="choofile">Choose the file</label><br>
-                  <form method="POST" action="" enctype="multipart/form-data">
-                    <p><input class="form-control" type="file" name="file"></p>
-                    <p><input class="btn btn-primary" type="submit" value="Submit"></p>
-                  </form>                
-                  {{yourfile}}
-                <br><br>
-            
-                <form id="form1">
-        
-                  <label class="form-label" for="ehrid">EHRID</label><br>
-                    <input class="form-control" type="text" id="ename" name="ename" value={{laste}} > 
-                    <br>
-                
-                    <label class="form-label" for="ehrid">EHR_STATUS versionUID</label><br>
-                    <input class="form-control" type="text" id="vid" name="vid" placeholder="1b0083a6-c0f2-4992-b1f1-50acb292ea7c::local.ehrbase.org::1" > 
-                  <br>
-
-                  <input class="btn btn-primary" id="fform1" name="fform1" type="submit" value="Submit">
-                </form> 
-
-
-                <br><br
-
-                <div id="results">
-                  <h2>Results</h2>
-                 <div id="savejson" style="display:none;">
-                  <br><br>
-                  <a class="btn btn-danger" role="button" href="data:text/plain;charset=utf-8,{{compjson}}"
-                     download="ehrstatus.json">
-                     Save to file
-                   </a>
-                   <br><br>
-               </div>
-                  {% macro linebreaks_for_string( the_string ) -%}
-                  {% if the_string %}
-                  {% for line in the_string.split('\n') %}
-                  <br />
-                  {{ line }}
-                  {% endfor %}
-                  {% else %}
-                  {{ the_string }}
-                  {% endif %}
-                  {%- endmacro %}
-                  {{ linebreaks_for_string( yourresults) }}
-                  <pre id="json">{{compjson}}</pre>
-                
-        <!-- <script type="text/javascript">
-          if ( {{compjson|tojson}} !== '' ) {
-            document.getElementById("json").innerHTML = '{{compjson|tojson}}';}
+                  <form id="form1">
+                    <label class="form-label" for="format">EHRID</label><br>
+                    <input class="form-control" type="text" id="ename" name="ename" value={{lastehr}} > <br>
     
-        </script>     -->
+                        <label class="form-label"  for="versionuid">directory FOLDER id</label><br>
+                        <input class="form-control"  type="text" id="vid" name="vid" placeholder="1b0083a6-c0f2-4992-b1f1-50acb292ea7c" >
+                
+                    <br><br>
 
 
 
+                    <input class="btn btn-primary" id="fform1" name="fform1" type="submit" value="Submit">
+                  
+                  </form> 
 
+
+                <br><br><br><br>
+
+                  <div id="results">
+                    <h2>Results</h2>
+                    
+                    {% macro linebreaks_for_string( the_string ) -%}
+                    {% if the_string %}
+                    {% for line in the_string.split('\n') %}
+                    <br />
+                    {{ line }}
+                    {% endfor %}
+                    {% else %}
+                    {{ the_string }}
+                    {% endif %}
+                    {%- endmacro %}
+                    {{ linebreaks_for_string( yourresults) }}
+                    
+                  </div>
                 </div>
               </div>
-            </div>
-
-           
-
-</div>
-
-<script type="text/javascript">
-  if ( {{status|tojson}} == "success" ){
-          document.getElementById("savejson").style.display = 'block';
-        }else 
-      {
-    document.getElementById("savejson").style.display = 'none';
-      }
-  
-</script> 
-
 
              
+
+  </div>
+
 
   <style>
     body{
@@ -330,6 +294,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
  background-size: auto;
    }
  </style>
+
 
 
 <style>

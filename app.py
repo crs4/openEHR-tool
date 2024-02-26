@@ -282,7 +282,7 @@ def create_app():
 
 
     @app.route("/utemp.html",methods=['GET', 'POST'])
-    #update template
+    #update template (admin)
     def pupdate():
         global hostname,port,adusername,adpassword,adauth,nodename,uploaded_file,template,tempname
         if(hostname=="" or port=="" or nodename==""):
@@ -313,10 +313,10 @@ def create_app():
                     
                     if(msg['status']=='success'):
                         yourresults="you updated successfully "+secure_filename(uploaded_file.filename)+"\n"
-                        insertlogline('Put template:template '+templateid+' updated successfully')
+                        insertlogline('Put template (admin):template '+templateid+' updated successfully')
                     else:
                         yourresults="you updated unsuccessfully "+secure_filename(uploaded_file.filename)+"\n"
-                        insertlogline('Put template:template from file' + tempname +'and templateid '+templateid +' updating failure')
+                        insertlogline('Put template (admin):template from file' + tempname +'and templateid '+templateid +' updating failure')
                     yourresults=yourresults+str(msg['status']+''+str(msg['headers']))                      
                     return render_template('utemp.html',yourresults=yourresults)
         return render_template('utemp.html',yourresults=yourresults)
@@ -338,10 +338,10 @@ def create_app():
             msg=ehrbase_routines.deltemp(client,adauth,hostname,port,adusername,adpassword,template_name)
             if(msg['status']=='success'):
                 yourresults=msg['status']+ " "+ str(msg['status_code']) + "\nTemplate "+template_name+ " successfully deleted"
-                insertlogline('Delete template:template '+template_name+' deleted successfully')
+                insertlogline('Delete template (admin):template '+template_name+' deleted successfully')
             else:
                 yourresults=msg['status']+ " "+ str(msg['status_code']) + "\nTemplate "+template_name+ " unsuccessfully deleted"
-                insertlogline('Delete template:template '+template_name+' deletion failure')            
+                insertlogline('Delete template (admin):template '+template_name+' deletion failure')            
             return render_template('dtemp.html',yourresults=yourresults)
         elif request.args.get("pippo")=="Delete all":
             msg=ehrbase_routines.delalltemp(client,adauth,hostname,port,adusername,adpassword)
@@ -743,6 +743,32 @@ def create_app():
             return render_template('gdir.html',yourresults=yourresults,lastehr=lastehrid,status=status,compxml=compxml,compjson=compjson,format=myformat)
         else:
             return render_template('gdir.html',lastehr=lastehrid,yourresults=yourresults,status=status,compxml=compxml,compjson=compjson,format=myformat)
+
+    @app.route("/dfolder.html",methods=["GET"])
+    #delete directory FOLDER (admin)
+    def dfolder():
+        global hostname,port,adusername,adpassword,adauth,nodename,lastehrid
+        yourresults=''
+        if(hostname=="" or port=="" or adusername=="" or adpassword=="" or nodename==""):       
+            return redirect(url_for("ehrbase"))
+        if request.args.get("fform1")=="Submit":
+            eid=request.args.get("ename","")
+            vid=request.args.get("vid","")
+            if(eid=="" or vid==""):
+                return render_template('dfolder.html',lastehr=lastehrid,yourresults=yourresults)
+            vid=vid.split('::')[0]
+            msg=ehrbase_routines.delfolder(client,adauth,hostname,port,adusername,adpassword,eid,vid)
+            if(msg['status']=='success'):
+                insertlogline('Delete Directory FOLDER (admin):Directory FOLDER '+vid+' for ehr='+eid+' deleted successfully')
+                yourresults=f"Directory FOLDER {vid} deleted successfully\n \
+                ehr={eid}\nstatus_code={msg['status_code']} \nheaders={msg['headers']}"       
+            else:
+                yourresults=f"Delete Directory FOLDER\nstatus_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}\nehrid={eid}"
+                insertlogline('Delete Directory FOLDER (admin):Directory FOLDER deleting failure for ehr='+eid+' versionUid='+vid)
+            return render_template('dfolder.html',yourresults=yourresults,lastehr=lastehrid)
+        else:
+            return render_template('dfolder.html',lastehr=lastehrid,yourresults=yourresults)
+
 
     @app.route("/ddir.html",methods=["GET"])
     #delete directory FOLDER
@@ -1182,10 +1208,10 @@ def create_app():
             if(msg['status']=="success"):
                 yourresults=f"Composition deleted successfully. \nstatus_code={msg['status_code']} \nid={compid} \nehrid={eid}"
                 status='success'
-                insertlogline('Delete Composition: composition '+compid+' from ehr='+eid+' deleted successfully. ADMIN Method')
+                insertlogline('Delete Composition (admin): composition '+compid+' from ehr='+eid+' deleted successfully. ADMIN Method')
             else:
                 yourresults=f"Composition deletion failure. \nstatus_code={msg['status_code']} \nheaders={msg['headers']} \ntext={msg['text']}"        
-                insertlogline('Delete Composition: composition '+compid+' from ehr='+eid+' deletion failure. ADMIN Method')
+                insertlogline('Delete Composition (admin): composition '+compid+' from ehr='+eid+' deletion failure. ADMIN Method')
             return render_template('dcomp.html',yourresults=yourresults)
         else:
             return render_template('dcomp.html')
