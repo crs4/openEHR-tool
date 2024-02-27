@@ -38,8 +38,8 @@
             Template
           </a>
           <ul class="dropdown-menu " >
-            <li><a class="dropdown-item" href="gtemp.html">Get Template</a></li>
             <li><a class="dropdown-item" href="ptemp.html">Post Template</a></li>
+            <li><a class="dropdown-item" href="gtemp.html">Get Template</a></li>    
          </ul>
         </li>
 
@@ -48,9 +48,9 @@
               EHR
             </a>
             <ul class="dropdown-menu" >
-              <li><a class="dropdown-item" href="gehr.html">Get EHR</a></li>
               <li><a class="dropdown-item" href="pehr.html">Post EHR</a></li>
               <li><a class="dropdown-item" href="pehrstatus.html">Post EHR with EHR_STATUS</a></li>
+              <li><a class="dropdown-item" href="gehr.html">Get EHR</a></li>
             </ul>
           </li>
           <li class="nav-item dropdown dropend">
@@ -59,8 +59,8 @@
             </a>
             <ul class="dropdown-menu" >
               <li><a class="dropdown-item" href="pehrstatus.html">Post EHR with EHR_STATUS</a></li>
-              <li><a class="dropdown-item" href="gehrstatus.html">Get EHR_STATUS</a></li>
               <li><a class="dropdown-item" href="uehrstatus.html">Update EHR_STATUS</a></li>
+              <li><a class="dropdown-item" href="gehrstatus.html">Get EHR_STATUS</a></li>
               <li><a class="dropdown-item" href="gehrstatusversioned.html">GET Versioned EHR_STATUS</a></li>
             </ul>
           </li>
@@ -70,9 +70,9 @@
               Directory
             </a>
             <ul class="dropdown-menu" >
-              <li><a class="dropdown-item" href="gdir.html">GET Folder/Directory</a></li>
               <li><a class="dropdown-item" href="pdir.html">Post Directory</a></li>
               <li><a class="dropdown-item" href="udir.html">Update Directory</a></li>
+              <li><a class="dropdown-item" href="gdir.html">GET Folder/Directory</a></li>
               <li><a class="dropdown-item" href="ddir.html">Delete Directory</a></li>
             </ul>
           </li>
@@ -83,13 +83,13 @@
               Composition
             </a>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="gcomp.html">Get Composition</a></li>
               <li><a class="dropdown-item" href="pcomp.html">Post Composition</a></li>
               <li><a class="dropdown-item" href="ucomp.html">Update Composition</a></li>
+              <li><a class="dropdown-item" href="gcomp.html">Get Composition</a></li>
+              <li><a class="dropdown-item" href="gcompversioned.html">GET Versioned Composition</a></li>
               <li><a class="dropdown-item" href="dcompuser.html">Delete Composition</a></li>
               <li><a class="dropdown-item" href="ecomp.html">Example Composition</a></li>
-              <li><a class="dropdown-item" href="gcompversioned.html">GET Versioned Composition</a></li>
-              <li><a class="dropdown-item" href="#" > Batch Compositions &#9656; </a>
+              <li><a class="dropdown-item" href="#" > Post Batch Compositions &#9656; </a>
               <ul class="submenu dropdown-menu">
                   <li><a class="dropdown-item second" href="pbatch1.html">Post Batch Compositions different ehrid</a></li>
                   <li><a class="dropdown-item second" href="pbatch2.html">Post Batch Compositions same ehrid</a></li>
@@ -124,10 +124,10 @@
               AQL Query
             </a>
             <ul class="dropdown-menu" >
-              <li><a class="dropdown-item" href="gaql.html">Get AQL Query</a></li>
               <li><a class="dropdown-item" href="paql.html">Post AQL Query</a></li>
               <li><a class="dropdown-item" href="raql.html">Run AQL Query</a></li>
               <li><a class="dropdown-item" href="raqlstored.html">Run AQL Stored Query</a></li>
+              <li><a class="dropdown-item" href="gaql.html">Get AQL Query</a></li>
            </ul>
           </li>
 
@@ -136,11 +136,11 @@
               ADMIN methods
             </a>
             <ul class="dropdown-menu" >
-              <li><a class="dropdown-item" href="dehr.html">Delete EHR</a></li>
-              <li><a class="dropdown-item" href="dfolder.html">Delete Directory</a></li>
               <li><a class="dropdown-item" href="utemp.html">Update Template</a></li>
               <li><a class="dropdown-item" href="dtemp.html">Delete Template</a></li>
+              <li><a class="dropdown-item" href="dehr.html">Delete EHR</a></li>
               <li><a class="dropdown-item" href="dcomp.html">Delete Composition</a></li>
+              <li><a class="dropdown-item" href="dfolder.html">Delete Directory</a></li>
                </ul>
           </li>
           <li class="nav-item">
@@ -314,7 +314,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                             <input type="radio" class="btn-check" name="order" id="first" value='first' autocomplete="off" checked >
                             <label class="btn btn-outline-dark btn-sm" for="first">Oldest First</label>
                             <input type="radio" class="btn-check" name="order" id="last" value='last' autocomplete="off" >
-                            <label class="btn btn-outline-danger btn-sm" for="last">Oldest Last</label>
+                            <label class="btn btn-outline-danger btn-sm" for="last">Newest First</label>
                           </div>
                     
                     </div>
@@ -361,7 +361,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                       <input type="radio" class="btn-check" name="order2" id="first2" value='first' autocomplete="off" checked >
                       <label class="btn btn-outline-dark btn-sm" for="first2">Oldest First</label>
                       <input type="radio" class="btn-check" name="order2" id="last2" value='last' autocomplete="off" >
-                      <label class="btn btn-outline-danger btn-sm" for="last2">Oldest Last</label>
+                      <label class="btn btn-outline-danger btn-sm" for="last2">Newest First</label>
                     </div>
               </div>
               

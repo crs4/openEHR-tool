@@ -3200,6 +3200,76 @@ def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,ch
         myresp['error']=""
         return myresp
 
+def getcontrib(client,auth,hostname,port,username,password,eid,vid):
+
+    client.auth = (username,password)
+    current_app.logger.debug('inside getcontrib')
+    if hostname.startswith('http'):
+        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    else:
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/contribution/'+vid)
+    response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'} )
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
+    myresp={}
+    myresp["status_code"]=response.status_code
+    if(response.status_code<210 and response.status_code>199):
+        myresp["status"]="success"
+        myresp['json']=response.text
+        current_app.logger.info(f"GET Contribution success for ehrid={eid} vid={vid}")
+    else:
+        myresp["status"]="failure"
+        current_app.logger.info(f"GET Contribution failure for ehrid={eid} vid={vid}")
+    myresp['text']=response.text
+    myresp["headers"]=response.headers
+    return myresp
+
+
+
+def postcontrib(client,auth,hostname,port,username,password,eid,uploaded_contrib):
+    
+    if hostname.startswith('http'):
+        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    else:
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    current_app.logger.debug('inside postcontrib')
+    client.auth = (username,password)
+    contrib = json.loads(uploaded_contrib)
+    contribjson=json.dumps(contrib)
+    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/contribution')
+    response=client.post(myurl,headers={'Authorization':auth,\
+        'Content-Type':'application/json','Prefer': 'return=representation', \
+            'accept':'application/json'}, \
+        data=contribjson)
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
+    myresp={}
+    myresp['headers']=response.headers
+    myresp['status_code']=response.status_code
+    myresp['text']=response.text
+    if(response.status_code<210 and response.status_code>199):
+        myresp['status']='success'
+        myresp['json']=response.text
+        current_app.logger.info(f'Contribution POST success')
+    else:
+        myresp['status']='failure'
+        current_app.logger.warning(f'Contribution POST FAILURE')
+    return myresp
+
+
 
 def examplecomp(client,auth,hostname,port,username,password,template_name,filetype):
     

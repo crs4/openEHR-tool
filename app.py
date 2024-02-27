@@ -498,7 +498,7 @@ def create_app():
                     ehrsid=json.loads(compjson)['ehr_status']['uid']['value']
                     ehrid=json.loads(compjson)['ehr_id']['value']
                     insertlogline('Post EHR:ehr '+ehrid+' posted successfully')
-                    insertlogline('Post EHR_STATUS: EHR_STATUS '+ehrsid+ 'posted successfully')
+                    insertlogline('Post EHR_STATUS: EHR_STATUS '+ehrsid+ 'from file '+uploaded_file.filename+' posted successfully')
                     yourresults=f"EHR {ehrid} created.\nEHR_STATUS {ehrsid} posted successfully.\nstatus_code={msg['status_code']} \n \
                     headers={msg['headers']}"
                 else:
@@ -722,7 +722,7 @@ def create_app():
                 if outtype=='VAT':
                     dirid=msg['headers']['ETag']
                     insertlogline('Get Directory FOLDER at time:Directory FOLDER '+dirid+' for ehr='+eid+' retrieved successfully at time='+vat+' path='+path+' format='+myformat)
-                    yourresults=f"Directory FOLDER {dirid} retrieved succcessfully format={myformat}\n \
+                    yourresults=f"Directory FOLDER {dirid} retrieved successfully format={myformat}\n \
                 time={vat}\n \
                 path={path}\n \
                 ehr={eid}\nstatus_code={msg['status_code']} \n \
@@ -836,7 +836,7 @@ def create_app():
                     else:
                         compjson=msg['json']
                         dirid=json.loads(compjson)['uid']['value']
-                    insertlogline('Post Directory FOLDER:Directory FOLDER '+dirid+' for ehr='+eid+' posted successfully')
+                    insertlogline('Post Directory FOLDER:Directory FOLDER '+dirid+' for ehr='+eid+' from file '+filename+' posted successfully')
                     yourresults=f"directory FOLDER {dirid} created\n \
                     ehr={eid}\nstatus_code={msg['status_code']} \n \
                     headers={msg['headers']}"
@@ -953,7 +953,7 @@ def create_app():
                 if(msg['status']=="success"):
                     yourresults=f"Composition inserted successfully.\n status_code={msg['status_code']} VersionUID={msg['compositionid']}\n text={msg['text']}\n headers={msg['headers']}"
                     lastcompositionid=msg['compositionid']
-                    insertlogline('Post Composition: composition '+lastcompositionid+' posted successfully')
+                    insertlogline('Post Composition: composition '+lastcompositionid+' from file '+filename+' posted successfully')
                     if(check=="Yes"):
                         checkresults=msg['check']
                         checkinfo=msg['checkinfo']
@@ -1215,6 +1215,92 @@ def create_app():
             return render_template('dcomp.html',yourresults=yourresults)
         else:
             return render_template('dcomp.html')
+
+    @app.route("/gcontrib.html",methods=["GET"])
+    #get contribution
+    def gcontrib():
+        global hostname,port,username,password,auth,nodename,lastehrid
+        compjson=""
+        status='failed'
+        yourresults=''
+        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+            return redirect(url_for("ehrbase"))
+        if request.args.get("fform1")=="Submit": 
+            eid=request.args.get("ename","")
+            vid=request.args.get("vid","")
+            app.logger.debug(f'eid={eid} vid={vid}')
+            if(eid==""):
+                return render_template('gcontrib.html',lastehr=lastehrid,status=status,yourresults=yourresults)
+            msg=ehrbase_routines.getcontrib(client,auth,hostname,port,username,password,eid,vid)
+            if(msg['status']=='success'):
+                status='success'
+                compjson=msg['json']
+                insertlogline('Get Contribution by id:Contribution '+vid+' for ehr='+eid+' retrieved successfully')
+                yourresults=f"Contribution {vid} retrieved successfully\n \
+                ehr={eid}\nstatus_code={msg['status_code']} \n \
+                headers={msg['headers']}"                  
+            else:
+                yourresults=f"Get Contribution by id retrieval failure.\nstatus_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}\ncontribution_id={vid}\nehrid={eid}"
+                insertlogline('Get Contribution by id:Contribution retrieving failure for ehr='+eid+' contribution_id='+vid)
+            return render_template('gcontrib.html',yourresults=yourresults,lastehr=lastehrid,status=status,compjson=compjson)
+        else:
+            return render_template('gcontrib.html',lastehr=lastehrid,yourresults=yourresults,status=status,compjson=compjson)
+
+
+
+
+    @app.route("/pcontrib.html",methods=['GET', 'POST'])
+    #post contribution
+    def pcontrib():
+        global hostname,port,username,password,auth,nodename,filename,uploaded_file,contrib
+        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+            return redirect(url_for("ehrbase"))    
+        yourresults=""
+        compjson=''
+        status='failure'
+        if request.method == 'POST':
+            uploaded_file = request.files['file']
+            filename=uploaded_file.filename
+            if filename != '':
+                filename=secure_filename(filename)
+                uploaded_file.stream.seek(0)
+                contrib=uploaded_file.read()
+                return render_template('pcontrib.html',yourfile=f"you have chosen {filename}",laste=lastehrid,status=status)
+            else:
+                yourresults='Please choose a file first'
+                return render_template('pcontrib.html',yourresults=yourresults,status=status)
+        else:
+            if request.args.get("fform1")=="Submit":
+                if(filename==""):
+                    yourresults="Please, choose the file first"
+                    return render_template('pcontrib.html',yourresults=yourresults,laste=lastehrid,status=status)
+                eid=request.args.get("ename","")
+                if(eid==""):
+                    return render_template('pcontrib.html',yourfile=f"you have chosen {filename}",laste=lastehrid)
+                msg=ehrbase_routines.postcontrib(client,auth,hostname,port,username,password,eid,contrib)
+                if(msg['status']=='success'):
+                    status='success'
+                    compjson=msg['json']
+                    contrid=msg['headers']['ETag']
+                    insertlogline('Post Contribution: Contribution '+contrid+' for ehr='+eid+' from file '+filename+' posted successfully')
+                    yourresults=f"Contribution created\n \
+                    contribution_id={contrid}\n \
+                    ehr={eid}\nstatus_code={msg['status_code']} \n \
+                    headers={msg['headers']}"
+                else:
+                    yourresults=f"Contribution for EHR={eid} creation failure\nstatus_code={msg['status_code']}\nheaders={msg['headers']}\ntext={msg['text']}"
+                    insertlogline('Post Contribution: Contribution for EHR='+eid+' from file '+filename+' posting failure')                                     
+                return render_template('pcontrib.html',yourfile=f"you have chosen {filename}",yourresults=yourresults,status=status,lastehr=lastehrid,compjson=compjson)
+            else:
+                if("filename" not in vars()):
+                    filename=""
+                    return render_template('pcontrib.html',yourfile="",laste=lastehrid,status=status)
+                else:
+                    return render_template('pcontrib.html',yourfile=f"you have chosen {filename}",status=status,laste=lastehrid,compjson=compjson)
+
+
+
+
 
     @app.route("/paql.html",methods=["GET"])
     #post aql query

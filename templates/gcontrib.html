@@ -230,50 +230,87 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 
  
 <div class="container">
-  <h1>Load a previously saved Form<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
+  <h1>Get Contribution<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
     data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
-    title="<h4>Instructions:</h4><ul>
-    <li>Click the 'Browse' button and select the form file</li>
-    <li>Click the 'Submit' button</li>
-    <li>If an error occurs it is displayed below the word 'Results'. Otherwise a new page with the form is shown</li>
-    </ul>">
+    title="<h4>Instructions:</h4>
+      <li>Type the EHRID or accept the last created if exists</li>
+      <li>Type the Contribution id</li>
+      <li>Click the 'Submit' button</li>
+      <li>View results below the word 'Results'</li>
+    <li>Optionally Save the results by clicking the 'Save to file' button</li></ul>">
       <img src='/static/img/975.png' 
       style="width:50%;height:40%;"  alt="Question Mark" >
     </button></h1>
+  <br><br>
 
-           <br>
             <div class="position-relative">
                 <div id="forms" class="position-absolute" data-tor="place.top(30px)">
-                
-                  <form method="POST" action="" enctype="multipart/form-data">
-                    <label class="form-label" for="choofile">Choose the file</label><br>
-                    <p><input class="form-control" type="file" name="file"></p>
-                    <p><input class="btn btn-primary" type="submit" value="Submit"></p>
-                  </form>                
+                  <form id="form1">
+  
+                    <label class="form-label" for="format">EHRID</label><br>
+                    <input class="form-control" type="text" id="ename" name="ename" value={{lastehr}} > <br>
 
-                <br><br><br><br><br>
-            
-     
+                    
+                    <label class="form-label"  for="versionuid">Contribution id</label><br>
+                    <input class="form-control"  type="text" id="vid" name="vid" placeholder="1b0083a6-c0f2-4992-b1f1-50acb292ea7c" >
+                    <br>          
+                       
+                    <input class="btn btn-primary" id="fform1" name="fform1" type="submit" value="Submit">
+                  
+                  </form> 
+
+                <br><br>
+
                   <div id="results">
                     <h2>Results</h2>
+     
+                   <div id="savejson" style="display:none;">
+                    <br><br>
+                    <a class="btn btn-danger" role="button" href="data:text/plain;charset=utf-8,{{compjson}}"
+                       download="contribution.json">
+                       Save to file
+                     </a>
+                     <br><br>
+                    </div>
                     {% macro linebreaks_for_string( the_string ) -%}
-              {% if the_string %}
-              {% for line in the_string.split('\n') %}
-              <br />
-              {{ line }}
-              {% endfor %}
-              {% else %}
-              {{ the_string }}
-              {% endif %}
-              {%- endmacro %}
-              {{ linebreaks_for_string( yourresults ) }} 
+                    {% if the_string %}
+                    {% for line in the_string.split('\n') %}
+                    <br />
+                    {{ line }}
+                    {% endfor %}
+                    {% else %}
+                    {{ the_string }}
+                    {% endif %}
+                    {%- endmacro %}
+                    {{ linebreaks_for_string( yourresults) }}
+                    <br><br>
+                    
+                    <pre id="json">{{compjson}}</pre>
+    
+
+
+
+
                   </div>
                 </div>
               </div>
 
-
+             
 
   </div>
+
+  <script type="text/javascript">
+    if ( {{status|tojson}} == "success" ){
+              document.getElementById("savejson").style.display = 'block';
+            }
+          else {
+        document.getElementById("savejson").style.display = 'none';
+      }
+      
+    </script> 
+
+
+
 
   <style>
     body{
@@ -281,6 +318,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
  background-size: auto;
    }
  </style>
+
 
 
 <style>
