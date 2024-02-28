@@ -252,6 +252,12 @@ and then launch pytest:
 ```
 python -m pytest --capture=tee-sys  -v
 ```
+# Available methods: #
+Methods in:
+<ul>
+<li> https://specifications.openehr.org/releases/ITS-REST/latest/ehr.html</li>
+<li>https://specifications.openehr.org/releases/ITS-REST/latest/query.html</li>
+<li>https://specifications.openehr.org/releases/ITS-REST/latest/definition.html except for ADL2 Template methods</li>
 
 # Screenshots: #
 ![homepage](/../screenshots/screenshots/homepage.png?raw=true "Homepage")
