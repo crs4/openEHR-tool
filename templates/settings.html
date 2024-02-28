@@ -26,8 +26,9 @@
             Settings
           </a>
           <ul class="dropdown-menu " >
-            <li><a class="dropdown-item" href="settings.html">Define/See Settings</a></li>
-            <li><a class="dropdown-item" href="fsettings.html">Reload Settings</a></li>
+            <li><a class="dropdown-item" href="ssettings.html">See Current Settings</a></li>
+            <li><a class="dropdown-item" href="settings.html">Modify Settings</a></li>
+            <li><a class="dropdown-item" href="fsettings.html">Reload Settings from File</a></li>
           </ul>
         </li>
         <li class="nav-item">
@@ -39,6 +40,7 @@
           </a>
           <ul class="dropdown-menu " >
             <li><a class="dropdown-item" href="ptemp.html">Post Template</a></li>
+            <li><a class="dropdown-item" href="ltemp.html">List Templates</a></li>
             <li><a class="dropdown-item" href="gtemp.html">Get Template</a></li>    
          </ul>
         </li>
@@ -340,49 +342,55 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                     }
                   })
                   
-                                </script>
-                              
-            <!-- </div></div> -->
-                  <div id="answers">
-                    <h2>Current values</h2>  
-                      <div class="row">
-                        <div class="col">
+                  </script>
+                              </div>  
+                <div><h2>Results</h2></div>
+                  <div id="mvalues" style="display:none;">       
+                      <div class="row align-items-start">
+                        <div class="col-sm">
                           hostname={{ho}} 
                         </div>
-                        <div class="col">
+                        <div class="col-sm ">
                           port={{po}}
-                        </div>
-                        <div class="col">
-                          nodename={{no}} 
-                        </div>
-                        <div class="col">
                         </div>
                       </div>
                       <div class="row">
-                        <div class="col">
+                        <div class="col-sm">
+                          nodename={{no}} 
+                        </div>
+                        <div class="col-sm">
+
+                        </div>
+                      </div>
+                      <div class="row align-items-start">
+                        <div class="col-sm">
                           username={{us}}
                         </div>
-                        <div class="col">
+                        <div class="col-sm">
                           password={{pas}}  
                         </div>
-                        <div class="col">
+                      </div>
+                      <div class="row align-items-start">
+                        <div class="col-sm">
                           admin_username={{adus}}
                         </div>
-                        <div class="col">
+                        <div class="col-sm">
                           admin_password={{adpas}}  
                         </div>
                       </div>                       
-                      <div class="row">
-                        <div class="col">
+                      <div class="row align-items-start">
+                        <div class="col-sm">
                           redishostname={{rho}} 
                         </div>
-                        <div class="col">
+                        <div class="col-sm">
                           redisport={{rpo}}
                         </div>
-                        <div class="col">
+                      </div>
+                      <div class="row align-items-start">
+                      <div class="col-sm">
                           rediseventsrecorded={{rr}}
                         </div>
-                        <div class="col">
+                        <div class="col-sm">
                         </div>
                       </div>                          
                   </div>
@@ -392,6 +400,19 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 
 
   </div>
+
+  <script type="text/javascript">
+    if ( {{status|tojson}} == "success" ){
+          document.getElementById("mvalues").style.display = 'block';
+        }else
+        {
+          document.getElementById("mvalues").style.display = 'none';
+        }
+          
+      
+    </script> 
+
+
 
   <style>
 

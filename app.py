@@ -148,6 +148,7 @@ def create_app():
         global hostname,port,username,password,nodename,lastehrid,lastcompositionid, \
             adusername,adpassword,redishostname,redisport,reventsrecorded,client
 
+        status='failed'
         if request.args.get("pippo")=="Submit":
             hostname=request.args.get("hname","")
             port=request.args.get("port","")
@@ -190,13 +191,23 @@ def create_app():
             auth = myutils.getauth(username,password)
             r=init_redis(redishostname,redisport)
             app.logger.info("settings changed from within app")
+            status='success'
             return render_template('settings.html',ho=hostname,po=port,us=username,pas=password,no=nodename,
-                        adus=adusername,adpas=adpassword,rho=redishostname,rpo=redisport,rr=reventsrecorded)
+                        adus=adusername,adpas=adpassword,rho=redishostname,rpo=redisport,rr=reventsrecorded,status=status)
         return render_template('settings.html',ho=hostname,po=port,us=username,pas=password,no=nodename,
+                        adus=adusername,adpas=adpassword,rho=redishostname,rpo=redisport,rr=reventsrecorded,status=status)
+
+    @app.route("/ssettings.html",methods=["GET"])
+    #see current settings 
+    def ssettings():
+        global hostname,port,username,password,nodename,lastehrid,lastcompositionid, \
+            adusername,adpassword,redishostname,redisport,reventsrecorded,client
+        return render_template('ssettings.html',ho=hostname,po=port,us=username,pas=password,no=nodename,
                         adus=adusername,adpas=adpassword,rho=redishostname,rpo=redisport,rr=reventsrecorded)
 
+
     @app.route("/gtemp.html",methods=["GET"])
-    #get template/list of templates
+    #get template
     def gtemp():
         global hostname,port,username,password,auth,nodename,mymsg,currentposition
         if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
@@ -242,14 +253,34 @@ def create_app():
                                 str(msg['text']) + "\n" +\
                                 str(msg['headers'])
                 return render_template('gtemp.html',singletemplate=singletemplate,singletemplate2=singletemplate2, yourresults=yourresults)
-        elif request.args.get("pippo2")=="Get List":
-            singletemplate='false'
-            singletemplate2='false'
-            yourresults=str(mymsg['status'])+ " "+ str(mymsg['status_code']) +"\n"+ \
-                        str(mymsg['text'])
-            return render_template('gtemp.html',singletemplate=singletemplate,singletemplate2=singletemplate2,yourresults=yourresults)
         else:
             return render_template('gtemp.html',singletemplate=singletemplate,singletemplate2=singletemplate2,yourresults=yourresults)
+
+    @app.route("/ltemp.html",methods=["GET"])
+    #get list of templates
+    def ltemp():
+        global hostname,port,username,password,auth,nodename,mymsg,currentposition
+        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+            return redirect(url_for("ehrbase"))
+        yourresults=""
+        yourjson=''
+        status='failed'
+        if request.args.get("pippo2")=="Get List":
+            msg=ehrbase_routines.listtemp(client,auth,hostname,port,username,password)
+            if msg['status']=='success':
+                status='success'
+                yourjson=msg['json']
+                yourresults='List of templates successfully retrieved'
+                insertlogline('Get template:template list retrieved successfully')   
+            else:
+                status='failure'
+                yourresults=f"status={msg['status']}\nstatus_code={msg['status_code']}\n\
+                text={msg['text']}"
+                insertlogline('Get template:template list retrieval failure')   
+            return render_template('ltemp.html',yourresults=yourresults,yourjson=yourjson,status=status)
+        else:
+            return render_template('ltemp.html',yourresults=yourresults,yourjson=yourjson,status=status)
+
 
     @app.route("/ptemp.html",methods=['GET', 'POST'])
     #post template

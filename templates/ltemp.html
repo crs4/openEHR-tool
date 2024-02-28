@@ -230,62 +230,151 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 /* ============ small devices .end// ============ */
 </style>
 
-
-<div class="container" >
-  <h1>Delete a Specific Versioned Composition<button type="button" class="btn btn-sm btn-light" style="width:70px; tooltip-font-size-sm;" 
+ 
+<div class="container">
+  <h1>List Templates <button type="button" class="btn btn-sm btn-light" style="width:35px; tooltip-font-size-sm;" 
     data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
-    title="<h4>Instructions:</h4><ul>
-      <li>Type the composition versionUid </li>
-      <li>Click the 'Delete' button</li>
+    title="<h4>Instructions:</h4>
+    <ul><li>Click the 'Get list' button</li>
       <li>View results below the word 'Results'</li>
-   </ul>">
-      <img src='/static/img/975.png' 
-      style="width:50%;height:40%;"  alt="Question Mark" >
+      </ul>">
+      <img src='/static/img/975.png'
+      style="width:140%;height:130%;"  alt="Question Mark" >
     </button></h1>
-  <br><br>
-   <div class="position-relative">
-       <div id="forms" class="position-absolute" data-tor="place.top(30px)">
-      <form id="form1">
-        <label class="form-label" for="format">EHRID</label><br>
-        <input class="form-control" type="text" id="ename" name="ename" value={{lastehr}} > <br>
-        <label class="form-label" for="format">CompositionVersionUID </label><br>
-        <input class="form-control"  type="text" id="cname" name="cname"><br>
-        <input class="btn btn-primary" id="fform1" name="fform1" type="submit" value="Delete">
-      </form>   
-    </div>
-    
-                <br><br><br><br><br><br><br><br>
-            
-                <div id="results">
-                <br><br><br>
-                    <h2>Results</h2>
-                    {% macro linebreaks_for_string( the_string ) -%}
-                    {% if the_string %}
-                    {% for line in the_string.split('\n') %}
-                    <br />
-                    {{ line }}
-                    {% endfor %}
-                    {% else %}
-                    {{ the_string }}
-                    {% endif %}
-                    {%- endmacro %}
-                    {{ linebreaks_for_string( yourresults) }}
-               </div>
-  </div>
-   </div>
-</div>
 
-<style>
-   body{
-background-image: url('/static/img/Medicine-icons2.png');
-/* background-image: url('./Medicine-icons2.png'); */
-background-size: auto;
-  }
-</style>
+            <div class="position-relative">
+                <div id="forms" class="position-absolute" data-tor="place.top(100px)">
+                  <div class="row">
+                    <div class="col">
+                      <br>
+                      <form id="form2">
 
+                        <input   id='pippo2' name='pippo2' class="btn btn-primary" type="submit" value="Get List">                
+                      
+                      </form>
+                    </div>
+                  </div>
+                
   
 
+                <br><br>                  
+                  <div id="results">
+                    <h2>Results</h2>
 
+                      <div id="savejson" style="display:none;">
+                        <br><br>
+                        <a class="btn btn-danger" role="button" href="data:text/plain;charset=utf-8,{{yourjson}}"
+                           download="templateslist.json">
+                           Save to file
+                         </a>
+                         <br><br>
+                     </div>
+
+                     {% macro linebreaks_for_string( the_string ) -%}
+                     {% if the_string %}
+                     {% for line in the_string.split('\n') %}
+                     <br />
+                     {{ line }}
+                     {% endfor %}
+                     {% else %}
+                     {{ the_string }}
+                     {% endif %}
+                     {%- endmacro %}
+                     {{ linebreaks_for_string( yourresults) }}
+
+
+                     <br>
+                      <pre id="json"></pre>
+                      <div id="json2"></div>
+                     
+        </div>             
+
+  <script type="text/javascript">
+    if ( {{status|tojson}} == "success" ){
+            
+            myjson={{yourjson|tojson}};
+            //myjson='[]'
+            if (myjson=='[]'){
+              document.getElementById("json2").innerHTML="[ no templates loaded yet ]";
+              document.getElementById("savejson").style.display = 'none';
+            }else{
+              document.getElementById("savejson").style.display = 'block';
+              myjson=JSON.parse(myjson);
+              for (let i = 0; i < myjson.length; i++) {
+                let el = document.createElement("PRE");
+                el.setAttribute("id","pippo"+String(i));
+                console.log(myjson[i])
+                a=myjson[i];
+                el.innerHTML = JSON.stringify(a, undefined, 4);
+                  const parent = document.querySelector("#json");
+                parent.appendChild(el);
+              }
+            }
+
+          }else{
+            document.getElementById("savejson").style.display = 'none';
+
+          }
+      
+  </script> 
+
+<style>
+/*Tooltip container */
+ .tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+
+  /* Position the tooltip text */
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+/* Tooltip arrow */
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+} 
+
+</style>
+
+
+  <style>
+    body{
+ background-image: url('/static/img/Medicine-icons2.png');
+ background-size: auto;
+   }
+ </style>
 
 
 <style>

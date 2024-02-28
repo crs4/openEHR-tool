@@ -26,8 +26,9 @@
             Settings
           </a>
           <ul class="dropdown-menu " >
-            <li><a class="dropdown-item" href="settings.html">Define/See Settings</a></li>
-            <li><a class="dropdown-item" href="fsettings.html">Reload Settings</a></li>
+            <li><a class="dropdown-item" href="ssettings.html">See Current Settings</a></li>
+            <li><a class="dropdown-item" href="settings.html">Modify Settings</a></li>
+            <li><a class="dropdown-item" href="fsettings.html">Reload Settings from File</a></li>
           </ul>
         </li>
         <li class="nav-item">
@@ -39,6 +40,7 @@
           </a>
           <ul class="dropdown-menu " >
             <li><a class="dropdown-item" href="ptemp.html">Post Template</a></li>
+            <li><a class="dropdown-item" href="ltemp.html">List Templates</a></li>
             <li><a class="dropdown-item" href="gtemp.html">Get Template</a></li>    
          </ul>
         </li>
@@ -230,26 +232,26 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 
  
 <div class="container">
-  <h1>Retrieve the list of Templates or a specific one</h1>
-
+  <h1>Get Template
+    <button type="button" class="btn btn-sm btn-light h3" style="width:35px; tooltip-font-size-sm;" 
+    data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+    title="<h4>Instructions:</h4>
+      <ul><li>Select the template name from the dropdown list</li>
+      <li>Choose between WebTemplate and OPT format</li>
+      <li>Click the 'Get Template' button</li>
+      <li>View results below the word 'Results'</li>
+    <li>Optionally Save the template by clicking the 'Save to file' button</li></ul>">
+      <img src='/static/img/975.png' 
+      style="width:140%;height:130%;"  alt="Question Mark" >
+    </button></h1>
+    <br>
             <div class="position-relative">
                 <div id="forms" class="position-absolute" data-tor="place.top(100px)">
                   <div class="row">
-                    <div class="col pe-5">
-                      <br><br>
+                    <div class="col">
+                      
   
-<h3>Get Template
-  <button type="button" class="btn btn-sm btn-light h3" style="width:35px; tooltip-font-size-sm;" 
-  data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
-  title="<h4>Instructions:</h4>
-    <ul><li>Select the template name from the dropdown list</li>
-    <li>Choose between WebTemplate and OPT format</li>
-    <li>Click the 'Get Template' button</li>
-    <li>View results below the word 'Results'</li>
-  <li>Optionally Save the template by clicking the 'Save to file' button</li></ul>">
-    <img src='/static/img/975.png' 
-    style="width:140%;height:130%;"  alt="Question Mark" >
-  </button></h3>
+
 
 
                       <form id="form1">
@@ -273,23 +275,6 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                     </div>
                   
                 <br><br><br><br><br>
-                <div class="col ps-5">
-                  <br><br>
-                  <form id="form2">
-                    <h3>Get Templates list <button type="button" class="btn btn-sm btn-light" style="width:35px; tooltip-font-size-sm;" 
-                      data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
-                      title="<h4>Instructions:</h4>
-                      <ul><li>Click the 'Get list' button</li>
-                        <li>View results below the word 'Results'</li>
-                        </ul>">
-                        <img src='/static/img/975.png'
-                        style="width:140%;height:130%;"  alt="Question Mark" >
-                      </button></h3>
-                    <br><br><br><br>
-                    <input   id='pippo2' name='pippo2' class="btn btn-primary" type="submit" value="Get List">                
-                  
-                  </form>
-                </div>
                </div>
                   <div id="results">
                     <h2>Results</h2>

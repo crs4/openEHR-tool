@@ -113,19 +113,50 @@ def gettemp(client,auth,hostname,port,username,password,tformat,template):
         else:
             nohash=response.text.replace("#","%23")
             myresp['template']=json.dumps(json.loads(nohash),sort_keys=True, indent=1, separators=(',', ': '))
-        myresp['text']=response.text
         myresp['status']='success'
-        myresp['headers']=response.headers
-        myresp['status_code']=  response.status_code  
         current_app.logger.info(f'GET success for template={template} in format={tformat}')
         return myresp
     else:
-        myresp['text']=response.text
         myresp['status']='failure'
-        myresp['headers']=response.headers  
-        myresp['status_code']=  response.status_code  
+        
         current_app.logger.warning(f'GET Template failure for template={template} in format={tformat}') 
-        return myresp
+    myresp['text']=response.text
+    myresp['headers']=response.headers
+    myresp['status_code']=response.status_code  
+    return myresp
+
+def listtemp(client,auth,hostname,port,username,password):
+    
+    if hostname.startswith('http'):
+        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    else:
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+    client.auth = (username,password)
+    myresp={}
+    current_app.logger.debug('inside listtemp')
+    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4')
+    response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/json'})
+    current_app.logger.debug('Get list templates')
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
+    if(response.status_code<210 and response.status_code>199):
+        myresp['status']='success'
+        current_app.logger.info(f'GET success for template list')
+        myresp['json']=response.text
+    else:
+        myresp['status']='failure'
+        current_app.logger.warning(f'GET Template failure for template list') 
+    myresp['text']=response.text
+    myresp['headers']=response.headers  
+    myresp['status_code']=  response.status_code  
+    return myresp
+
 
 def posttemp(client,auth,hostname,port,username,password,uploaded_template):
     
