@@ -307,6 +307,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
               <pre id="aqlt"></pre>
               <pre id="result">{{ linebreaks_for_string( yourresults ) }}</pre> 
               <pre id="jjson"></pre>
+              <div id="pippo"></div>
                </div>
                <div id="boh" style="display:none;">
                 <br><br>
@@ -379,8 +380,15 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 </script> 
 <script type="text/javascript">
   if ( {{status|tojson}} == "success" ){
-          document.getElementById("jjson").textContent = JSON.stringify({{res|tojson}}, undefined, 2);
-      }
+    myjson=JSON.stringify({{res|tojson}}, undefined, 2);
+    console.log('myjson=',myjson);
+    if (!Object.keys(JSON.parse(myjson)).length){
+      console.log('pippo');
+        document.getElementById("jjson").innerHTML="{ 'no results' }";
+    }else{
+        document.getElementById("jjson").innerHTML = myjson;
+    }
+ }
   
 </script> 
 <style>

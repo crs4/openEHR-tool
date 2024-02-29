@@ -1442,6 +1442,7 @@ def create_app():
             app.logger.info(f'AQLTEXT={aqltext}')
             msg=ehrbase_routines.runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,offset,eid,qparam,qname,version)
             if(msg['status']=="success"):
+                status='success'
                 app.logger.debug(f"aqltext={aqltext} msg[text]={msg['text']} msg['status_code']={msg['status_code']} msg['headers']={msg['headers']}")
                 insertlogline('Run AQL Query: pasted query run successfully')
                 if msg['text'] != '':
@@ -1458,7 +1459,7 @@ def create_app():
                 else:
                     app.logger.debug('f msg[text] empty')
                     resultsave='false'
-                    temp=''
+                    temp={}
                 yourresults=f"Query run successfully.\n status_code={msg['status_code']}\n headers={msg['headers']}"
             else:
                 insertlogline('Run AQL Query: pasted query run failure')
