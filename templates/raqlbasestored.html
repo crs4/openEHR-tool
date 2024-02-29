@@ -231,7 +231,17 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 </style>
 
  
-  
+    {% macro linebreaks_for_string( the_string ) -%}
+              {% if the_string %}
+              {% for line in the_string.split('\n') %}
+              <br />
+              {{ line }}
+              {% endfor %}
+              {% else %}
+              {{ the_string }}
+              {% endif %}
+              {%- endmacro %}
+
 <div class="container" >
   <h1>Run a Stored AQL query</h1>
   <br><br><br>
@@ -240,19 +250,19 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
     <!-- <div class="row gx-5"> -->
 
 
-  <div id="forform2" class='col' >
-    <form id="form2"> 
+  <div id="forform2" class='col' > 
           <h2>Run a stored query<button type="button" class="btn btn-sm btn-light" style="width:35px; tooltip-font-size-sm;" 
             data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
             title="<h4>Instructions:</h4>
             <ul>
               <li>Select the query$version from the dropdown menu</li>
-              <li>Click 'Select' and visualize the query
+              <li>Click 'Select' and visualize the query</li>
+              <li>Optionally modify the query</li>
               <li>Select GET or POST method</li>
               <li>Optionally select Limit and Offset</li>
               <li>Optionally select EHRID </li>
               <li>Optionally add query parameters</li>
-              <li>Click the 'Run pasted query' button</li>
+              <li>Click the 'Run' button</li>
               <li>View results below the word 'Results'</li>
               <li>Optionally Save the query results by clicking the 'Save to file' button</li>
               </ul>">
@@ -271,13 +281,13 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
             </select> 
             <!--dropdownmenustop-->
             <br>
-            <input class="btn btn-primary" name="pippo" type="submit" value="Select">
-            <br><br>
-          <div class="pippobox" style="display: inline-block">
-            {{aqltext2 if aqltext2!=''}}
-          </div>   
+            <input class="btn btn-primary" name="pippo" type="submit" value="Select" id="pippo">
+            
           </form>
+          <pre id="result">{{ linebreaks_for_string( yourresultspre ) }}</pre>
           <form id="form2">
+            <textarea class="form-control" id='aqltext' form='form2' name="aqltext" rows="6"></textarea><br>
+
             <input class="form-check-input" type="radio" name="qmethod" value="GET" checked>GET</input>
             <input class="form-check-input" type="radio" name="qmethod" value="POST">POST</input><br><br>              
             <div class='row'>
@@ -299,27 +309,25 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
     </div>
   </div>
 
+  <script>
+    
+    if({{myvalue|tojson}}=='show'){
+      document.getElementById('aqltext').value="{{aqltext2}}";
+    }else{
+      document.getElementById('aqltext').value="{{lastaql}}";
+    }
+
+  </script>
   
                 <br><br>
             
                 <div id="results">
                   <h2>Results</h2>
 
-              {% macro linebreaks_for_string( the_string ) -%}
-              {% if the_string %}
-              {% for line in the_string.split('\n') %}
-              <br />
-              {{ line }}
-              {% endfor %}
-              {% else %}
-              {{ the_string }}
-              {% endif %}
-              {%- endmacro %}
+              
               <pre id="aqlt"></pre>
               <pre id="result">{{ linebreaks_for_string( yourresults ) }}</pre> 
-              <pre id="jjson"></pre>
-               </div>
-               <div id="boh" style="display:none;">
+              <div id="boh" style="display:none;">
                 <br><br>
                 <a class="btn btn-danger" role="button" href="data:text/plain;charset=utf-8,{{temp}}"
                    download="queryresult.json">
@@ -327,6 +335,9 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                  </a>
                  <br><br>
              </div>
+              <pre id="jjson"></pre>
+               </div>
+               
 
    </div>
    
@@ -342,15 +353,16 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
   }
 </style>
 <script type="text/javascript">
-  var obj={{aqltext|tojson}};
-  if (!( obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype)) {
-    document.getElementById("aqlt").innerHTML = 'Query: {{aqltext|tojson}}';}
+  //var obj={{aqltext2|tojson}};
+  // if (!( obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype)) {
+    if ({{status|tojson}}=='success'){
+    document.getElementById("aqlt").innerHTML = 'Query: {{aqltext2|tojson}}';
     
     if ( {{resultsave|tojson}} == "true" ) {
       document.getElementById("boh").style.display = 'block';}
       else {   
       document.getElementById("boh").style.display = 'none';}
-
+  }
 </script> 
 <script type="text/javascript">
   if ( {{status|tojson}} == "success" ){

@@ -11,7 +11,7 @@
 
 
 <nav class="navbar  navbar-dark bg-dark">
-  <div class="container-fluid">
+  <div class="container">
     <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main_nav" aria-expanded="false" aria-label="Toggle navigation" >
         <span class="navbar-toggler-icon float-start"></span><h4>openEHR Tool</h4>
       </button>
@@ -249,23 +249,18 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
  
 
             <br>
-            <div class="position-relative">
-
-                <div id="forms" class="position-absolute" data-tor="place.top(30px)">
-
-
-
+      <div class="row">
+           <div id="forforms" class="col">
+              <form id="form1">
                   <label for="comment">Paste below your AQL query:</label>
                   <textarea class="form-control" id='aqltext' form='form1' name="aqltext" rows="5"></textarea> 
                   <br><br>
-                  <div class="row">
-                    <div id="forform1" class="col">  
-                      <form id="form1">
-                        <label class="form-label"  for="template">Query name:</label><br>
-                        <input class="form-control"  type="text" id="nquery" name="nquery"><br><br><br>       
+                  <div class='row'>
+                    <div class='col'>
+                    <label class="form-label"  for="template">Query name:</label><br>
+                    <input class="form-control"  type="text" id="nquery" name="nquery"><br><br><br>       
                     </div>
-                    
-                    <div id="forform2" class="col">
+                    <div class="col">
                         <label class="form-label"  for="jk">Version (Optional)</label><br>
                         <input class="form-control" type="text" id="version" name="version"><br><br>
                         <label class="form-label"  for="ehrs">Type (Optional)</label><br>
@@ -273,13 +268,15 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                     </div>
                   </div>
             
-                  <div id="mycommit" class="centered">
-                    <p><input class="btn btn-primary" name="pippo" type="submit" value="Store query"></p>
-                    </div>
-                  </form>
-                <br><br><br><br>
 
-                  <div id="results">
+                    <input class="btn btn-primary" name="pippo" type="submit" value="Store query"></p>
+                    
+                  </form>
+           </div>
+      </div>
+                <br><br><br><br>
+                  
+                  <div id="results" class="">
                     <h2>Results</h2>
                     {% macro linebreaks_for_string( the_string ) -%}
                     {% if the_string %}
@@ -292,9 +289,9 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                     {% endif %}
                     {%- endmacro %}
                     
-                    <pre id="result">{{ linebreaks_for_string( yourresults ) }}</pre> 
+                    <pre id="result" style="font-size:1rem">{{ linebreaks_for_string( yourresults ) }}</pre> 
       
-                    <pre id="aqlt"></pre>
+                    <pre id="aqlt" style="font-size:1rem"></pre>
                   </div>
                 </div>
               </div>
@@ -303,10 +300,30 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 
   </div>
 
+  <!-- <script>
+    if ( String({{yourresults|tojson}}) != ''){
+      myresults=JSON.stringify({{yourresults|tojson}});
+      console.log(typeof myresults);
+      myresults=myresults.split(',');
+      for (let i = 0; i < myresults.length; i++) {
+                let el = document.createElement("PRE");
+                el.setAttribute("id","pippo"+String(i));
+                a=myresults[i].replace(/['"\/\\]+/g, '');
+                el.innerHTML = a;
+                const parent = document.querySelector("#result");
+                parent.appendChild(el);
+              }
+
+    }
+  </script> -->
+
   <style>
     body{
  background-image: url('/static/img/Medicine-icons2.png');
  background-size: auto;
+   }
+   pre {
+    text-align: left;
    }
  </style>
 

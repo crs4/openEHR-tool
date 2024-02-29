@@ -1340,6 +1340,7 @@ def create_app():
         if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
             return redirect(url_for("ehrbase"))
         aqltext={}
+        yourresults=''
         if request.args.get("pippo")=="Store query":
             aqltext=request.args.get("aqltext","")
             version=request.args.get("version","")
@@ -1355,13 +1356,13 @@ def create_app():
             msg=ehrbase_routines.postaql(client,auth,hostname,port,username,password,aqltext,qname,version,qtype)
             if(msg['status']=="success"):
                 insertlogline('Post AQL Query: query '+qname+' version='+version+' type='+qtype+' posted successfully')
-                yourresults=f"Query inserted successfully.\n status_code={msg['status_code']}\n text={msg['text']}\n headers={msg['headers']}"
+                yourresults=f"Query {msg['name']} version={msg['version']} inserted successfully\nstatus_code={msg['status_code']}\ntext={msg['text']}\n,headers={msg['headers']}"
             else:
                 insertlogline('Post AQL Query: query '+qname+' version='+version+' type='+qtype+' posting failure')
-                yourresults=f"Query insertion failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
+                yourresults=f"Query insertion failure\nstatus_code={msg['status_code']}\nheaders={msg['headers']}\ntext={msg['text']}"               
             return render_template('paql.html',yourresults=yourresults,aqltext=aqltext)
         else: 
-            return render_template('paql.html',aqltext=aqltext)
+            return render_template('paql.html',aqltext=aqltext,yourresults=yourresults)
 
     @app.route("/gaql.html",methods=["GET"])
     #get aql query
@@ -1473,7 +1474,7 @@ def create_app():
     @app.route("/raqlstored.html",methods=["GET"])
     #run stored aql query
     def raqlstored():
-        global hostname,port,username,password,auth,nodename,qname,version,aqltext2
+        global hostname,port,username,password,auth,nodename,qname,version,aqltext2,myvalue,lastaql
         if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
             return redirect(url_for("ehrbase"))
         global lastehrid
@@ -1482,6 +1483,10 @@ def create_app():
         yourresults=""
         status='failure'
         res=''
+        myvalue='hide'
+        aqltext2=''
+        if("lastaql" not in locals()):
+            lastaql=''
 #       qname=""
 #       version=""
         mymsg=ehrbase_routines.createPageFromBase4querylist(client,auth,hostname,port,username,password,'raqlbasestored.html','raqlstored.html')
@@ -1492,7 +1497,7 @@ def create_app():
             if "$v" not in qdata: #no query choosable
                 aqltext2=f"No queries available"
                 yourresults='Please select or create a query first'
-                return render_template('raqlstored.html',yourresults=yourresults,lastehr=lastehrid,resultsave=resultsave,temp=temp,aqltext2=aqltext2,aqltext={},res=res,status=status)
+                return render_template('raqlstored.html',yourresults=yourresults,lastehr=lastehrid,resultsave=resultsave,temp=temp,aqltext2=aqltext2,res=res,status=status,myvalue=myvalue)
             else:
                 qdatas=qdata.split('$v')
                 qname=qdatas[0]
@@ -1500,21 +1505,26 @@ def create_app():
                 msg=ehrbase_routines.getaql(client,auth,hostname,port,username,password,qname,version)
                 if(msg['status']=="success"):
                     insertlogline('Get AQL Query: query '+qname+' version'+version+' retrieved successfully')
-                    yourresults=f"Query {qname} v{version} retrieved successfully"
+                    yourresultspre=f"Query {qname} v{version} retrieved successfully"
                     #aqlpresent='true'
                     aqltext2=msg['aql']
-                    return render_template('raqlstored.html',yourresults=yourresults,aqltext=aqltext2,lastehr=lastehrid,resultsave=resultsave,temp=temp,aqltext2=aqltext2,res=res,status=status)    
+                    lastaql=aqltext2
+                    myvalue='show'
+                    return render_template('raqlstored.html',yourresultspre=yourresultspre,aqltext2=aqltext2,lastehr=lastehrid,resultsave=resultsave,temp=temp,res=res,status=status,myvalue=myvalue)    
                 else:
                     insertlogline('Get AQL Query: query '+qname+' version='+version+' retrieval failure')
-                    yourresults=f"Query {qname} v{version} retrieval failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
-                    return render_template('raqlstored.html',yourresults=yourresults,aqltext=aqltext2,aqltext2=aqltext2,lastehr=lastehrid,resultsave=resultsave,temp=temp,res=res,status=status)   
+                    yourresultspre=f"Query {qname} v{version} retrieval failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
+                    myvalue='hide'
+                    return render_template('raqlstored.html',yourresultspre=yourresultspre,aqltext2=aqltext2,lastehr=lastehrid,resultsave=resultsave,temp=temp,res=res,status=status,myvalue=myvalue)   
         elif(request.args.get("pippo2")=="Run"):
             app.logger.debug(f'aqltext2={aqltext2}')
             if(aqltext2 is None or aqltext2=='No queries available'):
                 yourresults='Please select or create a query first'
-                return render_template('raqlstored.html',yourresults=yourresults,lastehr=lastehrid,resultsave=resultsave,temp=temp,aqltext2=aqltext2,aqltext={},res=res,status=status)
+                return render_template('raqlstored.html',yourresults=yourresults,lastehr=lastehrid,resultsave=resultsave,temp=temp,aqltext2=aqltext2,res=res,status=status,myvalue=myvalue)
             qmethod=request.args.get("qmethod","")
             limit=request.args.get("limit","")
+            aqltext2=request.args.get("aqltext","")
+            lastaql=aqltext2
             #aqltext=aqltext2
             resultsave='false'
             offset=request.args.get("offset","")
@@ -1522,8 +1532,8 @@ def create_app():
             eid=request.args.get("ehrid","") 
             qparam=request.args.get("qparam","")
             #reversed_nodename=".".join(reversed(nodename.split(".")))
-            if(qname==""):
-                return render_template('raqlstored.html',lastehr=lastehrid,resultsave=resultsave,temp=temp,aqltext2=aqltext2,res=res,status=status)
+            if(aqltext2==""):
+                return render_template('raqlstored.html',lastehr=lastehrid,resultsave=resultsave,temp=temp,aqltext2=aqltext2,res=res,status=status,lastaql=lastaql,myvalue=myvalue)
             msg=ehrbase_routines.runaql(client,auth,hostname,port,username,password,aqltext2,qmethod,limit,offset,eid,qparam,qname,version)    
             if(msg['status']=="success"):
                 insertlogline('Run AQL Stored Query: query '+qname+' version'+version+' run successfully')
@@ -1533,16 +1543,17 @@ def create_app():
                     res=msgtext
                     status='success'
                     if(len(temp)>0):
+                        app.logger.debug('len temp>0')
                         resultsave='true'          
                 yourresults=f"Query {qname} v{version} run successfully.\n status_code={msg['status_code']}\n headers={msg['headers']}"
-                return render_template('raqlstored.html',yourresults=yourresults,lastehr=lastehrid,aqltext=aqltext2,aqltext2=aqltext2,resultsave=resultsave,temp=temp,res=res,status=status)
             else:
                 insertlogline('Run AQL Query: query '+qname+' version'+version+' run failure')
                 resultsave='false'
                 yourresults=f"Query {qname} v{version}run failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
-                return render_template('raqlstred.html',yourresults=yourresults,lastehr=lastehrid,aqltext={},aqltext2=aqltext2,resultsave=resultsave,temp=temp,res=res,status=status)
+            app.logger.debug(f'resultsave={resultsave}')
+            return render_template('raqlstored.html',yourresults=yourresults,lastehr=lastehrid,aqltext2=aqltext2,resultsave=resultsave,temp=temp,res=res,status=status,myvalue=myvalue,lastaql=lastaql)
         else:
-            return render_template('raqlstored.html',lastehr=lastehrid,aqltext={},resultsave=resultsave,temp=temp,res=res,status=status)
+            return render_template('raqlstored.html',lastehr=lastehrid,resultsave=resultsave,temp=temp,res=res,status=status,myvalue=myvalue,aqltext2=aqltext2,lastaql=lastaql)
 
 
     @app.route("/dashboard.html",methods=["GET"])

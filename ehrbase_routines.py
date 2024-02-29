@@ -1768,7 +1768,7 @@ def postaql(client,auth,hostname,port,username,password,aqltext,qname,version,qt
     aqltext=aqltext.translate({ord(c):' ' for c in '\n\r'})
     if "'" in aqltext:
         aqltext=aqltext.replace("'",'\\\'')
-    aqltext="{'q':'"+aqltext+"'}"
+    #aqltext="{'q':'"+aqltext+"'}"
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/query/'+qname+"/"+version)
     response = client.put(myurl,params={'type':qtype,'format':'RAW'},headers={'Authorization':auth,'Content-Type':'text/plain'},data=aqltext)
     current_app.logger.debug('Response Url')
@@ -1786,6 +1786,11 @@ def postaql(client,auth,hostname,port,username,password,aqltext,qname,version,qt
         myresp["status"]="success"
         myresp['text']=response.text
         myresp["headers"]=response.headers
+        rlocationsplit=myresp['headers']['Location'].split('/')
+        rversion=rlocationsplit[-1]
+        rname=rlocationsplit[-2]
+        myresp['name']=rname
+        myresp['version']=rversion
         current_app.logger.info(f"AQL POST success")
     else:
         myresp["status"]="failure"

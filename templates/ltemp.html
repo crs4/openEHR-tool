@@ -303,7 +303,6 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
               for (let i = 0; i < myjson.length; i++) {
                 let el = document.createElement("PRE");
                 el.setAttribute("id","pippo"+String(i));
-                console.log(myjson[i])
                 a=myjson[i];
                 el.innerHTML = JSON.stringify(a, undefined, 4);
                   const parent = document.querySelector("#json");
