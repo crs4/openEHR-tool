@@ -2,7 +2,7 @@
 
 A tool meant to make it easier to interact with a **EHRBase** server. 
 
-To take advantage of all the methods and the dashboard use a version of EHRBase >= 0.21.0 and add these lines to the .env.ehrbase file:
+To take advantage of all the methods and the dashboard use a version of EHRBase >= 0.32.0 and add these lines to the .env.ehrbase file:
 ```
 MANAGEMENT_ENDPOINTS_WEB_EXPOSURE=env,health,info,metrics,prometheus
 MANAGEMENT_ENDPOINTS_WEB_BASEPATH=/management
