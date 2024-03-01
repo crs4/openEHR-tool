@@ -239,7 +239,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
   <div class="row">
     <!-- <div class="row gx-5"> -->
     <div id="forform1" class="col">
-        <form id="form1">
+        <form id="form1" name="form1">
           <h2>Paste and run your AQL query<button type="button" class="btn btn-sm btn-light" style="width:35px; tooltip-font-size-sm;" 
             data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
             title="<h4>Instructions:</h4>
@@ -306,10 +306,8 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
               {%- endmacro %}
               <pre id="aqlt"></pre>
               <pre id="result">{{ linebreaks_for_string( yourresults ) }}</pre> 
-              <pre id="jjson"></pre>
-              <div id="pippo"></div>
-               </div>
-               <div id="boh" style="display:none;">
+
+              <div id="boh" style="display:none;">
                 <br><br>
                 <a class="btn btn-danger" role="button" href="data:text/plain;charset=utf-8,{{temp}}"
                    download="queryresult.json">
@@ -317,6 +315,10 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                  </a>
                  <br><br>
              </div>
+
+              <pre id="jjson"></pre>
+               </div>
+              
 
    </div>
    
@@ -350,12 +352,19 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
     } 
   })
 
-</script>
+  </script>
 
-
-
-
-
+  {% if lastaql != '' %}
+  <script>
+  var aqlbox = document.forms["form1"]["aqltext"].value;
+  var obj={{lastaql|tojson}};
+//  if ( (aqlbox == null || aqlbox == "") &&  !( obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype)){
+  if ( aqlbox == null || aqlbox == ""){
+      document.forms["form1"]["aqltext"].value='{{lastaql|tojson}}';
+    }
+  </script>
+  {% endif %}
+    
 
 
 <style>
@@ -381,9 +390,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 <script type="text/javascript">
   if ( {{status|tojson}} == "success" ){
     myjson=JSON.stringify({{res|tojson}}, undefined, 2);
-    console.log('myjson=',myjson);
     if (!Object.keys(JSON.parse(myjson)).length){
-      console.log('pippo');
         document.getElementById("jjson").innerHTML="{ 'no results' }";
     }else{
         document.getElementById("jjson").innerHTML = myjson;

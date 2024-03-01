@@ -357,19 +357,15 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
   // if (!( obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype)) {
     if ({{status|tojson}}=='success'){
     document.getElementById("aqlt").innerHTML = 'Query: {{aqltext2|tojson}}';
-    
+    document.getElementById("jjson").textContent = JSON.stringify({{res|tojson}}, undefined, 2);
+
     if ( {{resultsave|tojson}} == "true" ) {
       document.getElementById("boh").style.display = 'block';}
       else {   
       document.getElementById("boh").style.display = 'none';}
   }
 </script> 
-<script type="text/javascript">
-  if ( {{status|tojson}} == "success" ){
-          document.getElementById("jjson").textContent = JSON.stringify({{res|tojson}}, undefined, 2);
-      }
-  
-</script> 
+
 <style>
    body{
 background-image: url('/static/img/Medicine-icons2.png');
