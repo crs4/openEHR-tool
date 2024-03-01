@@ -358,9 +358,8 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
   <script>
   var aqlbox = document.forms["form1"]["aqltext"].value;
   var obj={{lastaql|tojson}};
-//  if ( (aqlbox == null || aqlbox == "") &&  !( obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype)){
   if ( aqlbox == null || aqlbox == ""){
-      document.forms["form1"]["aqltext"].value='{{lastaql|tojson}}';
+      document.forms["form1"]["aqltext"].value={{lastaql|tojson}};
     }
   </script>
   {% endif %}

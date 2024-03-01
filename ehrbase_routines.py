@@ -115,7 +115,6 @@ def gettemp(client,auth,hostname,port,username,password,tformat,template):
             myresp['template']=json.dumps(json.loads(nohash),sort_keys=True, indent=1, separators=(',', ': '))
         myresp['status']='success'
         current_app.logger.info(f'GET success for template={template} in format={tformat}')
-        return myresp
     else:
         myresp['status']='failure'
         
@@ -2014,7 +2013,7 @@ def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,off
             myresp["headers"]=response.headers
             current_app.logger.info(f"RUN AQL failure. qmethod={qmethod}")
         return myresp  
-    else: #STORED QUERY BYPASSED. NOW STORED QUERIES SHARE THE ABOVE CODE
+    else: #NO QUERY PASSED
         myresp["status"]="failure"
         myresp['text']='No aql query'
         myresp["headers"]=''
