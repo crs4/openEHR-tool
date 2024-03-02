@@ -261,7 +261,9 @@ Methods in:
 
 # Screenshots: #
 ![homepage](/../screenshots/screenshots/homepage.png?raw=true "Homepage")
+![dashboard](/../screenshots/screenshots/dashboard.png?raw=true "Dashboard")
 ![get_template](/../screenshots/screenshots/gettemplate.png?raw=true "Get Template")
 ![examplecomp](/../screenshots/screenshots/examplecomp.png?raw=true "Composition example from Template")
 ![postcomp](/../screenshots/screenshots/postcomp.png?raw=true "Post a Composition")
+![runaql](/../screenshots/screenshots/runquery.png?raw=true "Run AQL (query)")
 ![sessionlog](/../screenshots/screenshots/sessionlog.png?raw=true "Session Activities")
