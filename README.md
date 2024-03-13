@@ -28,6 +28,18 @@ The examples available are:
 
 As an alternative, settings can be written at runtime in the application. Note that this way they are nor persisted and must be reentered when the application is stopped and rerun. 
 
+Thanks to @Meelzak settings can be set also through the following environment variables:
+* EHRBASESERVER_hostname 
+* EHRBASESERVER_port 
+* EHRBASESERVER_nodename 
+* EHRBASEUSERS_username 
+* EHRBASEUSERS_password 
+* EHRBASEUSERS_adusername 
+* EHRBASEUSERS_adpassword 
+* REDISSERVER_hostname
+* REDISSERVER_port
+* REDISSERVER_eventsrecorded
+
 ### Networking problems
 If you are using Docker on Linux, in the "Separated" mode, you can start with the docker-compose file that ends in linux.1 and if you experience networking problems(unable to connect or sluggishness) you can try linux.2 . The version 1 adopts the host network mode so the openEHRTool container behave as if it was run from the host machine. The version 2 is similar to the other OS and it publishes ports to the host machine. 
 
