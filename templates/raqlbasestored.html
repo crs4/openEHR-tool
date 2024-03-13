@@ -243,7 +243,24 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
               {%- endmacro %}
 
 <div class="container" >
-  <h1>Run a Stored AQL query</h1>
+  <h2>Run a Stored AQL query<button type="button" class="btn btn-sm btn-light" style="width:35px; tooltip-font-size-sm;" 
+    data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
+    title="<h4>Instructions:</h4>
+    <ul>
+      <li>Select the query$version from the dropdown menu</li>
+      <li>Click 'Select' and visualize the query</li>
+      <li>Optionally modify the query</li>
+      <li>Select GET or POST method</li>
+      <li>Optionally select Limit and Offset</li>
+      <li>Optionally select EHRID </li>
+      <li>Optionally add query parameters</li>
+      <li>Click the 'Run' button</li>
+      <li>View results below the word 'Results'</li>
+      <li>Optionally Save the query results by clicking the 'Save to file' button</li>
+      </ul>">
+      <img src='/static/img/975.png'
+      style="width:140%;height:130%;"  alt="Question Mark" >
+    </button></h2> 
   <br><br><br>
 
   <div class="row">
@@ -251,24 +268,8 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 
 
   <div id="forform2" class='col' > 
-          <h2>Run a stored query<button type="button" class="btn btn-sm btn-light" style="width:35px; tooltip-font-size-sm;" 
-            data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true"  
-            title="<h4>Instructions:</h4>
-            <ul>
-              <li>Select the query$version from the dropdown menu</li>
-              <li>Click 'Select' and visualize the query</li>
-              <li>Optionally modify the query</li>
-              <li>Select GET or POST method</li>
-              <li>Optionally select Limit and Offset</li>
-              <li>Optionally select EHRID </li>
-              <li>Optionally add query parameters</li>
-              <li>Click the 'Run' button</li>
-              <li>View results below the word 'Results'</li>
-              <li>Optionally Save the query results by clicking the 'Save to file' button</li>
-              </ul>">
-              <img src='/static/img/975.png'
-              style="width:140%;height:130%;"  alt="Question Mark" >
-            </button></h2> 
+    <h3><label for="comment">Run a stored query
+    </h3>
           <br>
           <form id="form1">
             <label  class="form-label" for="template">Select query_name$version</label><br>
@@ -374,7 +375,9 @@ background-size: auto;
   }
 </style>
 
-  
+<style>
+  .required:after { content:" *"; }
+</style>
 
 
 <style>

@@ -249,7 +249,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
             <br>
             <div class="position-relative">
                 <div id="forms" class="position-absolute" data-tor="place.top(30px)">
-                  <label class="form-label" for="choofile">Choose the file</label><br>
+                  <label class="form-label required" for="choofile">Choose the file</label><br>
                   <form method="POST" action="" enctype="multipart/form-data">
                     <p><input class="form-control" type="file" name="file"></p>
                     <p><input class="btn btn-primary" type="submit" value="Submit"></p>
@@ -259,11 +259,11 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
             
                 <form id="form1">
         
-                  <label class="form-label" for="ehrid">EHRID</label><br>
+                  <label class="form-label required" for="ehrid">EHRID</label><br>
                     <input class="form-control" type="text" id="ename" name="ename" value={{laste}} > 
                     <br>
                 
-                    <label class="form-label" for="ehrid">EHR_STATUS versionUID</label><br>
+                    <label class="form-label required" for="ehrid">EHR_STATUS versionUID</label><br>
                     <input class="form-control" type="text" id="vid" name="vid" placeholder="1b0083a6-c0f2-4992-b1f1-50acb292ea7c::local.ehrbase.org::1" > 
                   <br>
 
@@ -322,7 +322,9 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
       }
   
 </script> 
-
+<style>
+  .required:after { content:" *"; }
+</style>
 
              
 

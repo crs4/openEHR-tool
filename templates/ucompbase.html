@@ -252,7 +252,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
             <br>
             <div class="position-relative">
                 <div id="forms" class="position-absolute" data-tor="place.top(30px)">
-                  <label class="form-label" for="choofile">Choose the file</label><br>
+                  <label class="form-label required" for="choofile">Choose the file</label><br>
                   <form method="POST" action="" enctype="multipart/form-data">
                     <p><input class="form-control" type="file" name="file"></p>
                     <p><input class="btn btn-primary" type="submit" value="Submit"></p>
@@ -269,10 +269,10 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                   <input class="form-check-input" type="radio" name="filetype" value="FLAT" checked>FLAT JSON</input>
                   <br><br>
 
-                  <label class="form-label" for="ehrid">EHRID</label><br>
+                  <label class="form-label required" for="ehrid">EHRID</label><br>
                     <input class="form-control" type="text" id="ename" name="ename" value={{laste}} > <br>
                 
-                    <label class="form-label" for="ehrid">TemplateID</label><br>
+                    <label class="form-label required" for="ehrid">TemplateID</label><br>
                     <!--dropdownmenustart-->
                         <select  class="form-select" type="text" id="tname" name="tname">
                           <option>1</option>
@@ -284,7 +284,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                     <br>
 
 
-                  <label class="form-label" for="format">CompositionVersionUID </label><br>
+                  <label class="form-label required" for="format">CompositionVersionUID </label><br>
                   <input class="form-control"  type="text" id="cname" name="cname">
                   <br>
 
@@ -332,7 +332,9 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
    }
  </style>
 
-
+<style>
+  .required:after { content:" *"; }
+</style>
 <style>
 
 .custom-toggler.navbar-toggler {

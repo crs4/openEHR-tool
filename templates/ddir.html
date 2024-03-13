@@ -248,10 +248,10 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
             <div class="position-relative">
                 <div id="forms" class="position-absolute" data-tor="place.top(30px)">
                   <form id="form1">
-                    <label class="form-label" for="format">EHRID</label><br>
+                    <label class="form-label required" for="format">EHRID</label><br>
                     <input class="form-control" type="text" id="ename" name="ename" value={{lastehr}} > <br>
     
-                        <label class="form-label"  for="versionuid">directory FOLDER VersionUID</label><br>
+                        <label class="form-label required"  for="versionuid">directory FOLDER VersionUID</label><br>
                         <input class="form-control"  type="text" id="vid" name="vid" placeholder="1b0083a6-c0f2-4992-b1f1-50acb292ea7c::local.ehrbase.org::1" >
                 
                     <br><br>
@@ -287,7 +287,9 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
              
 
   </div>
-
+  <style>
+    .required:after { content:" *"; }
+  </style>
 
   <style>
     body{

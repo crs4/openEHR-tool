@@ -985,13 +985,13 @@ def create_app():
                 if(msg['status']=="success"):
                     yourresults=f"Composition inserted successfully.\n status_code={msg['status_code']} VersionUID={msg['compositionid']}\n text={msg['text']}\n headers={msg['headers']}"
                     lastcompositionid=msg['compositionid']
-                    insertlogline('Post Composition: composition '+lastcompositionid+' from file '+filename+' posted successfully')
+                    insertlogline('Post Composition: composition '+lastcompositionid+' for ehr='+eid+' from file '+filename+' posted successfully')
                     if(check=="Yes"):
                         checkresults=msg['check']
                         checkinfo=msg['checkinfo']
                 else:
                     yourresults=f"Composition insertion failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"        
-                    insertlogline('Post Composition: composition from file '+filename+'  posting failure')
+                    insertlogline('Post Composition: composition from file '+filename+' for ehr='+eid+' posting failure')
                 return render_template('pcomp.html',yourfile=f"you have chosen {filename}",yourresults=yourresults,laste=lastehrid,checkresults=checkresults,checkinfo=checkinfo)        
             else:
                 if("filename" not in vars()):

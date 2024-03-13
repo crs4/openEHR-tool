@@ -261,10 +261,10 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                     <input class="form-check-input" autocomplete="off" type="radio" id="VBV" name="outtype" value="VBV">VERSION_BY_VERSIONUID</input>
 
                     <br><br>
-                    <label class="form-label" for="format">EHRID</label><br>
+                    <label class="form-label required" for="format">EHRID</label><br>
                     <input class="form-control" type="text" id="ename" name="ename" value={{lastehr}} > <br>
     
-                    <label class="form-label" for="format">compositionID </label><br>
+                    <label class="form-label required" for="format">compositionID </label><br>
                         <input class="form-control"  type="text" id="cname" name="cname" placeholder="1b0083a6-c0f2-4992-b1f1-50acb292ea7c" > <br>
                         
                     <div id="versionattime" style="display:none">
@@ -367,7 +367,9 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
     
   </script> 
 
-
+<style>
+  .required:after { content:" *"; }
+</style>
 
 
   <style>

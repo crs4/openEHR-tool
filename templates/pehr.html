@@ -270,9 +270,9 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
       <form id="form2">
         <label class="form-label"  for="jk">EHRID</label><br>
         <input class="form-control" type="text" id="eid" name="eid"><br><br>
-        <label class="form-label" for="ehrs">SubjectID</label><br>
+        <label class="form-label required" for="ehrs">SubjectID</label><br>
         <input class="form-control" type="text" id="sid" name="sid"><br><br>
-        <label class="form-label" for="ehrs">SubjectNamespace</label><br>
+        <label class="form-label required" for="ehrs">SubjectNamespace</label><br>
         <input class="form-control" type="text" id="sna" name="sna"><br><br><br>
         <input class="btn btn-primary" id="sform2" name="sform2" type="submit" value="Submit">
       </form>              
@@ -299,7 +299,9 @@ background-image: url('/static/img/Medicine-icons2.png');
 background-size: auto;
   }
 </style>
-
+<style>
+  .required:after { content:" *"; }
+</style>
   
 
 

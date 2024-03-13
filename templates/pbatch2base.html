@@ -239,7 +239,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
     <ul>
       <li>Click the 'Browse' button and select the compositions files</li>
       <li>Click the 'Submit' button</li>
-      <li>Choose one of the two for each composition:<ol><li>random ehr</li>
+      <li>Choose for all compositions:<ol><li>random ehr</li>
                                     <li>ehr typed</li> </ol>
       <li>Select the composition format</li>
       <li>Select the templateid from the dropdown menu</li>
@@ -255,7 +255,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                 <div id="forms" class="position-absolute" data-tor="place.top(30px)">
                 
                   <form method="POST" action="" enctype="multipart/form-data">
-                    <label class="form-label"  for="path">Files:</label><br>
+                    <label class="form-label required"  for="path">Choose the files</label><br>
                     <p><input class="form-control" type="file" name="file" multiple="multiple"></p>
                     <p><input class="btn btn-primary" type="submit" value="Submit"></p>
                   </form>                
@@ -273,7 +273,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 
                 <div id="path" style="display:none;">
                   <br><br>
-                  <label class="form-label"  for="path">EHRID:</label><br>
+                  <label class="form-label required"  for="path">EHRID:</label><br>
                   <input class="form-control"  type="text" id="eid" name="eid"><br><br>      
                 </div>    
                 <br><br>
@@ -346,7 +346,9 @@ checkbox.addEventListener('change', (event) => {
    }
  </style>
 
-
+<style>
+  .required:after { content:" *"; }
+</style>
 
 <style>
 

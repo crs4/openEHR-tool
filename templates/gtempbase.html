@@ -255,7 +255,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 
 
                       <form id="form1">
-                        <label  class="form-label" for="template">Template Name:</label><br>
+                        <label  class="form-label required" for="template">Template Name:</label><br>
                         <!--dropdownmenustart-->
                         <select  class="form-select" type="text" id="tname" name="tname">
                           <option>1</option>
@@ -265,7 +265,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                         </select> 
                         <!--dropdownmenustop-->
                         <br>
-                        <label class="form-label" for="ehrid">Format</label><br>
+                        <label class="form-label required" for="ehrid">Format</label><br>
                         <input class="form-check-input" type="radio" name="format" value="WT">WebTemplate</input>
                         <input class="form-check-input" type="radio" name="format" value="OPT" checked>OPT</input>
                         <br><br>
@@ -320,7 +320,9 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
         
   </div>
 
-
+  <style>
+    .required:after { content:" *"; }
+  </style>
 <style>
 /*Tooltip container */
  .tooltip {

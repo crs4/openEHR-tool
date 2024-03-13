@@ -259,7 +259,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                     <input class="form-check-input" autocomplete="off" type="radio" id="VBV" name="outtype" value="VBV">VERSION_BY_VERSIONUID</input>
 
                     <br><br>
-                    <label class="form-label" for="format">EHRID</label><br>
+                    <label class="form-label required" for="format">EHRID</label><br>
                     <input class="form-control" type="text" id="ename" name="ename" value={{lastehr}} > <br>
     
                     <div id="versionattime" style="display:none">
@@ -362,7 +362,9 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
     
   </script> 
 
-
+<style>
+  .required:after { content:" *"; }
+</style>
 
 
   <style>

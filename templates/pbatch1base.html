@@ -253,7 +253,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
             <div class="position-relative">
                 <div id="forms" class="position-absolute" data-tor="place.top(30px)">
                       <form method="POST" action="" enctype="multipart/form-data">
-                        <label class="form-label"  for="path">Files:</label><br>
+                        <label class="form-label required"  for="path">Choose the files</label><br>
                         <p><input class="form-control" type="file" name="file" multiple="multiple"></p>
                         <p><input class="btn btn-primary" type="submit" value="Submit"></p>
                       </form>                
@@ -353,6 +353,9 @@ checkbox.addEventListener('change', (event) => {
  background-size: auto;
    }
  </style>
+<style>
+  .required:after { content:" *"; }
+</style>
 
 
 <style>

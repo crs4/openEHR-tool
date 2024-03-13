@@ -252,12 +252,12 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
       <div class="row">
            <div id="forforms" class="col">
               <form id="form1">
-                  <label for="comment">Paste below your AQL query:</label>
+                  <label class="required" for="comment">Paste below your AQL query:</label>
                   <textarea class="form-control" id='aqltext' form='form1' name="aqltext" rows="5"></textarea> 
                   <br><br>
                   <div class='row'>
                     <div class='col'>
-                    <label class="form-label"  for="template">Query name:</label><br>
+                    <label class="form-label required"  for="template">Query name:</label><br>
                     <input class="form-control"  type="text" id="nquery" name="nquery"><br><br><br>       
                     </div>
                     <div class="col">
@@ -300,23 +300,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 
   </div>
 
-  <!-- <script>
-    if ( String({{yourresults|tojson}}) != ''){
-      myresults=JSON.stringify({{yourresults|tojson}});
-      console.log(typeof myresults);
-      myresults=myresults.split(',');
-      for (let i = 0; i < myresults.length; i++) {
-                let el = document.createElement("PRE");
-                el.setAttribute("id","pippo"+String(i));
-                a=myresults[i].replace(/['"\/\\]+/g, '');
-                el.innerHTML = a;
-                const parent = document.querySelector("#result");
-                parent.appendChild(el);
-              }
-
-    }
-  </script> -->
-
+  
   <style>
     body{
  background-image: url('/static/img/Medicine-icons2.png');
@@ -326,7 +310,9 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
     text-align: left;
    }
  </style>
-
+<style>
+  .required:after { content:" *"; }
+</style>
 <script type="text/javascript">
 var obj={{aqltext|tojson}};
   if (!( obj && Object.keys(obj).length === 0 && Object.getPrototypeOf(obj) === Object.prototype)) {

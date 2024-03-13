@@ -247,9 +247,9 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
    <div class="position-relative">
        <div id="forms" class="position-absolute" data-tor="place.top(30px)">
       <form id="form1">
-        <label class="form-label" for="format">EHRID</label><br>
+        <label class="form-label required" for="format">EHRID</label><br>
         <input class="form-control" type="text" id="ename" name="ename" value={{lastehr}} > <br>
-        <label class="form-label" for="format">CompositionID </label><br>
+        <label class="form-label required" for="format">CompositionID </label><br>
         <input class="form-control"  type="text" id="cname" name="cname"><br>
         <input class="btn btn-primary" id="fform1" name="fform1" type="submit" value="Delete">
       </form>   
@@ -284,7 +284,9 @@ background-size: auto;
   }
 </style>
 
-  
+<style>
+  .required:after { content:" *"; }
+</style>
 
 
 

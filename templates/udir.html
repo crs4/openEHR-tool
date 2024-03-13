@@ -251,17 +251,17 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                 <div id="forms" class="position-absolute" data-tor="place.top(30px)">
                 
                   <form method="POST" action="" enctype="multipart/form-data">
-                    <label class="form-label" for="choofile">Choose the file</label><br>
+                    <label class="form-label required" for="choofile">Choose the file</label><br>
                     <p><input class="form-control" type="file" name="file"></p>
                     <p><input class="btn btn-primary" id="mypost" name="mypost" type="submit" value="Submit"></p>
                   </form>                
                   {{yourfile}}
                 <br><br>
                 <form id="form1">
-                  <label class="form-label" for="ehrid">EHRID</label><br>
+                  <label class="form-label required" for="ehrid">EHRID</label><br>
                     <input class="form-control" type="text" id="ename" name="ename" value={{laste}} >
                    <br>
-                   <label class="form-label" for="vid">directory FOLDER versionUID</label><br>
+                   <label class="form-label required" for="vid">directory FOLDER versionUID</label><br>
                    <input class="form-control" type="text" id="vid" name="vid" placeholder="0241dcd2-2bfd-49c2-a3ef-5a36adadcb60::local.ehrbase.org::1" >
                   <br>
                   <label class="form-label" for="format">Format</label><br>
@@ -328,7 +328,9 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
       
     </script> 
 
-
+<style>
+  .required:after { content:" *"; }
+</style>
   <style>
     body{
  background-image: url('/static/img/Medicine-icons2.png');
