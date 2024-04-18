@@ -2333,9 +2333,10 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
 #MANAGEMENT_ENDPOINT_HEALTH_DATASOURCE_ENABLED=true
 #MANAGEMENT_ENDPOINT_INFO_ENABLED=true
 #MANAGEMENT_ENDPOINT_METRICS_ENABLED=true
-
+#MANAGEMENT_ENDPOINT_ENV_SHOWVALUES=ALWAYS
     if(adusername!=""):        
         client.auth = (adusername,adpassword)
+
         if hostname.startswith('http'):
             EHR_SERVER = hostname+":"+port+"/ehrbase/"
         else:
@@ -2352,14 +2353,19 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
         current_app.logger.debug(resp.headers)     
         if(resp.status_code<210 and resp.status_code>199):
             current_app.logger.debug("Dashboard: GET management info success")
+
+            
+            current_app.logger.debug(f'INFOOOOOOOO: {json.loads(resp.text)}')
+
             myresp['status']='success5'
             myresp['success5']=True
-            info=json.loads(resp.text)['build']
-            myinfo={}
-            myinfo['openehr_sdk']=info['openEHR_SDK']['version']
-            myinfo['ehrbase_version']=info['version']
-            myinfo['archie']=info['archie']['version']
-            myresp['info']=myinfo
+            # info=json.loads(resp.text)['build']
+            # myinfo={}
+            # myinfo['openehr_sdk']=info['openEHR_SDK']['version']
+            # myinfo['ehrbase_version']=info['version']
+            # myinfo['archie']=info['archie']['version']
+            # myresp['info']=myinfo
+            myresp['info']=json.loads(resp.text)
         else:
             myresp['success5']=False
             current_app.logger.warning("Dashboard: GET management info failure")
@@ -2380,73 +2386,103 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
         if(resp2.status_code<210 and resp2.status_code>199):
             current_app.logger.debug("Dashboard: GET management env success")
             env=json.loads(resp2.text)
+
+            current_app.logger.debug(f'ENVVVVVV {env}')
+
+            
+
             myresp['status']='success6'
             myresp['success6']=True
-            myenv={}
-            myenv["activeProfiles"]=env["activeProfiles"]    
-            myenv['Java']= env["propertySources"][2]["properties"]["java.specification.vendor"]["value"] + " " \
-                            + env["propertySources"][2]['properties']["java.home"]["value"] 
-            myenv['JavaVM']=   env["propertySources"][2]['properties']["java.vm.name"]["value"]+ \
-                        " "+ env["propertySources"][2]['properties']['java.vm.vendor']['value'] + \
-                        " " + env["propertySources"][2]['properties']["java.vm.version"]["value"]                                
-            myenv["OS"]=env["propertySources"][2]['properties']['os.name']['value'] +  \
-                    " "+ env["propertySources"][2]['properties']["os.arch"]["value"]+ \
-                    " "+  env["propertySources"][2]['properties']["os.version"]["value"] 
-            myresp['env']=myenv
-            gen_properties={}
-            end_properties={}
-            gen_properties["CACHE_ENABLED"]=env["propertySources"][3]["properties"]["CACHE_ENABLED"]["value"]
-            end_properties["MANAGEMENT_ENDPOINTS_WEB_EXPOSURE"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINTS_WEB_EXPOSURE"]
-            end_properties["MANAGEMENT_ENDPOINTS_WEB_BASEPATH"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINTS_WEB_BASEPATH"]
-            end_properties["MANAGEMENT_ENDPOINT_INFO_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_INFO_ENABLED"]
-            end_properties["MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED"]
-            end_properties["MANAGEMENT_ENDPOINT_HEALTH_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_HEALTH_ENABLED"]
-            end_properties["MANAGEMENT_ENDPOINT_METRICS_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_METRICS_ENABLED"]
-            end_properties["MANAGEMENT_ENDPOINT_ENV_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_ENV_ENABLED"]
-            end_properties["MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED"]
-            end_properties["MANAGEMENT_ENDPOINT_HEALTH_DATASOURCE_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_HEALTH_DATASOURCE_ENABLED"]
-            myresp['end_properties']=end_properties
-            db={}
-            db["username"]=env["propertySources"][3]["properties"]["DB_USER"]["value"]
-            db["password"]=env["propertySources"][3]["properties"]["DB_PASS"]["value"]
-            db["url"]=env["propertySources"][3]["properties"]["DB_URL"]["value"]
-            myresp["db"]=db
-            aql={}
-            if "ENV_AQL_ARRAY_DEPTH" in env["propertySources"][3]["properties"]:
-                aql["ENV_AQL_ARRAY_DEPTH"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_DEPTH"]["value"]
-                aql["ENV_AQL_ARRAY_IGNORE_NODE"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_IGNORE_NODE"]["value"]
-                aql["ENV_AQL_ARRAY_DEPTH"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_DEPTH"]["value"]
-                aql["ENV_AQL_ARRAY_IGNORE_NODE"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_IGNORE_NODE"]["value"]
-            else:
-                aql["ENV_AQL_ARRAY_DEPTH"]='Unknown'
-                aql["ENV_AQL_ARRAY_IGNORE_NODE"]='Unknown'
-                aql["ENV_AQL_ARRAY_DEPTH"]='Unknown'
-                aql["ENV_AQL_ARRAY_IGNORE_NODE"]='Unknown'
+            myresp['env0']=env['propertySources'][0]
+            myresp['env1']=env['propertySources'][1]
+            myresp['env2']=env['propertySources'][2]
+            myresp['env3']=env['propertySources'][3]
+            myresp['env4']=env['propertySources'][4]
+            myresp['env5']=env['propertySources'][5]
 
-            aql["server.aqlConfig.useJsQuery"]=env["propertySources"][4]["properties"]["server.aqlConfig.useJsQuery"]["value"]
-            aql["server.aqlConfig.ignoreIterativeNodeList"]=env["propertySources"][4]['properties']["server.aqlConfig.ignoreIterativeNodeList"]["value"]
-            aql["server.aqlConfig.iterationScanDepth"]=env["propertySources"][4]['properties']["server.aqlConfig.iterationScanDepth"]["value"]
-            myresp["aqlinfo"]=aql
-            gen_properties["SERVER_NODENAME"]=env["propertySources"][3]['properties']["SERVER_NODENAME"]["value"]
-            gen_properties["HOSTNAME"]=env["propertySources"][3]['properties']["HOSTNAME"]["value"]
-            gen_properties["LANG"]=env["propertySources"][3]['properties']["LANG"]["value"]
-            gen_properties["SECURITY_AUTHTYPE"]=env["propertySources"][3]['properties']["SECURITY_AUTHTYPE"]["value"]
-            if( "SYSTEM_ALLOW_TEMPLATE_OVERWRITE") in env["propertySources"][3]['properties']:
-                gen_properties["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]=env["propertySources"][3]['properties']["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]["value"]
-            else:
-                gen_properties["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]='Unknown'
-            myresp["gen_properties"]=gen_properties
-            terminology={}
-            terminology["validation.external-terminology.enabled"]=env["propertySources"][5]['properties']["validation.external-terminology.enabled"]["value"]
-            terminology["validation.external-terminology.provider.fhir.type"]=env["propertySources"][5]['properties']["validation.external-terminology.provider.fhir.type"]["value"]
-            terminology["validation.external-terminology.provider.fhir.url"]=env["propertySources"][5]['properties']["validation.external-terminology.provider.fhir.url"]["value"]
-            myresp["terminology"]=terminology
-            plugin={}
-            plugin["plugin-manager.plugin-dir"]=env["propertySources"][5]['properties']["plugin-manager.plugin-dir"]["value"]
-            plugin["plugin-manager.plugin-config-dir"]=env["propertySources"][5]['properties']["plugin-manager.plugin-config-dir"]["value"]
-            plugin["plugin-manager.enable"]=env["propertySources"][5]['properties']["plugin-manager.enable"]["value"]
-            plugin["plugin-manager.plugin-context-path"]=env["propertySources"][5]['properties']["plugin-manager.plugin-context-path"]["value"]
-            myresp['plugin']=plugin   
+        #     myenv={}
+        #     myenv["activeProfiles"]=env["activeProfiles"]    
+        #     myenv['Java']= env["propertySources"][2]["properties"]["java.specification.vendor"]["value"] + " " \
+        #                     + env["propertySources"][2]['properties']["java.home"]["value"] 
+        #     myenv['JavaVM']=   env["propertySources"][2]['properties']["java.vm.name"]["value"]+ \
+        #                 " "+ env["propertySources"][2]['properties']['java.vm.vendor']['value'] + \
+        #                 " " + env["propertySources"][2]['properties']["java.vm.version"]["value"]                                
+        #     myenv["OS"]=env["propertySources"][2]['properties']['os.name']['value'] +  \
+        #             " "+ env["propertySources"][2]['properties']["os.arch"]["value"]+ \
+        #             " "+  env["propertySources"][2]['properties']["os.version"]["value"] 
+        #     myresp['env']=myenv
+        #     gen_properties={}
+        #     end_properties={}
+        #     gen_properties["CACHE_ENABLED"]=env["propertySources"][3]["properties"]["CACHE_ENABLED"]["value"]
+        #     end_properties["MANAGEMENT_ENDPOINTS_WEB_EXPOSURE"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINTS_WEB_EXPOSURE"]
+        #     end_properties["MANAGEMENT_ENDPOINTS_WEB_BASEPATH"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINTS_WEB_BASEPATH"]
+        #     end_properties["MANAGEMENT_ENDPOINT_INFO_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_INFO_ENABLED"]
+        #     end_properties["MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED"]
+        #     end_properties["MANAGEMENT_ENDPOINT_HEALTH_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_HEALTH_ENABLED"]
+        #     end_properties["MANAGEMENT_ENDPOINT_METRICS_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_METRICS_ENABLED"]
+        #     end_properties["MANAGEMENT_ENDPOINT_ENV_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_ENV_ENABLED"]
+        #     end_properties["MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED"]
+        #     end_properties["MANAGEMENT_ENDPOINT_HEALTH_DATASOURCE_ENABLED"]=env["propertySources"][3]["properties"]["MANAGEMENT_ENDPOINT_HEALTH_DATASOURCE_ENABLED"]
+        #     myresp['end_properties']=end_properties
+        #     db={}
+        #     db["username"]=env["propertySources"][3]["properties"]["DB_USER"]["value"]
+        #     db["password"]=env["propertySources"][3]["properties"]["DB_PASS"]["value"]
+        #     db["url"]=env["propertySources"][3]["properties"]["DB_URL"]["value"]
+        #     myresp["db"]=db
+        #     aql={}
+        #     if "ENV_AQL_ARRAY_DEPTH" in env["propertySources"][3]["properties"]:
+        #         aql["ENV_AQL_ARRAY_DEPTH"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_DEPTH"]["value"]
+        #         aql["ENV_AQL_ARRAY_IGNORE_NODE"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_IGNORE_NODE"]["value"]
+        #         aql["ENV_AQL_ARRAY_DEPTH"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_DEPTH"]["value"]
+        #         aql["ENV_AQL_ARRAY_IGNORE_NODE"]=env["propertySources"][3]["properties"]["ENV_AQL_ARRAY_IGNORE_NODE"]["value"]
+        #     else:
+        #         aql["ENV_AQL_ARRAY_DEPTH"]='Unknown'
+        #         aql["ENV_AQL_ARRAY_IGNORE_NODE"]='Unknown'
+        #         aql["ENV_AQL_ARRAY_DEPTH"]='Unknown'
+        #         aql["ENV_AQL_ARRAY_IGNORE_NODE"]='Unknown'
+
+        #     current_app.logger.debug(f'PROPERTIES={env["propertySources"]}')
+ 
+        #     if "server.aqlConfig.useJsQuery" in env["propertySources"][4]["properties"]:
+        #         aql["server.aqlConfig.useJsQuery"]=env["propertySources"][4]["properties"]["server.aqlConfig.useJsQuery"]["value"]
+        #         aql["server.aqlConfig.ignoreIterativeNodeList"]=env["propertySources"][4]['properties']["server.aqlConfig.ignoreIterativeNodeList"]["value"]
+        #         aql["server.aqlConfig.iterationScanDepth"]=env["propertySources"][4]['properties']["server.aqlConfig.iterationScanDepth"]["value"]
+        #         myresp["aqlinfo"]=aql
+        #     elif "spring.datasource.url" in env["propertySources"][4]["properties"]: #version 2.0.0 upwards
+        #         myresp["aqlinfo"]={}
+        #         springinfo={}
+        #         # springinfo['security.authType']=env["propertySources"][3]['properties']['security.authType']['value']
+        #         # springinfo['spring.flyway.user']=env["propertySources"][3]['properties']['spring.flyway.user']['value']
+        #         # springinfo['spring.flyway.password']=env["propertySources"][3]['properties']['spring.flyway.password']['value']
+        #         # springinfo['spring.flyway.schemas']=env["propertySources"][3]['properties']['spring.flyway.schemas']['value']
+        #         # springinfo['spring.datasource.url']=env["propertySources"][3]['properties']['spring.datasource.url']['value']
+        #         # springinfo['spring.datasource.username']=env["propertySources"][3]['properties']['spring.datasource.username']['value']
+        #         # springinfo['spring.datasource.password']=env["propertySources"][3]['properties']['spring.datasource.url']['value']
+        #         # springinfo['spring.datasource.hikari.minimum-idle']=env["propertySources"][3]['properties']['spring.datasource.hikari.minimum-idle']['value']
+        #         # springinfo['spring.datasource.hikari.maximum-pool-size']=env["propertySources"][3]['properties']['spring.datasource.hikari.maximum-pool-size']['value']
+        #         # springinfo['spring.datasource.hikari.max-lifetime']=env["propertySources"][3]['properties']['spring.datasource.hikari.max-lifetime']['value']
+        #         # myresp["springinfo"]=springinfo
+                
+        #     gen_properties["SERVER_NODENAME"]=env["propertySources"][3]['properties']["SERVER_NODENAME"]["value"]
+        #     gen_properties["HOSTNAME"]=env["propertySources"][3]['properties']["HOSTNAME"]["value"]
+        #     gen_properties["LANG"]=env["propertySources"][3]['properties']["LANG"]["value"]
+        #     gen_properties["SECURITY_AUTHTYPE"]=env["propertySources"][3]['properties']["SECURITY_AUTHTYPE"]["value"]
+        #     if( "SYSTEM_ALLOW_TEMPLATE_OVERWRITE") in env["propertySources"][3]['properties']:
+        #         gen_properties["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]=env["propertySources"][3]['properties']["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]["value"]
+        #     else:
+        #         gen_properties["SYSTEM_ALLOW_TEMPLATE_OVERWRITE"]='Unknown'
+        #     myresp["gen_properties"]=gen_properties
+        #     terminology={}
+        #     terminology["validation.external-terminology.enabled"]=env["propertySources"][5]['properties']["validation.external-terminology.enabled"]["value"]
+        #     # terminology["validation.external-terminology.provider.fhir.type"]=env["propertySources"][5]['properties']["validation.external-terminology.provider.fhir.type"]["value"]
+        #     # terminology["validation.external-terminology.provider.fhir.url"]=env["propertySources"][5]['properties']["validation.external-terminology.provider.fhir.url"]["value"]
+        #     myresp["terminology"]=terminology
+        #     plugin={}
+        #     plugin["plugin-manager.plugin-dir"]=env["propertySources"][5]['properties']["plugin-manager.plugin-dir"]["value"]
+        #     plugin["plugin-manager.plugin-config-dir"]=env["propertySources"][5]['properties']["plugin-manager.plugin-config-dir"]["value"]
+        #     plugin["plugin-manager.enable"]=env["propertySources"][5]['properties']["plugin-manager.enable"]["value"]
+        #     plugin["plugin-manager.plugin-context-path"]=env["propertySources"][5]['properties']["plugin-manager.plugin-context-path"]["value"]
+        #     myresp['plugin']=plugin   
         else:
             myresp['success6']=False
             current_app.logger.warning(f"Dashboard: GET management env failure")
@@ -2466,8 +2502,12 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
         current_app.logger.debug(resp3.headers)       
         if(resp3.status_code<210 and resp3.status_code>199) or resp3.status_code==503:
             current_app.logger.info("Dashboard: GET management health success")
+
+            current_app.logger.debug(f'HEALTHHHHH {json.loads(resp3.text)}')
+
+
             health=json.loads(resp3.text)
-            myresp["db"]["db"]=health["components"]["db"]["details"]["database"]
+            # myresp["db"]["db"]=health["components"]["db"]["details"]["database"]
             #disk={}
             #disk["total_space"]=health["components"]["diskSpace"]["details"]["total"]
             #disk["free_space"]=health["components"]["diskSpace"]["details"]["free"]

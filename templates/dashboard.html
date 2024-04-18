@@ -294,35 +294,6 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                   </div>
               </div>
           </div>
-<!--       Tasks Card Example
-      <div class="col-xl-3 col-md-6 mb-4">
-          <div class="card border-left-info shadow h-100 py-2">
-              <div class="card-body">
-                  <div class="row no-gutters align-items-center">
-                      <div class="col mr-2">
-                          <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Templates
-                          </div>
-                          <div class="row no-gutters align-items-center">
-                              <div class="col-auto">
-                                  <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">50%</div>
-                              </div>
-                              <div class="col">
-                                  <div class="progress progress-sm mr-2">
-                                      <div class="progress-bar bg-info" role="progressbar"
-                                          style="width: 50%" aria-valuenow="50" aria-valuemin="0"
-                                          aria-valuemax="100"></div>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-                      <div class="col-auto">
-                          <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
- -->
       <!-- Pending Requests Card Example -->
       <div class="col-xl-3 col-md-6 mb-4">
           <div class="card border-left-warning shadow h-100 py-2">
@@ -374,14 +345,13 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
             </div>
         </div>
       </div>
-
 </div>
-<div class="row">
+<div class="row row-cols-2">
   <div class="col browser">
       <div class="top text-primary">
-        EHRBase
+        Info
       </div>
-      <div class="content text-gray-800" >
+      <div class="content text-gray-800" id="info" >
         {{info|tojson}}
       </div>
   </div>
@@ -389,70 +359,103 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
     <div class="top text-success">
       Health
     </div>
-    <div class="content">
+    <div class="content" id="health">
       {{health|tojson}}
     </div>
   </div>
+</div>
+<div class="row row-cols-2">
   <div class="col browser">
     <div class="top text-primary">
-      AQL
+      {{env0name}}
     </div>
-    <div class="content">
-      {{aql|tojson}}
-    </div>
-  </div>
-  <div class="col browser">
-    <div class="top text-success">
-      DB
-    </div>
-    <div class="content">
-      {{db|tojson}}
-    </div>
-  </div>
-</div>
-<div class="row">
-  <div class="col browser">
-    <div class="top text-success" >
-      EHRBase Gen Properties
-    </div>
-    <div class="content text-gray-800">
-      {{gen_properties|tojson}}
+    <div class="content"  id="env0">
+      {{env0|tojson}}
     </div>
   </div> 
   <div class="col browser">
-    <div class="top text-info" >
-      EHRBase Endpoint Properties
+    <div class="top text-success">
+      {{env1name}}
     </div>
-    <div class="content text-gray-800">
-      {{end_properties|tojson}}
+    <div class="content"  id="env1">
+      {{env1|tojson}}
     </div>
-  </div>    
+  </div>
+</div>
+<div class="row row-cols-2">  
   <div class="col browser">
     <div class="top text-primary">
-      Terminology
+      {{env2name}}
     </div>
-    <div class="content">
-      {{terminology|tojson}}
+    <div class="content"  id="env2">
+      {{env2|tojson}}
     </div>
   </div>
   <div class="col browser">
     <div class="top text-success">
-      Plugin
+      {{env3name}}
     </div>
-    <div class="content">
-      {{plugin|tojson}}
+    <div class="content" id="env3">
+      {{env3|tojson}}
+    </div>
+  </div>
+  </div>
+<div class="row row-cols-2">  
+  <div class="col browser">
+    <div class="top text-primary">
+      {{env4name}}
+    </div>
+    <div class="content"  id="env4">
+      {{env4|tojson}}
     </div>
   </div>
   <div class="col browser">
-    <div class="top text-primary">
-      Env
+    <div class="top text-success">
+      {{env5name}}
     </div>
-    <div class="content">
-      {{env|tojson}}
+    <div class="content" id="env5">
+      {{env5|tojson}}
     </div>
   </div>
  
 </div>
+
+
+<script>
+function createbulletlist(jsonvar){
+  var result='<ul>';
+  var obj=jsonvar;
+  for (var key in obj){
+    var value = obj[key];
+    if ( typeof(value)==String || typeof(value)==Number ){
+      result+='<li>'+key+'='+value+'</li>';
+    }else
+    {
+      result+='<li>'+key+'='+JSON.stringify(value)+'</li>';
+    }
+  }
+  result+='</ul>';
+  return result;
+}
+var resultinfo=createbulletlist({{info|tojson}}['build']);
+document.getElementById("info").innerHTML = resultinfo;
+var resulthealth=createbulletlist({{health|tojson}});
+document.getElementById("health").innerHTML = resulthealth;
+var result0=createbulletlist({{env0|tojson}});
+document.getElementById("env0").innerHTML = result0;
+var result1=createbulletlist({{env1|tojson}});
+document.getElementById("env1").innerHTML = result1;
+var result2=createbulletlist({{env2|tojson}});
+document.getElementById("env2").innerHTML = result2;
+var result3=createbulletlist({{env3|tojson}});
+document.getElementById("env3").innerHTML = result3;
+var result4=createbulletlist({{env4|tojson}});
+document.getElementById("env4").innerHTML = result4;
+var result5=createbulletlist({{env5|tojson}});
+document.getElementById("env5").innerHTML = result5;
+
+</script>
+
 
 <style>
   .browser {

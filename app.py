@@ -1591,8 +1591,25 @@ def create_app():
 
     @app.route("/dashboard.html",methods=["GET"])
     #show dashboard
+
     def dashtemp():
-        return render_template('dashboard_waiting.html')
+        info=health=env0=env1=env2=env3=env4=env5={'status':'loading data'}
+        parameters={}
+        parameters['info']=info
+        parameters['health']=health
+        parameters['env0']=env0
+        parameters['env0name']='env0'
+        parameters['env1']=env1
+        parameters['env1name']='env1'
+        parameters['env2']=env2
+        parameters['env2name']='env2'
+        parameters['env3']=env3
+        parameters['env3name']='env3'
+        parameters['env4']=env4
+        parameters['env4name']='env4'
+        parameters['env5']=env5
+        parameters['env5name']='env5'
+        return render_template('dashboard_waiting.html',**parameters)
 
     @app.route("/dashboard_final.html",methods=["GET"])
     def dashboard():
@@ -1603,17 +1620,22 @@ def create_app():
         msg=ehrbase_routines.get_dashboard_info(client,auth,hostname,port,username,password,adauth,adusername,adpassword)
 
         if('success' in msg['status']):
-            info=health=aql=db=gen_properties=end_properties=terminology=plugin=env={}
+            info=health=env0=env1=env2=env3=env4=env5={'status':'no data available'}
             parameters={}
             parameters['info']=info
             parameters['health']=health
-            parameters['aql']=aql
-            parameters['db']=db
-            parameters['gen_properties']=gen_properties
-            parameters['end_properties']=end_properties
-            parameters['terminology']=terminology
-            parameters['plugin']=plugin
-            parameters['env']=env
+            parameters['env0']=env0
+            parameters['env0name']='env0'
+            parameters['env1']=env1
+            parameters['env1name']='env1'
+            parameters['env2']=env2
+            parameters['env2name']='env2'
+            parameters['env3']=env3
+            parameters['env3name']='env3'
+            parameters['env4']=env4
+            parameters['env4name']='env4'
+            parameters['env5']=env5
+            parameters['env5name']='env5'
             if msg['success1']:#AQL queries stored
                 parameters['total_aql_queries']=msg['aql']
             if msg['success2']:#total EHRS
@@ -1633,16 +1655,21 @@ def create_app():
                 parameters['info']=msg['info']
             if 'success6' in msg:
                 if msg['success6']:
-                    parameters['env']=msg['env']
-                    parameters['end_properties']=msg['end_properties']
-                    parameters['db']=msg["db"]
-                    parameters['aql']=msg["aqlinfo"]
-                    parameters['gen_properties']=msg["gen_properties"]
-                    parameters['terminology']=msg["terminology"]
-                    parameters['plugin']=msg["plugin"]
+                    parameters['env0']=msg['env0']['properties']
+                    parameters['env0name']=msg['env0']['name']
+                    parameters['env1']=msg['env1']['properties']
+                    parameters['env1name']=msg['env1']['name']
+                    parameters['env2']=msg['env2']['properties']
+                    parameters['env2name']=msg['env2']['name']
+                    parameters['env3']=msg['env3']['properties']
+                    parameters['env3name']=msg['env3']['name']
+                    parameters['env4']=msg['env4']['properties']
+                    parameters['env4name']=msg['env4']['name']
+                    parameters['env5']=msg['env5']['properties']
+                    parameters['env5name']=msg['env5']['name']
+
             if 'success7' in msg:
                 if msg['success7']:
-                    parameters['db']=msg["db"]
                     parameters['health']=msg['health']
             
             return render_template('dashboard.html',**parameters)

@@ -383,7 +383,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 <div class="row">
   <div class="col browser">
       <div class="top text-primary">
-        EHRBase
+        Info
       </div>
       <div class="content text-gray-800" >
         {{info}}
@@ -391,71 +391,67 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
   </div>
   <div class="col browser">
     <div class="top text-success">
-      Disk
+      Health
     </div>
     <div class="content">
-      {{disk}}
-    </div>
-  </div>
-  <div class="col browser">
-    <div class="top text-primary">
-      AQL
-    </div>
-    <div class="content">
-      {{aql}}
-    </div>
-  </div>
-  <div class="col browser">
-    <div class="top text-success">
-      DB
-    </div>
-    <div class="content">
-      {{db}}
+      {{health}}
     </div>
   </div>
 </div>
 <div class="row">
   <div class="col browser">
+    <div class="top text-primary">
+      {{env0name}}
+    </div>
+    <div class="content">
+      {{env0}}
+    </div>
+  </div> 
+  <div class="col browser">
+    <div class="top text-success">
+      {{env1name}}
+    </div>
+    <div class="content">
+      {{env1}}
+    </div>
+  </div>
+</div>
+<div class="row">   
+  <div class="col browser">
     <div class="top text-success" >
-      EHRBase Gen Properties
+      {{env2name}}
     </div>
     <div class="content text-gray-800">
-      {{gen_properties}}
+      {{env2}}
     </div>
   </div> 
   <div class="col browser">
     <div class="top text-info" >
-      EHRBase Endpoint Properties
+      {{env3name}}
     </div>
     <div class="content text-gray-800">
-      {{end_properties}}
+      {{env3}}
     </div>
-  </div>    
+  </div>  
+</div>
+<div class="row">  
   <div class="col browser">
     <div class="top text-primary">
-      Terminology
+      {{env4name}}
     </div>
     <div class="content">
-      {{terminology}}
+      {{env4}}
     </div>
   </div>
   <div class="col browser">
     <div class="top text-success">
-      Plugin
+      {{env5name}}
     </div>
     <div class="content">
-      {{plugin}}
+      {{env5}}
     </div>
   </div>
-  <div class="col browser">
-    <div class="top text-primary">
-      Env
-    </div>
-    <div class="content">
-      {{env}}
-    </div>
-  </div>
- 
+  
 </div>
 
 <style>
