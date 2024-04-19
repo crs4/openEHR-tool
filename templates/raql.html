@@ -344,12 +344,12 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
   })
   checkbox3.addEventListener('change', (event) => {
   if (event.currentTarget.checked) {
-    mybox.value ='SELECT e/ehr_id/value,c/uid/value FROM EHR e CONTAINS composition c'
+    mybox.value ='SELECT e/ehr_id/value,c/uid/value FROM EHR e CONTAINS COMPOSITION c'
     } 
   })
   checkbox4.addEventListener('change', (event) => {
   if (event.currentTarget.checked) {
-    mybox.value ='SELECT e/ehr_id/value,c/archetype_details/template_id/value,c/uid/value FROM EHR e CONTAINS composition c'
+    mybox.value ='SELECT e/ehr_id/value,c/archetype_details/template_id/value,c/uid/value FROM EHR e CONTAINS COMPOSITION c'
     } 
   })
 
