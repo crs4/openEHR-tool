@@ -69,11 +69,11 @@ name: ehrbase-0210_ehrbase-net
 ```
 Now you can rebuild your containers. On MacOS:
 ```
-docker-compose -f docker-compose.yml.mac.2 up --build
+docker compose -f docker-compose.yml.mac.2 up --build
 ```
 on Windows:
 ```
-docker-compose -f docker-compose.yml.win.2 up --build
+docker compose -f docker-compose.yml.win.2 up --build
 ```
 The right configuration file now is openehrtool.cfg.example.total so make sure to copy it onto openehrtool.cfg before running or otherwise reload the configuration after doing the copy.
 
@@ -199,12 +199,17 @@ If you don't already have a working ehrbase server you can opt for the docker co
 #### Development
 Update images (if needed):
 ```
-docker-compose -f docker-compose-total.yml pull
+docker compose -f docker-compose-total.yml pull
 ```
 then run with:
 ```
-docker-compose -f docker-compose-total.yml up
+docker compose -f docker-compose-total.yml up
 ```
+If you want to use the latest version of openEHRTool then run with --build:
+```
+docker compose -f docker-compose-total.yml up --build
+```
+
 If there is an error due to the db migration you can remove the directory containing the data:
 Linux/MacOS:
 ```
@@ -217,15 +222,23 @@ rmdir /s "{pathtoopenehrtool}/.pgdata"
 or if you need the old data then you have to follow the EHRBase steps to migrate the db from your version to the latest version. 
 Take a look at the ERHBase version UPDADING.md info on how to proceed (e.g. https://github.com/ehrbase/ehrbase/blob/v2.0.0/UPDATING.md).
 
+
+
+
 #### Production
 Update images:
 ```
-docker-compose -f docker-compose-total_prod.yml pull
+docker compose -f docker-compose-total_prod.yml pull
 ```
 then run with:
 ```
-docker-compose -f docker-compose-total_prod.yml up
+docker compose -f docker-compose-total_prod.yml up
 ```
+If you want to use the latest version of openEHRTool then run with --build:
+```
+docker compose -f docker-compose-total_prod.yml up --build
+```
+
 If there is an error due to the db migration you can remove the directory containing the data:
 Linux/MacOS:
 ```
@@ -247,36 +260,36 @@ EHRBase is run in a network/docker-compose separated from openEHRTool.
 For linux choose which composer to run between docker-compose.yml.linux.1 and docker-compose.yml.linux.2 and then run:
 Note: In the following we show the lines to run for linux.1 but they apply to linux.2 too. Remember to adopt the right cfg file. There is one separate configuration file .cfg for each of them):
 ```
-docker-compose -f docker-compose.yml.linux1 
+docker compose -f docker-compose.yml.linux1 
 ```
 if a previous version was already used then rebuild the containers before running with:
 ```
-docker-compose -f docker-compose.yml.linux1 up --build
+docker compose -f docker-compose.yml.linux1 up --build
 ```
 For macOS run with:
 ```
-docker-compose -f docker-compose.yml.mac.1 up
+docker compose -f docker-compose.yml.mac.1 up
 ```
 and again if a previous version is there:
 ```
-docker-compose -f docker-compose.yml.mac.1 up --build
+docker compose -f docker-compose.yml.mac.1 up --build
 ```
 #### Production
 For Linux run with:
 ```
-docker-compose -f docker-compose_prod.yml.linux1 up
+docker compose -f docker-compose_prod.yml.linux1 up
 ```
 if a previous version was already used then rebuild the containers before running it:
 ```
-docker-compose -f docker-compose_prod.yml.linux1 up --build
+docker compose -f docker-compose_prod.yml.linux1 up --build
 ```
 For macOS run with:
 ```
-docker-compose -f docker-compose_prod.yml.mac.1
+docker compose -f docker-compose_prod.yml.mac.1
 ```
 and again if a previous version is there:
 ```
-docker-compose -f docker-compose_prod.yml.mac.1 up --build
+docker compose -f docker-compose_prod.yml.mac.1 up --build
 ```
 
 ## &#x1F335; Testing (for developers)&#x1F335;
