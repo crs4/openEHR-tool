@@ -197,23 +197,46 @@ cd openEHR-tool
 If you don't already have a working ehrbase server you can opt for the docker compose script that runs all the applications(EHRBase, openEHRTool and Redis) in the same docker subnet.
 
 #### Development
-Run with:
+Update images (if needed):
 ```
-docker-compose -f docker-compose-total.yml
+docker-compose -f docker-compose-total.yml pull
 ```
-if you run an updated version of openEHRTool rebuild it and run it with:
+then run with:
 ```
-docker-compose -f docker-compose-total.yml openehrtool up --build
+docker-compose -f docker-compose-total.yml up
 ```
+If there is an error due to the db migration you can remove the directory containing the data:
+Linux/MacOS:
+```
+sudo rm -rf {pathtoopenehrtool}/.pgdata
+```
+Windows:
+```
+rmdir /s "{pathtoopenehrtool}/.pgdata"
+```
+or if you need the old data then you have to follow the EHRBase steps to migrate the db from your version to the latest version. 
+Take a look at the ERHBase version UPDADING.md info on how to proceed (e.g. https://github.com/ehrbase/ehrbase/blob/v2.0.0/UPDATING.md).
+
 #### Production
-Run with:
+Update images:
 ```
-docker-compose -f docker-compose-total_prod.yml
+docker-compose -f docker-compose-total_prod.yml pull
 ```
-if you run an updated version of openEHRTool rebuild it and run it with:
+then run with:
 ```
-docker-compose -f docker-compose-total_prod.yml openehrtool up --build
+docker-compose -f docker-compose-total_prod.yml up
 ```
+If there is an error due to the db migration you can remove the directory containing the data:
+Linux/MacOS:
+```
+sudo rm -rf {pathtoopenehrtool}/.pgdata
+```
+Windows:
+```
+rmdir /s "{pathtoopenehrtool}/.pgdata"
+```
+or if you need the old data then you have to follow the EHRBase steps to migrate the db from your version to the latest version. 
+Take a look at the ERHBase version UPDADING.md info on how to proceed (e.g. https://github.com/ehrbase/ehrbase/blob/v2.0.0/UPDATING.md).
 
 [//]: # ( ### <span style="color:red"> Docker "Separated"</span> )
 
