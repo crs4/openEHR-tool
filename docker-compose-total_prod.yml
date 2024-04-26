@@ -36,7 +36,7 @@ services:
     build: 
       context: .
       dockerfile: ./Dockerfile.prod
-    image: surfercrs4/openehrtoolprod
+    image: surfercrs4/openehrtoolprod/latest
     volumes:
         - .:/code
     env_file:
