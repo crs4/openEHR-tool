@@ -313,9 +313,9 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
   <script>
     
     if({{myvalue|tojson}}=='show'){
-      document.getElementById('aqltext').value="{{aqltext2}}";
+      document.getElementById('aqltext').innerHTML="{{aqltext2}}";
     }else{
-      document.getElementById('aqltext').value="{{lastaql}}";
+      document.getElementById('aqltext').innerHTML="{{lastaql}}";
     }
 
   </script>
