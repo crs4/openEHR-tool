@@ -1765,8 +1765,8 @@ def postaql(client,auth,hostname,port,username,password,aqltext,qname,version,qt
     if(version==""):
         version="1.0.0"
     aqltext=aqltext.translate({ord(c):' ' for c in '\n\r'})
-    if "'" in aqltext:
-        aqltext=aqltext.replace("'",'\\\'')
+    # if "'" in aqltext:
+    #     aqltext=aqltext.replace("'",'\\\'')
     #aqltext="{'q':'"+aqltext+"'}"
     myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/query/'+qname+"/"+version)
     response = client.put(myurl,params={'type':qtype,'format':'RAW'},headers={'Authorization':auth,'Content-Type':'text/plain'},data=aqltext)
