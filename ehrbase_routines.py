@@ -537,7 +537,8 @@ def getehrsub(client,auth,hostname,port,username,password,sid,sna):
     myresp={}
     if(response.status_code<210 and response.status_code>199):
         myresp['status']="success"
-        ehrid=response.headers['Location'].split("ehr/")[3]
+        # ehrid=response.headers['Location'].split("ehr/")[3]
+        ehrid=response.headers['Location'].split('/')[-1]
         myresp["ehrid"]=ehrid
         myresp['text']=response.text
         current_app.logger.info(f"EHR GET success for subject_id={sid} subject_namespace={sna} => ehrid={ehrid}")
