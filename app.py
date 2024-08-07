@@ -1588,6 +1588,39 @@ def create_app():
         else:
             return render_template('raqlstored.html',lastehr=lastehrid,resultsave=resultsave,temp=temp,res=res,status=status,myvalue=myvalue,aqltext2=aqltext2,lastaql=lastaql)
 
+    @app.route("/daqlstored.html",methods=["GET"])
+    #delete aql query
+    def daql():
+        global hostname,port,adusername,adpassword,auth,adauth,nodename,username,password
+        if(hostname=="" or port=="" or adusername=="" or adpassword=="" or nodename=="" or username=="" or password==""):       
+            return redirect(url_for("ehrbase"))
+        mymsg=ehrbase_routines.createPageFromBase4querylist(client,auth,hostname,port,username,password,'daqlbase.html','daqlstored.html')
+        if(mymsg['status']=='failure'):
+            return redirect(url_for("ehrbase"))
+        #aql=""
+        #aqlpresent='false'
+        yourresults=""
+        if request.args.get("pippo")=="Delete query":
+            qdata=request.args.get("qdata","")
+            if "$v" not in qdata: #no query choosable
+                yourresults=f"No queries available"
+                return render_template('daqlstored.html',yourresults=yourresults,aql=aql,aqlpresent=aqlpresent)        
+            qdatas=qdata.split('$v')
+            qname=qdatas[0]
+            version=qdatas[1]
+            #reversed_nodename=".".join(reversed(nodename.split(".")))
+            #if(qname != "" and "::" not in qname):
+            #    qname=reversed_nodename+"::"+qname+"/"
+            msg=ehrbase_routines.delaql(client,adauth,hostname,port,adusername,adpassword,qname,version)
+            if(msg['status']=="success"):
+                insertlogline('Delete AQL Query: query '+qname+' version'+version+' deleted successfully')
+                yourresults=f"Query deleted successfully.\n status_code={msg['status_code']}\n text={msg['text']}\n headers={msg['headers']}"
+            else:
+                insertlogline('Delete AQL Query: query '+qname+' version='+version+' deletion failure')
+                yourresults=f"Query deletion failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"               
+            return render_template('daqlstored.html',yourresults=yourresults)
+        else: 
+            return render_template('daqlstored.html',yourresults=yourresults)
 
     @app.route("/dashboard.html",methods=["GET"])
     #show dashboard

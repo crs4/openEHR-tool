@@ -1905,6 +1905,43 @@ def getaql(client,auth,hostname,port,username,password,qname,version):
         current_app.logger.warning("AQL GET failure")
     return myresp  
 
+
+def delaql(client,adauth,hostname,port,adusername,adpassword,qname,version):
+    #ADMIN DELETE STORED QUERY
+    client.auth = (adusername,adpassword)
+    current_app.logger.debug('inside delaql')
+    if hostname.startswith('http'):
+        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/admin/"
+    else:
+        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/admin/"
+    if(version!=""):
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/'+qname+"/"+version)
+    else:
+        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/'+qname)
+    response = client.delete(myurl,headers={'Authorization':adauth,'Content-Type': 'application/json'})
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
+    current_app.logger.debug(f"qname={qname} version={version}")
+    myresp={}
+    myresp["status_code"]=response.status_code
+    if(response.status_code<210 and response.status_code>199):
+        myresp["status"]="success"
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        current_app.logger.info("AQL DELETE success")
+    else:
+        myresp["status"]="failure"
+        myresp['text']=response.text
+        myresp["headers"]=response.headers
+        current_app.logger.warning("AQL DELETE failure")
+    return myresp  
+
 def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,offset,eid,qparam,qname,version):
     
     current_app.logger.debug('inside runaql')

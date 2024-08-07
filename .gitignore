@@ -14,8 +14,10 @@ templates/gaql.html
 templates/raqlstored.html
 templates/pbatch1.html
 templates/pbatch2.html
+templates/daqlstored.html
 templates/test*
 .vscode/
 static/img/StethoQuest.png
 static/img/pexels-snapwire-6728.jpg
 static/img/questionmarkstethoscope.png
+dump.rdb
