@@ -15,7 +15,9 @@ MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED=false
 MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED=true
 MANAGEMENT_ENDPOINT_ENV_SHOWVALUES=ALWAYS
 ADMIN_API_ACTIVE=true
+ADMINAPI_ACTIVE=true
 ADMINAPI_ALLOWDELETEALL=true
+SYSTEM_ALLOW_TEMPLATE_OVERWRITE=true
 ```
 ## Settings
 openEHRTool settings can be written in a file named openehrtool.cfg in the config dir. In the same dir different examples are available and must be copied onto openehrtool.cfg in order to be read. That file is loaded at application boot or can be reloaded at runtime using the related method "Settings->Reload Settings".
