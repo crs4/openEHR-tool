@@ -14,6 +14,7 @@ import json
 from werkzeug.exceptions import default_exceptions
 from datetime import datetime
 import traceback
+import re
 
 default_hostname="localhost"
 default_port="8080"
@@ -1540,7 +1541,8 @@ def create_app():
                     insertlogline('Get AQL Query: query '+qname+' version'+version+' retrieved successfully')
                     yourresultspre=f"Query {qname} v{version} retrieved successfully"
                     #aqlpresent='true'
-                    aqltext2=msg['aql']
+                    aqltextorig=msg['aql'].replace('\n',' ')
+                    aqltext2=re.sub(r'\s+', ' ', aqltextorig)
                     lastaql=aqltext2
                     myvalue='show'
                     return render_template('raqlstored.html',yourresultspre=yourresultspre,aqltext2=aqltext2,lastehr=lastehrid,resultsave=resultsave,temp=temp,res=res,status=status,myvalue=myvalue)    
