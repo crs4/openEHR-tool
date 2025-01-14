@@ -355,10 +355,12 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
 
   <script type="text/javascript">
     if ( {{status|tojson}} == "success" ){
-        if ( {{format|tojson}} == "xml" ) {
+        if ( {{format|tojson}} == "XML" ) {
           document.getElementById("savexml").style.display = 'block';
+          document.getElementById("savejson").style.display = 'none';
         }else{
               document.getElementById("savejson").style.display = 'block';
+              document.getElementById("savexml").style.display = 'none';
             }
           }else
           {

@@ -6,10 +6,9 @@ from json_tools import diff
 import string,random
 import sys
 from flask import request
-from myutils import myutils
-from myutils import structuredMarand2EHRBase
+from myutils import myutils,structuredMarand2EHRBase
 from flask import current_app
-import uuid
+#import uuid
 
 def init_ehrbase():
     current_app.logger.debug('inside init_ehrbase')
@@ -17,15 +16,11 @@ def init_ehrbase():
     return client
 
 
-def createPageFromBase4templatelist(client,auth,hostname,port,username,password,basefile,targetfile):
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+def createPageFromBase4templatelist(client,auth,url_base,basefile,targetfile):
     current_app.logger.debug('inside createPageFromBase4templatelist')
-    client.auth = (username,password)
+    #client.auth = (username,password)
     myresp={}
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4')
+    myurl=url_normalize(url_base  + 'definition/template/adl1.4')
     response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'})
     current_app.logger.debug('Get list templates')
     current_app.logger.debug('Response Url')
@@ -74,28 +69,27 @@ def createPageFromBase4templatelist(client,auth,hostname,port,username,password,
         current_app.logger.warning("GET templates for createPageFromBase4templatelist failure")
         return myresp    
 
-def gettemp(client,auth,hostname,port,username,password,tformat,template):
-    
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    client.auth = (username,password)
+def gettemp(client,auth,url_base,url_base_ecis,tformat,template,ehrbase_version):
     myresp={}
     current_app.logger.debug('inside gettemp')
     current_app.logger.info(f'Get Template: template={template} format={tformat}')
     if(tformat=="OPT"):
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4/'+template)
+        myurl=url_normalize(url_base  + 'definition/template/adl1.4/'+template)
         response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'})
     else: #format webtemplate
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL+'template/'+template)
-        current_app.logger.debug('myurl')
-        current_app.logger.debug(myurl)        
-        response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/openehr.wt+json'})
+        try:
+            if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                myurl=url_normalize(url_base  + 'definition/template/adl1.4/'+template)
+                response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/JSON',
+                                                      'Accept': 'application/openehr.wt+json'})
+            else:#EHRBase version<2.5.0
+                myurl=url_normalize(url_base_ecis+'template/'+template)
+                current_app.logger.debug('myurl')
+                current_app.logger.debug(myurl)        
+                response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/openehr.wt+json'})
+        except myutils.EHRBaseVersion:
+            current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+            raise 
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -124,17 +118,16 @@ def gettemp(client,auth,hostname,port,username,password,tformat,template):
     myresp['status_code']=response.status_code  
     return myresp
 
-def listtemp(client,auth,hostname,port,username,password):
-    
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    client.auth = (username,password)
+def listtemp(client,auth,url_base):    
+    #client.auth = (username,password)
     myresp={}
     current_app.logger.debug('inside listtemp')
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4')
-    response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/json'})
+    print(f"url={url_base  + 'definition/template/adl1.4'}")
+    myurl=url_normalize(url_base  + 'definition/template/adl1.4')
+#    response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/json'},verify=certifi.where())
+    response=client.get(myurl,params={'format': 'JSON'},
+                        headers={'Authorization':auth,'Content-Type':'application/json'},
+                        verify=True)
     current_app.logger.debug('Get list templates')
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
@@ -157,14 +150,8 @@ def listtemp(client,auth,hostname,port,username,password):
     return myresp
 
 
-def posttemp(client,auth,hostname,port,username,password,uploaded_template):
-    
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+def posttemp(client,auth,url_base,uploaded_template):
     current_app.logger.debug('inside posttemp')
-    client.auth = (username,password)
     root=etree.fromstring(uploaded_template)
     telement=root.find("{http://schemas.openehr.org/v1}template_id")
     template_name=""
@@ -174,7 +161,7 @@ def posttemp(client,auth,hostname,port,username,password,uploaded_template):
         current_app.logger.info(f'POST Template : template={template_name}')
     else:
         current_app.logger.info('POST Template')
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4/')
+    myurl=url_normalize(url_base  + 'definition/template/adl1.4/')
     response=client.post(myurl,params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/XML'},
         data=etree.tostring(root))
     current_app.logger.debug('Response Url')
@@ -197,17 +184,11 @@ def posttemp(client,auth,hostname,port,username,password,uploaded_template):
         current_app.logger.warning(f'POST Template failure for template={template_name}')
     return myresp
 
-def updatetemp(client,adauth,hostname,port,adusername,adpassword,uploaded_template,templateid):
-    
+def updatetemp(client,adauth,url_base_admin,uploaded_template,templateid):
     current_app.logger.debug('inside updatetemp')
     current_app.logger.info(f'Updating template: template={templateid}')
-    if hostname.startswith('http'):
-        EHR_SERVER_URL = hostname+":"+port+"/ehrbase/"
-    else:
-        EHR_SERVER_URL = "http://"+hostname+":"+port+"/ehrbase/"
-    client.auth = (adusername,adpassword)
     root=etree.fromstring(uploaded_template)    
-    myurl=url_normalize(EHR_SERVER_URL  + 'rest/admin/template/'+templateid)
+    myurl=url_normalize(url_base_admin  + 'template/'+templateid)
     response=client.put(myurl,params={'format': 'XML'},headers={'Authorization':adauth,'Content-Type':'application/xml',
                  'prefer':'return=minimal','accept':'application/xml' },
                  data=etree.tostring(root))
@@ -231,16 +212,10 @@ def updatetemp(client,adauth,hostname,port,adusername,adpassword,uploaded_templa
         current_app.logger.warning(f'Update Template PUT failure for template={templateid}')    
         return myresp
 
-def deltemp(client,adauth,hostname,port,adusername,adpassword,templateid):
-    
+def deltemp(client,adauth,url_base_admin,templateid):
     current_app.logger.debug('inside deletetemp')
     current_app.logger.info(f'Deleting template: template={templateid}')
-    if hostname.startswith('http'):
-        EHR_SERVER_URL = hostname+":"+port+"/ehrbase/"
-    else:
-        EHR_SERVER_URL = "http://"+hostname+":"+port+"/ehrbase/"
-    client.auth = (adusername,adpassword)   
-    myurl=url_normalize(EHR_SERVER_URL  + 'rest/admin/template/'+templateid)
+    myurl=url_normalize(url_base_admin  + 'template/'+templateid)
     response=client.delete(myurl,headers={'Authorization':adauth })
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
@@ -262,16 +237,10 @@ def deltemp(client,adauth,hostname,port,adusername,adpassword,templateid):
         current_app.logger.warning(f'Delete Template failure for template={templateid}')    
         return myresp
 
-def delalltemp(client,adauth,hostname,port,adusername,adpassword):
-    
+def delalltemp(client,adauth,url_base_admin):
     current_app.logger.debug('inside deletealltemp')
     current_app.logger.info(f'Deleting all template')
-    if hostname.startswith('http'):
-        EHR_SERVER_URL = hostname+":"+port+"/ehrbase/"
-    else:
-        EHR_SERVER_URL = "http://"+hostname+":"+port+"/ehrbase/"
-    client.auth = (adusername,adpassword)   
-    myurl=url_normalize(EHR_SERVER_URL  + 'rest/admin/template/all')
+    myurl=url_normalize(url_base_admin  + 'template/all')
     response=client.delete(myurl,headers={'Authorization':adauth })
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
@@ -291,39 +260,27 @@ def delalltemp(client,adauth,hostname,port,adusername,adpassword):
         return myresp
     else:
         if response.status_code==422:
-            #"Cannot delete template BBMRI-ERIC_Colorectal_Cancer_Cohort_Report since the following compositions are still using it +------------------------------------+\n|composition_id                      |\n+------------------------------------+\n|2a9e5aca-c26e-4787-88f9-21a1d879902c|\n|45860049-01c6-4707-a183-7437b03c50a3|\n|a7bbd870-ab6e-4919-9b1a-8f08b5bd9814|\n+------------------------------------+\n"
             errorjson=json.loads(response.text)
             message=errorjson['message']
-            msplit=message.split('+')
-            errorjson.pop('message', None)
-            errorjson['message_line1']=msplit[0]
-            errorjson['message_line2']=msplit[2].split('|')[1].rstrip()+':'+msplit[4].replace('\n','').replace('||',',').replace('|','')
-            myresp['error422']=json.dumps(errorjson,sort_keys=True, indent=1, separators=(',', ': '))
+            myresp['error422']=message
         myresp['status']='failure'
         current_app.logger.warning(f'Delete all Templates failure')    
         return myresp
 
 
 
-
-def createehrid(client,auth,hostname,port,username,password,eid):
-    
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    client.auth = (username,password)
+def createehrid(client,auth,url_base,eid):
     current_app.logger.debug('inside createehrid')
     withehrid=True
     if(eid==""):
         withehrid=False    
     if(not withehrid):
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr')
+        myurl=url_normalize(url_base  + 'ehr')
         current_app.logger.info("Create ehr without ehrid")
         response=client.post(myurl, params={},headers={'Authorization':auth, \
             'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'})
     else:
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid)
+        myurl=url_normalize(url_base  + 'ehr/'+eid)
         current_app.logger.info(f"Create ehr with ehrid: ehrid={eid}")
         response=client.put(myurl, params={},headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'})
     current_app.logger.debug('Response Url')
@@ -360,14 +317,8 @@ def createehrid(client,auth,hostname,port,username,password,eid):
     current_app.logger.debug(myresp)
     return myresp
 
-def createehrsub(client,auth,hostname,port,username,password,sid,sna,eid):
-    
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+def createehrsub(client,auth,url_base,sid,sna,eid):
     current_app.logger.debug('inside createehrsub')
-    client.auth = (username,password)
     body1='''
     {
     "_type" : "EHR_STATUS",
@@ -399,17 +350,17 @@ def createehrsub(client,auth,hostname,port,username,password,sid,sna,eid):
     '''
     body=body1+body2+body3+body4+body5
     current_app.logger.debug(body)
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr')
+    myurl=url_normalize(url_base  + 'ehr')
     withehrid=True
     if(eid==""):
         withehrid=False
     if(not withehrid):
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr')
+        myurl=url_normalize(url_base  + 'ehr')
         response=client.post(myurl, params={},headers={'Authorization':auth, \
                 'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'},
                 data=body)
     else:
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid)
+        myurl=url_normalize(url_base  + 'ehr/'+eid)
         response=client.put(myurl, params={},headers={'Authorization':auth, \
                 'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'},
                 data=body)       
@@ -446,16 +397,10 @@ def createehrsub(client,auth,hostname,port,username,password,sid,sna,eid):
     myresp['status_code']=response.status_code 
     return myresp
 
-def getehrid(client,auth,hostname,port,username,password,ehrid):
-    
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+def getehrid(client,auth,url_base,ehrid):
     current_app.logger.debug('inside getehrid')
-    client.auth = (username,password)
     current_app.logger.debug("launched getehr")
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+ehrid)
+    myurl=url_normalize(url_base  + 'ehr/'+ehrid)
     response=client.get(myurl, params={},headers={'Authorization':auth, \
             'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'})
     current_app.logger.debug('Response Url')
@@ -481,15 +426,10 @@ def getehrid(client,auth,hostname,port,username,password,ehrid):
     return myresp
 
 
-def delehrid(client,adauth,hostname,port,adusername,adpassword,ehrid):
+def delehrid(client,adauth,url_base_admin,ehrid):
     current_app.logger.debug('inside delehrid')
-    current_app.logger.info(f'Deleting ehr: ehrid={ehrid}')
-    if hostname.startswith('http'):
-        EHR_SERVER_URL = hostname+":"+port+"/ehrbase/"
-    else:
-        EHR_SERVER_URL = "http://"+hostname+":"+port+"/ehrbase/"
-    client.auth = (adusername,adpassword)   
-    myurl=url_normalize(EHR_SERVER_URL  + 'rest/admin/ehr/'+ehrid)
+    current_app.logger.info(f'Deleting ehr: ehrid={ehrid}')  
+    myurl=url_normalize(url_base_admin  + 'ehr/'+ehrid)
     response=client.delete(myurl,headers={'Authorization':adauth })
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
@@ -514,16 +454,10 @@ def delehrid(client,adauth,hostname,port,adusername,adpassword,ehrid):
         return myresp    
 
 
-def getehrsub(client,auth,hostname,port,username,password,sid,sna):
-    
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+def getehrsub(client,auth,url_base,sid,sna):
     current_app.logger.debug('inside getehrsub')
-    client.auth = (username,password)
     current_app.logger.debug(f'sid={sid} sna={sna}')
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr')
+    myurl=url_normalize(url_base  + 'ehr')
     response=client.get(myurl, params={'subject_id':sid,'subject_namespace':sna},headers={'Authorization':auth, \
             'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'})
     current_app.logger.debug('Response Url')
@@ -550,17 +484,11 @@ def getehrsub(client,auth,hostname,port,username,password,sid,sna):
     myresp['status_code']=response.status_code 
     return myresp
 
-def postehrstatus(client,auth,hostname,port,username,password,uploaded_ehrstatus):
-    
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+def postehrstatus(client,auth,url_base,uploaded_ehrstatus):
     current_app.logger.debug('inside postehrstatus')
-    client.auth = (username,password)
     ehrs = json.loads(uploaded_ehrstatus)
     ehrsjson=json.dumps(ehrs)
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr')
+    myurl=url_normalize(url_base  + 'ehr')
     response=client.post(myurl,headers={'Authorization':auth,\
         'Content-Type':'application/json','Prefer': 'return=representation'},
         data=ehrsjson)
@@ -585,16 +513,10 @@ def postehrstatus(client,auth,hostname,port,username,password,uploaded_ehrstatus
     return myresp
 
 
-def getehrstatus(client,auth,hostname,port,username,password,eid,outtype,vat,vid):
-
-    client.auth = (username,password)
+def getehrstatus(client,auth,url_base,eid,outtype,vat,vid):
     current_app.logger.debug('inside getehrstatus')
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     if outtype=='VAT':
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/ehr_status')
+        myurl=url_normalize(url_base  + 'ehr/'+eid+'/ehr_status')
         if vat=="":
             response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
         else:
@@ -620,9 +542,9 @@ def getehrstatus(client,auth,hostname,port,username,password,eid,outtype,vat,vid
         return myresp
     else: #outtype='VBV'
         if vid=='':
-            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/ehr_status/')
+            myurl=url_normalize(url_base  + 'ehr/'+eid+'/ehr_status/')
         else:
-            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/ehr_status/'+vid)
+            myurl=url_normalize(url_base  + 'ehr/'+eid+'/ehr_status/'+vid)
         response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -644,15 +566,9 @@ def getehrstatus(client,auth,hostname,port,username,password,eid,outtype,vat,vid
         myresp["headers"]=response.headers    
         return myresp
 
-def updateehrstatus(client,auth,hostname,port,username,password,ehrfile,eid,vid):
-    
-    client.auth = (username,password)
+def updateehrstatus(client,auth,url_base,ehrfile,eid,vid):
     current_app.logger.debug('inside updateehrstatus')
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/ehr_status')
+    myurl=url_normalize(url_base  + 'ehr/'+eid+'/ehr_status')
     ehrstat = json.loads(ehrfile)
     ehrstatusjson=json.dumps(ehrstat)
     response = client.put(myurl,params={'format': 'RAW'},headers={'Authorization':auth,'Content-Type':'application/json', \
@@ -679,16 +595,10 @@ def updateehrstatus(client,auth,hostname,port,username,password,ehrfile,eid,vid)
     return myresp  
 
 
-def getehrstatusversioned(client,auth,hostname,port,username,password,eid,outtype,vat,vid):
-
-    client.auth = (username,password)
+def getehrstatusversioned(client,auth,url_base,eid,outtype,vat,vid):
     current_app.logger.debug('inside getehrstatus')
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     if outtype=='INFO':
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_ehr_status')
+        myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_ehr_status')
         response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -710,7 +620,7 @@ def getehrstatusversioned(client,auth,hostname,port,username,password,eid,outtyp
         myresp["headers"]=response.headers    
         return myresp
     elif outtype=='REVHIST':
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_ehr_status/revision_history')
+        myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_ehr_status/revision_history')
         response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -732,7 +642,7 @@ def getehrstatusversioned(client,auth,hostname,port,username,password,eid,outtyp
         myresp["headers"]=response.headers    
         return myresp
     elif outtype=='VAT':
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_ehr_status/version')
+        myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_ehr_status/version')
         if vat=="":
             response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
         else:
@@ -758,9 +668,9 @@ def getehrstatusversioned(client,auth,hostname,port,username,password,eid,outtyp
         return myresp
     else: #outtype='VBV'
         if vid=='':
-            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_ehr_status/version')
+            myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_ehr_status/version')
         else:
-            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_ehr_status/version/'+vid)
+            myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_ehr_status/version/'+vid)
         response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -782,26 +692,20 @@ def getehrstatusversioned(client,auth,hostname,port,username,password,eid,outtyp
         myresp["headers"]=response.headers    
         return myresp
 
-def getdir(client,auth,hostname,port,username,password,eid,outtype,vat,vid,path,filetype):
-
-    client.auth = (username,password)
+def getdir(client,auth,url_base,eid,outtype,vat,vid,path,filetype):
     current_app.logger.debug('inside getehrstatus')
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     if outtype=='VAT':
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/directory')
+        myurl=url_normalize(url_base  + 'ehr/'+eid+'/directory')
         if vat=="":
             if filetype=='JSON':
                 response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation','accept':'application/json'} )
             else:
-                response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'} )
+                response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/xml','Prefer':'return=representation',"accept":'application/xml'} )
         else:
             if filetype=='JSON':
                 response = client.get(myurl,params={'version_at_time':vat,'path':path},headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation','accept':'application/json'} )
             else:
-                response = client.get(myurl,params={'version_at_time':vat,'path':path},headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'} )
+                response = client.get(myurl,params={'version_at_time':vat,'path':path},headers={'Authorization':auth,'Content-Type':'application/xml','Prefer':'return=representation',"accept":'application/xml'} )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -823,6 +727,7 @@ def getdir(client,auth,hostname,port,username,password,eid,outtype,vat,vid,path,
                     xmlstring=xmlstringwithencoding[positionfirstgreaterthan+1:]
                 else:
                     xmlstring=xmlstringwithencoding
+                print(f'xmlstring={xmlstring}')
                 root = etree.fromstring(xmlstring)
                 myresp['xml']=etree.tostring(root,  encoding='unicode', method='xml', pretty_print=True)
             current_app.logger.info(f"GET Directory success for ehrid={eid} outtype={outtype} path={path} filetype={filetype}")
@@ -834,13 +739,13 @@ def getdir(client,auth,hostname,port,username,password,eid,outtype,vat,vid,path,
         return myresp
     else: #outtype='VBV'
         if vid=='':
-            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/directory/')
+            myurl=url_normalize(url_base  + 'ehr/'+eid+'/directory/')
         else:
-            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/directory/'+vid)
+            myurl=url_normalize(url_base  + 'ehr/'+eid+'/directory/'+vid)
         if filetype=='JSON':
             response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation','accept':'application/json'} )
         else:
-            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'} )
+            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation',"accept":'application/xml'} )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -872,17 +777,26 @@ def getdir(client,auth,hostname,port,username,password,eid,outtype,vat,vid,path,
         myresp["headers"]=response.headers    
         return myresp
 
-def postdir(client,auth,hostname,port,username,password,eid,uploaded_dir,filetype):
-    
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+def postdir(client,auth,url_base,eid,uploaded_dir,filetype):
     current_app.logger.debug('inside postdir')
-    client.auth = (username,password)
-    dir = json.loads(uploaded_dir)
-    dirjson=json.dumps(dir)
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/directory')
+    if filetype=="JSON":
+        dir = json.loads(uploaded_dir)
+        dirjson=json.dumps(dir)
+    else:
+        if uploaded_dir.startswith(b'\xef\xbb\xbf'):
+            uploaded_dir = uploaded_dir[3:]
+        # root=etree.fromstring(uploaded_dir)
+        # print(f'dirxml={etree.tostring(root, pretty_print=True).decode()}')
+        # uploaded_dir=uploaded_dir.replace(b"\n",b"").lstrip()
+        # root=etree.fromstring(uploaded_dir)
+        # print(type('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'))
+        # print(type(etree.tostring(root)))
+        # dirxml=b'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+etree.tostring(root)
+        # print(f'dirxml={dirxml}')
+        root=etree.fromstring(uploaded_dir)
+        dirxml=etree.tostring(root)
+        print(f'xml given={repr(dirxml)}')
+    myurl=url_normalize(url_base  + 'ehr/'+eid+'/directory')
     if filetype=='JSON':  
         response=client.post(myurl,headers={'Authorization':auth,\
         'Content-Type':'application/json','Prefer': 'return=representation', \
@@ -890,8 +804,9 @@ def postdir(client,auth,hostname,port,username,password,eid,uploaded_dir,filetyp
         data=dirjson)
     else:
         response=client.post(myurl,headers={'Authorization':auth,\
-        'Content-Type':'application/json','Prefer': 'return=representation'}, \
-        data=dirjson)
+        'Content-Type':'application/xml','Prefer': 'return=representation', \
+            'accept':'application/xml'}, params={'format': 'XML'},\
+        data=dirxml)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -923,17 +838,11 @@ def postdir(client,auth,hostname,port,username,password,eid,uploaded_dir,filetyp
         current_app.logger.warning(f'Directory FOLDER POST FAILURE')
     return myresp
 
-def updatedir(client,auth,hostname,port,username,password,eid,vid,uploaded_dir,filetype):
-    
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+def updatedir(client,auth,url_base,eid,vid,uploaded_dir,filetype):
     current_app.logger.debug('inside updatedir')
-    client.auth = (username,password)
     dir = json.loads(uploaded_dir)
     dirjson=json.dumps(dir)
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/directory')
+    myurl=url_normalize(url_base  + 'ehr/'+eid+'/directory')
     if filetype=='JSON':
         response=client.put(myurl,headers={'Authorization':auth,\
         'Content-Type':'application/json','Prefer': 'return=representation',
@@ -975,15 +884,9 @@ def updatedir(client,auth,hostname,port,username,password,eid,vid,uploaded_dir,f
         current_app.logger.warning(f'Directory FOLDER PUT FAILURE')
     return myresp
 
-def delfolder(client,adauth,hostname,port,adusername,adpassword,eid,vid):
-
-    client.adauth = (adusername,adpassword)
-    current_app.logger.debug('inside delfolder')
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/admin/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/admin/"
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/directory/'+vid)
+def deldiradmin(client,adauth,url_base_admin,eid,did):
+    current_app.logger.debug('inside deldiradmin')
+    myurl=url_normalize(url_base_admin  + 'ehr/'+eid+'/directory/'+did)
     response = client.delete(myurl,headers={'Authorization':adauth,'Content-Type':'application/json'} )
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
@@ -997,24 +900,18 @@ def delfolder(client,adauth,hostname,port,adusername,adpassword,eid,vid):
     myresp["status_code"]=response.status_code
     if(response.status_code<210 and response.status_code>199):
         myresp["status"]="success"
-        current_app.logger.info(f"DELETE Directory success for ehrid={eid} vid={vid}")
+        current_app.logger.info(f"DELETE Directory success for ehrid={eid} id={did}")
     else:
         myresp["status"]="failure"
-        current_app.logger.info(f"DELETE Directory failure for ehrid={eid} vid={vid}")
+        current_app.logger.info(f"DELETE Directory failure for ehrid={eid} id={did}")
     myresp['text']=response.text
     myresp["headers"]=response.headers
     return myresp
 
 
-def deldir(client,auth,hostname,port,username,password,eid,vid):
-
-    client.auth = (username,password)
+def deldir(client,auth,url_base,eid,vid):
     current_app.logger.debug('inside deldir')
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/directory')
+    myurl=url_normalize(url_base  + 'ehr/'+eid+'/directory')
     response = client.delete(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation','accept':'application/json',\
                                             'If-Match':vid} )
     current_app.logger.debug('Response Url')
@@ -1039,16 +936,11 @@ def deldir(client,auth,hostname,port,username,password,eid,vid):
 
 
 
-def delcomp(client,adauth,hostname,port,adusername,adpassword,compid,ehrid):
+def delcomp(client,adauth,url_base_admin,compid,ehrid):
     #ADMIN DELETE COMPOSITION
     current_app.logger.debug('inside delcomp')
-    current_app.logger.info(f'Deleting comp: id={compid}')
-    if hostname.startswith('http'):
-        EHR_SERVER_URL = hostname+":"+port+"/ehrbase/"
-    else:
-        EHR_SERVER_URL = "http://"+hostname+":"+port+"/ehrbase/"
-    client.auth = (adusername,adpassword)   
-    myurl=url_normalize(EHR_SERVER_URL  + 'rest/admin/ehr/'+ehrid+'/composition/'+compid)
+    current_app.logger.info(f'Deleting comp: id={compid}') 
+    myurl=url_normalize(url_base_admin+ 'ehr/'+ehrid+'/composition/'+compid)
 #    response=client.delete(myurl)
     response=client.delete(myurl,headers={'Authorization':adauth })    
     current_app.logger.debug('Response Url')
@@ -1072,16 +964,11 @@ def delcomp(client,adauth,hostname,port,adusername,adpassword,compid,ehrid):
         current_app.logger.warning(f'Delete composition failure for id={compid} from ehr={ehrid}. ADMIN method')    
         return myresp    
 
-def delcompuser(client,auth,hostname,port,username,password,compid,ehrid):
+def delcompuser(client,auth,url_base,compid,ehrid):
     #USER DELETE COMPOSITION
     current_app.logger.debug('inside delcompuser')
-    current_app.logger.info(f'Deleting comp: versionUID={compid}')
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    client.auth = (username,password)   
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+ehrid+'/composition/'+compid)
+    current_app.logger.info(f'Deleting comp: versionUID={compid}') 
+    myurl=url_normalize(url_base  + 'ehr/'+ehrid+'/composition/'+compid)
     response=client.delete(myurl,headers={'Authorization':auth })    
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
@@ -1105,16 +992,10 @@ def delcompuser(client,auth,hostname,port,username,password,compid,ehrid):
         return myresp   
 
 
-def getcompversioned(client,auth,hostname,port,username,password,compid,eid,outtype,vat,vid):
-
-    client.auth = (username,password)
+def getcompversioned(client,auth,url_base,compid,eid,outtype,vat,vid):
     current_app.logger.debug('inside getcompversioned')
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     if outtype=='INFO':
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_composition/'+compid)
+        myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_composition/'+compid)
         response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -1136,7 +1017,7 @@ def getcompversioned(client,auth,hostname,port,username,password,compid,eid,outt
         myresp["headers"]=response.headers
         return myresp
     elif outtype=='REVHIST':
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_composition/'+compid+'/revision_history')
+        myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_composition/'+compid+'/revision_history')
         response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -1158,7 +1039,7 @@ def getcompversioned(client,auth,hostname,port,username,password,compid,eid,outt
         myresp["headers"]=response.headers
         return myresp
     elif outtype=='VAT':
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_composition/'+compid+'/version')
+        myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_composition/'+compid+'/version')
         if vat=="":
             response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
         else:
@@ -1184,9 +1065,9 @@ def getcompversioned(client,auth,hostname,port,username,password,compid,eid,outt
         return myresp
     else: #outtype='VBV'
         if vid=='':
-            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_composition/'+compid+'/version')
+            myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_composition/'+compid+'/version')
         else:
-            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/versioned_composition/'+compid+'/version/'+vid)
+            myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_composition/'+compid+'/version/'+vid)
         response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -1208,16 +1089,10 @@ def getcompversioned(client,auth,hostname,port,username,password,compid,eid,outt
         myresp["headers"]=response.headers    
         return myresp
 
-def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,filetype,check):
-    
-    client.auth = (username,password)
+def postcomp(client,auth,url_base,url_base_ecis,composition,eid,tid,filetype,check,ehrbase_version):
     current_app.logger.debug('inside postcomp')
     if(filetype=="XML"):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL + 'ehr/'+eid+'/composition')
+        myurl=url_normalize(url_base + 'ehr/'+eid+'/composition')
         root=etree.fromstring(composition)
         response = client.post(myurl,
                        params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml', \
@@ -1237,7 +1112,7 @@ def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,fil
             myresp['compositionid']=response.headers['Location'].split("composition/")[1]
             current_app.logger.info(f"POST composition success. format={filetype} template={tid}  ehr={eid}")
             if(check=="Yes"):
-                checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,myresp['compositionid'])
+                checkinfo= compcheck(client,auth,url_base,url_base_ecis,composition,eid,filetype,myresp['compositionid'])
                 if(checkinfo==None):
                     myresp['check']='Retrieved and posted Compositions match'
                     myresp['checkinfo']=""
@@ -1253,14 +1128,18 @@ def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,fil
         myresp["headers"]=response.headers
         return myresp
     elif(filetype=="JSON"):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition')
+        myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition')
         comp = json.loads(composition)
         compositionjson=json.dumps(comp)
-        response = client.post(myurl,params={'format': 'RAW'},headers={'Authorization':auth,'Content-Type':'application/json', \
+        try:
+            if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                params={'format': 'JSON'}
+            else:#EHRBase version<2.5.0
+                params={'format': 'RAW'}
+        except myutils.EHRBaseVersion:
+            current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+            raise 
+        response = client.post(myurl,params=params,headers={'Authorization':auth,'Content-Type':'application/json', \
              'accept':'application/json'}, data=compositionjson) 
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -1277,7 +1156,7 @@ def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,fil
             myresp['compositionid']=response.headers['Location'].split("composition/")[1]
             current_app.logger.info(f"POST composition success. format={filetype} template={tid}  ehr={eid}")
             if(check=="Yes"):
-                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                checkinfo= compcheck(client,auth,url_base,url_base_ecis,compositionjson,eid,filetype,myresp['compositionid'])
                 if(checkinfo==None):
                     myresp['check']='Retrieved and posted Compositions match'
                     myresp['checkinfo']=""
@@ -1293,11 +1172,14 @@ def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,fil
         myresp["headers"]=response.headers
         return myresp  
     elif(filetype=="STRUCTURED"):   #STRUCTURED
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'composition')
+        try:
+            if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition')
+            else:#EHRBase version<2.5.0
+                myurl=url_normalize(url_base_ecis  + 'composition')
+        except myutils.EHRBaseVersion:
+            current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+            raise 
         comp = json.loads(composition)
         compositionjson=json.dumps(comp)
         response = client.post(myurl,
@@ -1320,7 +1202,7 @@ def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,fil
             myresp['compositionid']=response.headers['Location'].split("composition/")[1]
             current_app.logger.info(f"POST composition success. format={filetype} template={tid}  ehr={eid}")
             if(check=="Yes"):
-                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                checkinfo= compcheck(client,auth,url_base,url_base_ecis,compositionjson,eid,filetype,myresp['compositionid'])
                 if(checkinfo==None):
                     myresp['check']='Retrieved and posted Compositions match'
                     myresp['checkinfo']=""
@@ -1336,14 +1218,16 @@ def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,fil
         myresp["headers"]=response.headers
         return myresp
     elif(filetype=="STRUCTMARAND"):   #STRUCTURED MARAND from Archetype Designer
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'composition')
+        try:
+            if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition')
+            else:#EHRBase version<2.5.0
+                myurl=url_normalize(url_base_ecis  + 'composition')
+        except myutils.EHRBaseVersion:
+            current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+            raise 
         compMARAND = json.loads(composition)
-        current_app.logger.debug('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa')
-        compEHRBaseresp = structuredMarand2EHRBase.structuredMarand2EHRBase(compMARAND,client,auth,hostname,port,username,password,composition,eid,tid)                  
+        compEHRBaseresp = structuredMarand2EHRBase.structuredMarand2EHRBase(compMARAND,client,auth,url_base,url_base_ecis,tid,ehrbase_version)                  
         myresp={}
         if compEHRBaseresp['status']=='failure':
             myresp['status']='failure'
@@ -1351,6 +1235,8 @@ def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,fil
             myresp["headers"]=compEHRBaseresp['headers']
             return myresp 
         compositionjson=json.dumps(compEHRBaseresp['composition'])
+        current_app.logger.debug('derived structured composition')
+        current_app.logger.debug(compositionjson)
         response = client.post(myurl,
                        params={'ehrId':eid,'templateId':tid,'format':'STRUCTURED'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
@@ -1371,7 +1257,7 @@ def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,fil
             myresp['compositionid']=response.headers['Location'].split("composition/")[1]
             current_app.logger.info(f"POST composition success. format={filetype} template={tid}  ehr={eid}")
             if(check=="Yes"):
-                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                checkinfo= compcheck(client,auth,url_base,url_base_ecis,compositionjson,eid,filetype,myresp['compositionid'])
                 if(checkinfo==None):
                     myresp['check']='Retrieved and posted Compositions match'
                     myresp['checkinfo']=""
@@ -1387,11 +1273,14 @@ def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,fil
         myresp["headers"]=response.headers
         return myresp    
     else:#FLAT JSON
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'composition')
+        try:
+            if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition')
+            else:#EHRBase version<2.5.0
+                myurl=url_normalize(url_base_ecis  + 'composition')
+        except myutils.EHRBaseVersion:
+            current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+            raise 
         comp = json.loads(composition)
         compositionjson=json.dumps(comp)
         response = client.post(myurl,
@@ -1414,7 +1303,7 @@ def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,fil
             myresp['compositionid']=response.headers['Location'].split("composition/")[1]
             current_app.logger.info(f"POST composition success. format={filetype} template={tid}  ehr={eid}")
             if(check=="Yes"):
-                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                checkinfo= compcheck(client,auth,url_base,url_base_ecis,compositionjson,eid,filetype,myresp['compositionid'])
                 if(checkinfo==None):
                     myresp['check']='Retrieved and posted Compositions match'
                     myresp['checkinfo']=""
@@ -1431,18 +1320,12 @@ def postcomp(client,auth,hostname,port,username,password,composition,eid,tid,fil
         return myresp
 
 
-def updatecomp(client,auth,hostname,port,username,password,composition,eid,tid,compid,filetype,check):
-    
-    client.auth = (username,password)
+def updatecomp(client,auth,url_base,url_base_ecis,composition,eid,tid,compid,filetype,check,ehrbase_version):
     current_app.logger.debug('inside updatecomp')
     versionid=compid
     compid=compid.split('::')[0]
     if(filetype=="XML"):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL + 'ehr/'+eid+'/composition/'+compid)
+        myurl=url_normalize(url_base + 'ehr/'+eid+'/composition/'+compid)
         root=etree.fromstring(composition)
         response = client.put(myurl,
                        params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml', \
@@ -1463,7 +1346,7 @@ def updatecomp(client,auth,hostname,port,username,password,composition,eid,tid,c
             myresp['compositionid']=response.headers['ETag'].replace('"','')
             current_app.logger.info(f"PUT composition success. format={filetype} template={tid} ehr={eid} versionid={versionid}")
             if(check=="Yes"):
-                checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,myresp['compositionid'])
+                checkinfo= compcheck(client,auth,url_base,url_base_ecis,composition,eid,filetype,myresp['compositionid'])
                 if(checkinfo==None):
                     myresp['check']='Retrieved and posted Compositions match'
                     myresp['checkinfo']=""
@@ -1479,14 +1362,18 @@ def updatecomp(client,auth,hostname,port,username,password,composition,eid,tid,c
         myresp["headers"]=response.headers
         return myresp
     elif(filetype=="JSON"):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition/'+compid)
+        myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition/'+compid)
         comp = json.loads(composition)
         compositionjson=json.dumps(comp)
-        response = client.put(myurl,params={'format': 'RAW'},headers={'Authorization':auth,'Content-Type':'application/json', \
+        try:
+            if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                params={'format': 'JSON'}
+            else:#EHRBase version<2.5.0
+                params={'format': 'RAW'}
+        except myutils.EHRBaseVersion:
+            current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+            raise 
+        response = client.put(myurl,params=params,headers={'Authorization':auth,'Content-Type':'application/json', \
              'accept':'application/json','If-Match':versionid, \
             'Prefer': 'return=representation'}, data=compositionjson) 
         current_app.logger.debug('Response Url')
@@ -1504,7 +1391,7 @@ def updatecomp(client,auth,hostname,port,username,password,composition,eid,tid,c
             myresp['compositionid']=response.headers['ETag'].replace('"','')
             current_app.logger.info(f"PUT composition success. format={filetype} template={tid} ehr={eid} versionid={versionid}")
             if(check=="Yes"):
-                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                checkinfo= compcheck(client,auth,url_base,url_base_ecis,compositionjson,eid,filetype,myresp['compositionid'])
                 if(checkinfo==None):
                     myresp['check']='Retrieved and posted Compositions match'
                     myresp['checkinfo']=""
@@ -1520,11 +1407,14 @@ def updatecomp(client,auth,hostname,port,username,password,composition,eid,tid,c
         myresp["headers"]=response.headers
         return myresp  
     elif(filetype=="STRUCTURED"):   #STRUCTURED
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'composition/'+compid)
+        try:
+            if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition/'+compid)
+            else:#EHRBase version<2.5.0
+                myurl=url_normalize(url_base_ecis  + 'composition/'+compid)
+        except myutils.EHRBaseVersion:
+            current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+            raise 
         comp = json.loads(composition)
         compositionjson=json.dumps(comp)
         response = client.put(myurl,
@@ -1556,7 +1446,7 @@ def updatecomp(client,auth,hostname,port,username,password,composition,eid,tid,c
                 check='No'
             current_app.logger.info(f"PUT composition success. format={filetype} template={tid} ehr={eid} versionid={myresp['compositionid']}")
             if(check=="Yes"):
-                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                checkinfo= compcheck(client,auth,url_base,url_base_ecis,compositionjson,eid,filetype,myresp['compositionid'])
                 if(checkinfo==None):
                     myresp['check']='Retrieved and posted Compositions match'
                     myresp['checkinfo']=""
@@ -1572,11 +1462,14 @@ def updatecomp(client,auth,hostname,port,username,password,composition,eid,tid,c
         myresp["headers"]=response.headers
         return myresp
     else:#FLAT JSON
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + '/composition/'+compid)
+        try:
+            if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition/'+compid)
+            else:#EHRBase version<2.5.0
+                myurl=url_normalize(url_base_ecis  + 'composition/'+compid)
+        except myutils.EHRBaseVersion:
+            current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+            raise 
         comp = json.loads(composition)
         compositionjson=json.dumps(comp)
         response = client.put(myurl,params={'ehrId':eid,'templateId':tid,\
@@ -1606,7 +1499,7 @@ def updatecomp(client,auth,hostname,port,username,password,composition,eid,tid,c
                 check='No'
             current_app.logger.info(f"PUT composition success. format={filetype} template={tid} ehr={eid} versionid={myresp['compositionid']}")
             if(check=="Yes"):
-                checkinfo= compcheck(client,auth,hostname,port,compositionjson,eid,filetype,myresp['compositionid'])
+                checkinfo= compcheck(client,auth,url_base,url_base_ecis,compositionjson,eid,filetype,myresp['compositionid'])
                 if(checkinfo==None):
                     myresp['check']='Retrieved and posted Compositions match'
                     myresp['checkinfo']=""
@@ -1623,15 +1516,10 @@ def updatecomp(client,auth,hostname,port,username,password,composition,eid,tid,c
         return myresp
 
 
-def getcomp(client,auth,hostname,port,username,password,compid,eid,filetype):
-    client.auth = (username,password)
+def getcomp(client,auth,url_base,url_base_ecis,compid,eid,filetype,ehrbase_version):
     current_app.logger.debug('inside getcomp')
     if(filetype=="XML"):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition/'+compid)
+        myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition/'+compid)
         #root=etree.fromstring(composition)
         response=client.get(myurl,params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml','accept':'application/xml'})
         current_app.logger.debug('Response Url')
@@ -1659,11 +1547,7 @@ def getcomp(client,auth,hostname,port,username,password,compid,eid,filetype):
         myresp["headers"]=response.headers
         return myresp
     elif(filetype=="JSON"):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition/'+compid)
+        myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition/'+compid)
         response = client.get(myurl, params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/json'} )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -1688,11 +1572,14 @@ def getcomp(client,auth,hostname,port,username,password,compid,eid,filetype):
         myresp["headers"]=response.headers
         return myresp
     elif(filetype=='STRUCTURED'):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'composition/'+compid)
+        try:
+            if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition/'+compid)
+            else:#EHRBase version<2.5.0
+                myurl=url_normalize(url_base_ecis  + 'composition/'+compid)
+        except myutils.EHRBaseVersion:
+            current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+            raise 
         response = client.get(myurl,
                        params={'ehrId':eid,'format':'STRUCTURED'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
@@ -1711,7 +1598,14 @@ def getcomp(client,auth,hostname,port,username,password,compid,eid,filetype):
         myresp['ehrid']=eid
         if(response.status_code<210 and response.status_code>199):
             myresp["status"]="success"
-            myresp['structured']=json.dumps(json.loads(response.text)['composition'],sort_keys=True, indent=1, separators=(',', ': '))
+            try:
+                if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                    myresp['structured']=json.dumps(json.loads(response.text),sort_keys=True, indent=1, separators=(',', ': '))
+                else:#EHRBase version<2.5.0
+                    myresp['structured']=json.dumps(json.loads(response.text)['composition'],sort_keys=True, indent=1, separators=(',', ': '))
+            except myutils.EHRBaseVersion:
+                current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+                raise 
             current_app.logger.info(f"GET Composition success for compositionid={compid} ehrid={eid} format={filetype}")
         else:
             myresp["status"]="failure"
@@ -1720,11 +1614,14 @@ def getcomp(client,auth,hostname,port,username,password,compid,eid,filetype):
         myresp["headers"]=response.headers
         return myresp
     else:#FLAT JSON
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'composition/'+compid)
+        try:
+            if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition/'+compid)
+            else:#EHRBase version<2.5.0
+                myurl=url_normalize(url_base_ecis  + 'composition/'+compid)
+        except myutils.EHRBaseVersion:
+            current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+            raise 
         response = client.get(myurl,
                        params={'ehrId':eid,'format':'FLAT'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
@@ -1743,7 +1640,14 @@ def getcomp(client,auth,hostname,port,username,password,compid,eid,filetype):
         myresp['ehrid']=eid
         if(response.status_code<210 and response.status_code>199):
             myresp["status"]="success"
-            myresp['flat']=json.dumps(json.loads(response.text)['composition'],sort_keys=True, indent=1, separators=(',', ': '))
+            try:
+                if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                    myresp['flat']=json.dumps(json.loads(response.text),sort_keys=True, indent=1, separators=(',', ': '))
+                else:#EHRBase version<2.5.0
+                    myresp['flat']=json.dumps(json.loads(response.text)['composition'],sort_keys=True, indent=1, separators=(',', ': '))
+            except myutils.EHRBaseVersion:
+                current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+                raise 
             current_app.logger.info(f"GET Composition success for compositionid={compid} ehrid={eid} format={filetype}")
         else:
             myresp["status"]="failure"
@@ -1753,14 +1657,9 @@ def getcomp(client,auth,hostname,port,username,password,compid,eid,filetype):
         return myresp
 
 
-def postaql(client,auth,hostname,port,username,password,aqltext,qname,version,qtype):
+def postaql(client,auth,url_base,aqltext,qname,version,qtype):
     
     current_app.logger.debug('inside postaql')
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    client.auth = (username,password)
     if(qtype==""):
         qtype="AQL"
     if(version==""):
@@ -1769,7 +1668,7 @@ def postaql(client,auth,hostname,port,username,password,aqltext,qname,version,qt
     # if "'" in aqltext:
     #     aqltext=aqltext.replace("'",'\\\'')
     #aqltext="{'q':'"+aqltext+"'}"
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/query/'+qname+"/"+version)
+    myurl=url_normalize(url_base  + 'definition/query/'+qname+"/"+version)
     response = client.put(myurl,params={'type':qtype,'format':'RAW'},headers={'Authorization':auth,'Content-Type':'text/plain'},data=aqltext)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
@@ -1799,15 +1698,10 @@ def postaql(client,auth,hostname,port,username,password,aqltext,qname,version,qt
         current_app.logger.warning("AQL POST failure")
     return myresp
 
-def createPageFromBase4querylist(client,auth,hostname,port,username,password,basefile,targetfile):
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+def createPageFromBase4querylist(client,auth,url_base,basefile,targetfile):
     current_app.logger.debug('inside createPageFromBase4querylist')
-    client.auth = (username,password)
     myresp={}
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/query')
+    myurl=url_normalize(url_base  + 'definition/query')
     response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'})
     current_app.logger.debug('Get list queries')
     current_app.logger.debug('Response Url')
@@ -1863,18 +1757,12 @@ def createPageFromBase4querylist(client,auth,hostname,port,username,password,bas
         return myresp   
 
 
-def getaql(client,auth,hostname,port,username,password,qname,version):
-    
-    client.auth = (username,password)
+def getaql(client,auth,url_base,qname,version):
     current_app.logger.debug('inside getaql')
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
     if(version!=""):
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/query/'+qname+"/"+version)
+        myurl=url_normalize(url_base  + 'definition/query/'+qname+"/"+version)
     else:
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/query/'+qname)
+        myurl=url_normalize(url_base  + 'definition/query/'+qname)
     response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'})
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
@@ -1906,18 +1794,13 @@ def getaql(client,auth,hostname,port,username,password,qname,version):
     return myresp  
 
 
-def delaql(client,adauth,hostname,port,adusername,adpassword,qname,version):
+def delaql(client,adauth,url_base_admin,qname,version):
     #ADMIN DELETE STORED QUERY
-    client.auth = (adusername,adpassword)
     current_app.logger.debug('inside delaql')
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/admin/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/admin/"
     if(version!=""):
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/'+qname+"/"+version)
+        myurl=url_normalize(url_base_admin  + 'query/'+qname+"/"+version)
     else:
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/'+qname)
+        myurl=url_normalize(url_base_admin  + 'query/'+qname)
     response = client.delete(myurl,headers={'Authorization':adauth,'Content-Type': 'application/json'})
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
@@ -1942,18 +1825,11 @@ def delaql(client,adauth,hostname,port,adusername,adpassword,qname,version):
         current_app.logger.warning("AQL DELETE failure")
     return myresp  
 
-def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,offset,eid,qparam,qname,version):
-    
+def runaql(client,auth,url_base,aqltext,qmethod,limit,offset,eid,qparam,qname,version):
     current_app.logger.debug('inside runaql')
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    current_app.logger.debug(f"aqltext={aqltext} qmethod={qmethod} limit={limit} ehrid={eid} qparam={qparam} qname={qname} version={version}")
-    client.auth = (username,password)
     if(aqltext !=""): #PASTED QUERY
         if(qmethod=="GET"):    
-            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/aql')            
+            myurl=url_normalize(url_base  + 'query/aql')            
             params={}            
             addlimittoq=''
             if limit != "":
@@ -1992,7 +1868,7 @@ def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,off
             response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
                 params=params)
         else: #POST
-            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/aql')            
+            myurl=url_normalize(url_base  + 'query/aql')            
             data={}
             params={}
             addlimittoq=''
@@ -2134,15 +2010,10 @@ def runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,off
 
 
 
-def compcheck(client,auth,hostname,port,composition,eid,filetype,compid):
-    
+def compcheck(client,auth,url_base,url_base_ecis,composition,eid,filetype,compid):
     current_app.logger.debug('      inside compcheck')
     if(filetype=="XML"):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition/'+compid)
+        myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition/'+compid)
         response=client.get(myurl,params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml','accept':'application/xml'})
         origcompositiontree=etree.fromstring(composition)
         if(response.status_code<210 and response.status_code>199):
@@ -2154,11 +2025,7 @@ def compcheck(client,auth,hostname,port,composition,eid,filetype,compid):
             else:
                 return None            
     elif(filetype=="JSON"):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition/'+compid)
+        myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition/'+compid)
         response = client.get(myurl, params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/json'} )
         origcomposition=json.loads(composition)
         if(response.status_code<210 and response.status_code>199):       
@@ -2172,11 +2039,7 @@ def compcheck(client,auth,hostname,port,composition,eid,filetype,compid):
             else:
                 return None  
     elif(filetype=='STRUCTURED'):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'composition/'+compid)
+        myurl=url_normalize(url_base_ecis  + 'composition/'+compid)
         response = client.get(myurl,
                        params={'ehrId':eid,'format':'STRUCTURED'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
@@ -2193,11 +2056,7 @@ def compcheck(client,auth,hostname,port,composition,eid,filetype,compid):
             else:
                 return None                        
     else:
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'composition/'+compid)
+        myurl=url_normalize(url_base_ecis  + 'composition/'+compid)
         response = client.get(myurl,
                        params={'ehrId':eid,'format':'FLAT'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
@@ -2216,18 +2075,12 @@ def compcheck(client,auth,hostname,port,composition,eid,filetype,compid):
             
     
     
-def get_dashboard_info(client,auth,hostname,port,username,password,adauth,adusername,adpassword):
-    
-    current_app.logger.debug('inside get_dashboard info')
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    client.auth = (username,password)            
+def get_dashboard_info(client,auth,url_base,adauth,url_base_management):
+    current_app.logger.debug('inside get_dashboard info')         
     #get aql stored
     myresp={}
     myresp['status']='failure'
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/query/')
+    myurl=url_normalize(url_base  + 'definition/query/')
     responseaql = client.get(myurl, headers={'Authorization':auth,'Content-Type': 'application/json'})                     
     current_app.logger.debug('Get AQL stored')
     current_app.logger.debug('Response Url')
@@ -2251,7 +2104,7 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
         current_app.logger.warning("Dashboard: GET AQL failure")
         #return myresp
     # get total ehrs  
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/aql')
+    myurl=url_normalize(url_base  + 'query/aql')
     data={}
     aqltext="select e/ehr_id/value FROM EHR e"
     data['q']=aqltext
@@ -2279,7 +2132,7 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
         #return myresp
 
     #get ehrid,compid, templateid list
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/aql')
+    myurl=url_normalize(url_base  + 'query/aql')
     data={}
     aqltext="select e/ehr_id/value,c/uid/value,c/archetype_details/template_id/value from EHR e contains COMPOSITION c"
     data['q']=aqltext
@@ -2313,7 +2166,7 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
     templates_in_use=set(r[2] for r in results)
     myresp['utemplate']=len(templates_in_use)     
     #get templates
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4')
+    myurl=url_normalize(url_base  + 'definition/template/adl1.4')
     response2=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'})
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response2.url)
@@ -2372,14 +2225,8 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
 #MANAGEMENT_ENDPOINT_INFO_ENABLED=true
 #MANAGEMENT_ENDPOINT_METRICS_ENABLED=true
 #MANAGEMENT_ENDPOINT_ENV_SHOWVALUES=ALWAYS
-    if(adusername!=""):        
-        client.auth = (adusername,adpassword)
-
-        if hostname.startswith('http'):
-            EHR_SERVER = hostname+":"+port+"/ehrbase/"
-        else:
-            EHR_SERVER = "http://"+hostname+":"+port+"/ehrbase/"
-        myurl=url_normalize(EHR_SERVER  + 'management/info')
+    if(adauth!=""):        
+        myurl=url_normalize(url_base_management+'info')
         resp = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
         current_app.logger.debug('Response Url')
         current_app.logger.debug(resp.url)
@@ -2411,7 +2258,7 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
             myresp['headers']=resp.headers
             #return myresp 
     
-        myurl=url_normalize(EHR_SERVER  + 'management/env')
+        myurl=url_normalize(url_base_management+'env')
         resp2 = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
         current_app.logger.debug('Response Url')
         current_app.logger.debug(resp2.url)
@@ -2528,7 +2375,7 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
             myresp['headers']=resp2.headers
             #return myresp 
     
-        myurl=url_normalize(EHR_SERVER  + 'management/health')
+        myurl=url_normalize(url_base_management  + 'health')
         resp3 = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
         current_app.logger.debug('Response Url')
         current_app.logger.debug(resp3.url)
@@ -2562,19 +2409,12 @@ def get_dashboard_info(client,auth,hostname,port,username,password,adauth,aduser
         return myresp
 
 
-def postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,check,sidpath,snamespace,filetype,myrandom,comps,inlist):
-    
-    client.auth = (username,password)
+def postbatch1(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,sidpath,snamespace,filetype,myrandom,comps,inlist,ehrbase_version):
     current_app.logger.debug('inside postbatch1')
     ehrslist=[]
     number_of_files=len(uploaded_files)
-    if(inlist==True):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        client.auth = (username,password)            
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'query/aql')
+    if(inlist==True):          
+        myurl=url_normalize(url_base  + 'query/aql')
         data={}
         aqltext="select e/ehr_id/value FROM EHR e"
         data['q']=aqltext
@@ -2595,10 +2435,6 @@ def postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,ch
             if len(ehrslist)==0:
                 inlist=False
     if(filetype=="XML"):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
         succ=0
         csucc=0
         compids=[]
@@ -2629,12 +2465,12 @@ def postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,ch
                     return myresp
             eid=""
             if(inlist==False):
-                resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
+                resp10=createehrsub(client,auth,url_base,sid,sna,eid)
                 if(resp10['status']!='success'):
                     if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                         #get ehr summary by subject_id , subject_namespace
                         payload = {'subject_id':sid,'subject_namespace':sna}
-                        ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
+                        ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
                         eid=json.loads(ehrs.text)["ehr_id"]["value"]
                         current_app.logger.debug('ehr already existent')
                         eids.append(eid)
@@ -2645,7 +2481,7 @@ def postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,ch
             else:
                 eid=random.choice(ehrslist)
                 eids.append(eid)
-            myurl=url_normalize(EHR_SERVER_BASE_URL + 'ehr/'+eid+'/composition')
+            myurl=url_normalize(url_base + 'ehr/'+eid+'/composition')
             response = client.post(myurl,
                        params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml', \
                            'accept':'application/xml'}, data=etree.tostring(root)) 
@@ -2663,7 +2499,7 @@ def postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,ch
                 compids.append(cid)
                 current_app.logger.info(f'postbatch1: POST success composition={cid} format={filetype} filename={uf.filename} ehrid={eid}')
                 if(check=="Yes"):
-                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,url_base,url_base_ecis,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
                         current_app.logger.info(f'postbatch1: successfully checked composition={cid} filename={uf.filename} ehrid={eid}')
@@ -2694,10 +2530,6 @@ def postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,ch
         myresp['error']=""
         return myresp
     elif(filetype=="JSON"):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
         succ=0
         csucc=0
         eids=[]
@@ -2731,12 +2563,12 @@ def postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,ch
                     return myresp
             eid=""
             if(inlist==False):            
-                resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
+                resp10=createehrsub(client,auth,url_base,sid,sna,eid)
                 if(resp10['status']!='success'):
                     if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                         #get ehr summary by subject_id , subject_namespace
                         payload = {'subject_id':sid,'subject_namespace':sna}
-                        ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
+                        ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
                         eid=json.loads(ehrs.text)["ehr_id"]["value"]
                         current_app.logger.debug('ehr already existent')
                         eids.append(eid)
@@ -2747,8 +2579,16 @@ def postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,ch
             else:
                 eid=random.choice(ehrslist)
                 eids.append(eid)                  
-            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition')
-            response = client.post(myurl,params={'format': 'RAW'},headers={'Authorization':auth,'Content-Type':'application/json', \
+            myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition')
+            try:
+                if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                    params={'format': 'JSON'}
+                else:#EHRBase version<2.5.0
+                    params={'format': 'RAW'}
+            except myutils.EHRBaseVersion:
+                current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+                raise             
+            response = client.post(myurl,params=params,headers={'Authorization':auth,'Content-Type':'application/json', \
              'accept':'application/json'}, data=compositionjson)   
             current_app.logger.debug('Response Url')
             current_app.logger.debug(response.url)
@@ -2764,7 +2604,7 @@ def postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,ch
                 compids.append(cid)
                 current_app.logger.info(f'postbatch1: POST success composition={cid} format={filetype} filename={uf.filename} ehrid={eid}')
                 if(check=="Yes"):
-                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,url_base,url_base_ecis,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
                         current_app.logger.info(f'postbatch1: successfully checked composition={cid} filename={uf.filename} ehrid={eid}')
@@ -2796,10 +2636,6 @@ def postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,ch
         return myresp
 
     else:#FLAT JSON
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
         succ=0
         csucc=0
         compids=[]
@@ -2831,12 +2667,12 @@ def postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,ch
                     return myresp
             eid=""
             if(inlist==False):
-                resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
+                resp10=createehrsub(client,auth,url_base,sid,sna,eid)
                 if(resp10['status']!='success'):
                     if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                         #get ehr summary by subject_id , subject_namespace
                         payload = {'subject_id':sid,'subject_namespace':sna}
-                        ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
+                        ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
                         eid=json.loads(ehrs.text)["ehr_id"]["value"]
                         current_app.logger.debug('ehr already existent')
                         eids.append(eid)
@@ -2847,11 +2683,14 @@ def postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,ch
             else:
                 eid=random.choice(ehrslist)
                 eids.append(eid)                    
-            if hostname.startswith('http'):
-                EHR_SERVER_BASE_URL_FLAT = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-            else:
-                EHR_SERVER_BASE_URL_FLAT = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-            myurl=url_normalize(EHR_SERVER_BASE_URL_FLAT  + 'composition')
+            try:
+                if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                    myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition')
+                else:#EHRBase version<2.5.0
+                    myurl=url_normalize(url_base_ecis  + 'composition')
+            except myutils.EHRBaseVersion:
+                current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+                raise 
             response = client.post(myurl,
                        params={'ehrId':eid,'templateId':tid,'format':'FLAT'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=minimal'},
@@ -2871,7 +2710,7 @@ def postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,ch
                 compids.append(cid)
                 current_app.logger.info(f'postbatch1: POST success composition={cid} format={filetype} filename={uf.filename} ehrid={eid}')                
                 if(check=="Yes"):
-                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,url_base,url_base_ecis,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
                         current_app.logger.info(f'postbatch1: successfully checked composition={cid} filename={uf.filename} ehrid={eid}')
@@ -3002,7 +2841,6 @@ def findpath(filetype,sidpath,composition):
             return -1
 
 def findjson(keytofind, valuetofind, JSON, path, all_paths):
-    
     current_app.logger.debug('      inside findjson')
     if keytofind in JSON and type(JSON[keytofind])==str and valuetofind in JSON[keytofind].lower():
         path = path + keytofind 
@@ -3022,16 +2860,11 @@ def randomstring(N=10,chars=string.ascii_letters+string.digits):
     return ''.join(random.choice(chars) for _ in range(N))
 
 
-def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,check,eid,filetype,random,comps):
-    
-    client.auth = (username,password)
+def postbatch2(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,eid,filetype,random,comps,ehrbase_version):
     current_app.logger.debug('inside postbatch2')
     number_of_files=len(uploaded_files)
+    myresp={}
     if(filetype=="XML"):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
         succ=0
         csucc=0
         compids=[]
@@ -3042,19 +2875,19 @@ def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,ch
             sid=randomstring()
             sna='fakenamespace'
             eid=""
-            resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
+            resp10=createehrsub(client,auth,url_base,sid,sna,eid)
             if(resp10['status']!='success'):
                 if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                     #get ehr summary by subject_id , subject_namespace
                     payload = {'subject_id':sid,'subject_namespace':sna}
-                    ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
+                    ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
                     current_app.logger.debug('ehr already existent')
                     eid=json.loads(ehrs.text)["ehr_id"]["value"]
                     current_app.logger.debug(f'Patient {sid}: retrieved ehrid={eid}')
             else:
                 eid=resp10['ehrid']
         else:
-            resp10=createehrid(client,auth,hostname,port,username,password,eid)
+            resp10=createehrid(client,auth,url_base,eid)
             if(resp10['status']!='success'):
                 myerror="couldn't create ehrid="+eid+" "+resp10['status_code']+"\n"+ resp10['headers']+"\n"+resp10['text']
                 current_app.logger.debug(myerror)
@@ -3073,7 +2906,7 @@ def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,ch
 #            uf.stream.seek(0)
 #            composition=uf.read()
             root=etree.fromstring(composition)
-            myurl=url_normalize(EHR_SERVER_BASE_URL + 'ehr/'+eid+'/composition')
+            myurl=url_normalize(url_base + 'ehr/'+eid+'/composition')
             response = client.post(myurl,
                        params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml', \
                            'accept':'application/xml'}, data=etree.tostring(root)) 
@@ -3086,7 +2919,7 @@ def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,ch
                 current_app.logger.info(f'postbatch2: POST success composition={cid} format={filetype} filename={uf.filename} ehrid={eid}')
                 compids.append(cid)
                 if(check=="Yes"):
-                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,url_base,url_base_ecis,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
                         current_app.logger.info(f'postbatch2: successfully checked composition={cid} filename={uf.filename} ehrid={eid}')
@@ -3115,14 +2948,9 @@ def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,ch
         myresp['filenamecheckfailed']=filenamecheckfailed
         return myresp
     elif(filetype=="JSON"):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
         succ=0
         csucc=0
         compids=[]
-        myresp={}
         filenamefailed=[]
         filenamecheckfailed=[]
         #create EHRID
@@ -3130,19 +2958,19 @@ def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,ch
             sid=randomstring()
             sna='fakenamespace'
             eid=""
-            resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
+            resp10=createehrsub(client,auth,url_base,sid,sna,eid)
             if(resp10['status']!='success'):
                 if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                     #get ehr summary by subject_id , subject_namespace
                     payload = {'subject_id':sid,'subject_namespace':sna}
-                    ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
+                    ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
                     current_app.logger.debug('ehr already existent')
                     eid=json.loads(ehrs.text)["ehr_id"]["value"]
                     current_app.logger.debug(f'Patient {sid}: retrieved ehrid={eid}')
             else:
                 eid=resp10['ehrid']
         else:
-            resp10=createehrid(client,auth,hostname,port,username,password,eid)
+            resp10=createehrid(client,auth,url_base,eid)
             if(resp10['status']!='success'):
                 myerror=f"couldn't create ehrid={eid}"+" "+resp10['status_code']+"\n"+ resp10['headers']+"\n"+resp10['text']
                 current_app.logger.debug(myerror)
@@ -3162,8 +2990,16 @@ def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,ch
 #            composition=uf.read()
             comp = json.loads(composition)
             compositionjson=json.dumps(comp)
-            myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/composition')
-            response = client.post(myurl,params={'format': 'RAW'},headers={'Authorization':auth,'Content-Type':'application/json', \
+            myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition')
+            try:
+                if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                    params={'format': 'JSON'}
+                else:#EHRBase version<2.5.0
+                    params={'format': 'RAW'}
+            except myutils.EHRBaseVersion:
+                current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+                raise 
+            response = client.post(myurl,params=params,headers={'Authorization':auth,'Content-Type':'application/json', \
              'accept':'application/json'}, data=compositionjson)   
             current_app.logger.debug('Response Url')
             current_app.logger.debug(response.url)
@@ -3179,7 +3015,7 @@ def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,ch
                 current_app.logger.info(f'postbatch2: POST success composition={cid} format={filetype} filename={uf.filename} ehrid={eid}')
                 compids.append(cid)
                 if(check=="Yes"):
-                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,url_base,url_base_ecis,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
                         current_app.logger.info(f'postbatch2: successfully checked composition={cid} filename={uf.filename} ehrid={eid}')
@@ -3210,38 +3046,29 @@ def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,ch
         myresp['error']=""
         return myresp
     else:#FLAT JSON
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
         succ=0
         csucc=0
         compids=[]
-        myresp={}
         filenamefailed=[]
         filenamecheckfailed=[]
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL_FLAT = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        else:
-            EHR_SERVER_BASE_URL_FLAT = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
         #create EHRID
         if(random):
             sid=randomstring()
             sna='fakenamespace'
             eid=""
-            resp10=createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
+            resp10=createehrsub(client,auth,url_base,sid,sna,eid)
             if(resp10['status']!='success'):
                 if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                     #get ehr summary by subject_id , subject_namespace
                     payload = {'subject_id':sid,'subject_namespace':sna}
-                    ehrs = client.get(EHR_SERVER_BASE_URL + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
+                    ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
                     current_app.logger.debug('ehr already existent')
                     eid=json.loads(ehrs.text)["ehr_id"]["value"]
                     current_app.logger.debug(f'Patient {sid}: retrieved ehrid={eid}')
             else:
                 eid=resp10['ehrid']
         else:
-            resp10=createehrid(client,auth,hostname,port,username,password,eid)
+            resp10=createehrid(client,auth,url_base,eid)
             if(resp10['status']!='success'):
                 if(resp10['status_code']==409 and 'EHR with this ID already exists' in json.loads(resp10['text'])['message']):
                     pass
@@ -3262,7 +3089,14 @@ def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,ch
         for uf,composition in zip(uploaded_files,comps):
             comp = json.loads(composition)
             compositionjson=json.dumps(comp) 
-            myurl=url_normalize(EHR_SERVER_BASE_URL_FLAT  + 'composition')
+            try:
+                if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                    myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition')
+                else:#EHRBase version<2.5.0
+                    myurl=url_normalize(url_base_ecis  + 'composition')
+            except myutils.EHRBaseVersion:
+                current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+                raise 
             response = client.post(myurl,
                        params={'ehrId':eid,'templateId':tid,'format':'FLAT'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=minimal'},
@@ -3282,7 +3116,7 @@ def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,ch
                 current_app.logger.info(f'postbatch2: POST success composition={cid} format={filetype} filename={uf.filename} ehrid={eid}')                
                 compids.append(cid)
                 if(check=="Yes"):
-                    checkinfo= compcheck(client,auth,hostname,port,composition,eid,filetype,cid)
+                    checkinfo= compcheck(client,auth,url_base,url_base_ecis,composition,eid,filetype,cid)
                     if(checkinfo==None):
                         csucc+=1
                         current_app.logger.info(f'postbatch2: successfully checked composition={cid} filename={uf.filename} ehrid={eid}')
@@ -3313,15 +3147,9 @@ def postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,ch
         myresp['error']=""
         return myresp
 
-def getcontrib(client,auth,hostname,port,username,password,eid,vid):
-
-    client.auth = (username,password)
+def getcontrib(client,auth,url_base,eid,vid):
     current_app.logger.debug('inside getcontrib')
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/contribution/'+vid)
+    myurl=url_normalize(url_base  + 'ehr/'+eid+'/contribution/'+vid)
     response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'} )
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
@@ -3346,17 +3174,11 @@ def getcontrib(client,auth,hostname,port,username,password,eid,vid):
 
 
 
-def postcontrib(client,auth,hostname,port,username,password,eid,uploaded_contrib):
-    
-    if hostname.startswith('http'):
-        EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-    else:
-        EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
+def postcontrib(client,auth,url_base,eid,uploaded_contrib):
     current_app.logger.debug('inside postcontrib')
-    client.auth = (username,password)
     contrib = json.loads(uploaded_contrib)
     contribjson=json.dumps(contrib)
-    myurl=url_normalize(EHR_SERVER_BASE_URL  + 'ehr/'+eid+'/contribution')
+    myurl=url_normalize(url_base  + 'ehr/'+eid+'/contribution')
     response=client.post(myurl,headers={'Authorization':auth,\
         'Content-Type':'application/json','Prefer': 'return=representation', \
             'accept':'application/json'}, \
@@ -3384,16 +3206,10 @@ def postcontrib(client,auth,hostname,port,username,password,eid,uploaded_contrib
 
 
 
-def examplecomp(client,auth,hostname,port,username,password,template_name,filetype):
-    
-    client.auth = (username,password)
+def examplecomp(client,auth,url_base,url_base_ecis,template_name,filetype,ehrbase_version):
     current_app.logger.debug('inside examplecomp')
     if(filetype=="XML"):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL  + 'definition/template/adl1.4/'+template_name+'/example')
+        myurl=url_normalize(url_base  + 'definition/template/adl1.4/'+template_name+'/example')
         response=client.get(myurl,params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml','accept':'application/xml'})
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -3418,11 +3234,7 @@ def examplecomp(client,auth,hostname,port,username,password,template_name,filety
         myresp["headers"]=response.headers
         return myresp
     elif(filetype=="JSON"):
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/openehr/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL   + 'definition/template/adl1.4/'+template_name+'/example')
+        myurl=url_normalize(url_base   + 'definition/template/adl1.4/'+template_name+'/example')
         response = client.get(myurl, params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/json'} )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -3445,11 +3257,14 @@ def examplecomp(client,auth,hostname,port,username,password,template_name,filety
         myresp["headers"]=response.headers
         return myresp
     elif(filetype=='STRUCTURED'):#STRUCTURED
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL+'template/'+template_name+'/example')  
+        try:
+            if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                myurl=url_normalize(url_base+ 'definition/template/adl1.4/'+template_name+'/example')
+            else:#EHRBase version<2.5.0
+                myurl=url_normalize(url_base_ecis+ +'template/'+template_name+'/example')
+        except myutils.EHRBaseVersion:
+            current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+            raise 
         response = client.get(myurl,
                        params={'format':'STRUCTURED'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'}
@@ -3475,11 +3290,14 @@ def examplecomp(client,auth,hostname,port,username,password,template_name,filety
         myresp["headers"]=response.headers
         return myresp        
     else:#FLAT JSON
-        if hostname.startswith('http'):
-            EHR_SERVER_BASE_URL = hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        else:
-            EHR_SERVER_BASE_URL = "http://"+hostname+":"+port+"/ehrbase/rest/ecis/v1/"
-        myurl=url_normalize(EHR_SERVER_BASE_URL+'template/'+template_name+'/example')  
+        try:
+            if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+                myurl=url_normalize(url_base+ 'definition/template/adl1.4/'+template_name+'/example')
+            else:#EHRBase version<2.5.0
+                myurl=url_normalize(url_base_ecis+'template/'+template_name+'/example')
+        except myutils.EHRBaseVersion:
+            current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
+            raise 
         response = client.get(myurl,
                        params={'format':'FLAT'},
                        headers={'Authorization':auth,'Content-Type':'application/json'}
@@ -3505,11 +3323,10 @@ def examplecomp(client,auth,hostname,port,username,password,template_name,filety
         myresp["headers"]=response.headers
         return myresp
 
-def createform(client,auth,hostname,port,username,password,template_name):
-    
+def createform(client,auth,url_base,url_base_ecis,template_name,ehrbase_version):
     current_app.logger.debug('inside createform')
     filetype='FLAT'
-    resp=examplecomp(client,auth,hostname,port,username,password,template_name,filetype)
+    resp=examplecomp(client,auth,url_base,url_base_ecis,template_name,filetype,ehrbase_version)
     if(resp['status']=='failure'):
         return resp
     else:
@@ -3549,7 +3366,6 @@ def iterwrite(f,var):
 
 
 def createformfile(contexttoadd,varcontext,contenttoadd,varcontent,template_name):
-    
     current_app.logger.debug('      inside createformfile')
     c1=[]
     c3=[]
@@ -3584,7 +3400,6 @@ def createformfile(contexttoadd,varcontext,contenttoadd,varcontent,template_name
         ff.write(varline+str(varctx)+varline2+str(varcnt)+varend)
 
 def fillforms(listc,listcvalues,ivarstart):
-    
     current_app.logger.debug('      inside fillforms')
     startrow='<div class="row">'
     endrow='</div>'
@@ -3636,7 +3451,6 @@ def fillforms(listc,listcvalues,ivarstart):
 
 
 def fillListsfromComp(flatcomp):
-    
     current_app.logger.debug('      inside fillListsfromComp')
     listcontext=[]
     listcontextvalues=[]
@@ -3696,15 +3510,13 @@ def fillListsfromComp(flatcomp):
     return listcontext,listcontent,listcontextvalues,listcontentvalues
 
 def readform():
-    
     current_app.logger.debug('inside readform')
     with open('./templates/form.html','r') as ff:
         allfile=ff.readlines()
     formstring=''.join(allfile)
     return formstring
 
-def postform(client,auth,hostname,port,username,password,formname):
-    
+def postform(client,auth,url_base,url_base_ecis,formname,ehrbase_version):
     current_app.logger.debug('inside postform')
     #retrieve var and path
     tid=formname
@@ -3877,7 +3689,7 @@ def postform(client,auth,hostname,port,username,password,formname):
     checkresults=""
     checkinfo=""
     comp=json.dumps(composition)
-    myresp=postcomp(client,auth,hostname,port,username,password,comp,eid,tid,filetype,check)
+    myresp=postcomp(client,auth,url_base,url_base_ecis,comp,eid,tid,filetype,check,ehrbase_version)
     return myresp       
  
 def two_at_a_time(iterable):
@@ -3886,7 +3698,6 @@ def two_at_a_time(iterable):
     return zip(a, a)
 
 def retrievetemplatefromform(formloaded):
-    
     current_app.logger.debug('      inside retrievetemplatefromform')
     index=formloaded.rfind("<!-- ", 0, formloaded.rfind("<!-- "))
     index2=formloaded.find(" -->",index,len(formloaded))
@@ -3894,7 +3705,6 @@ def retrievetemplatefromform(formloaded):
     return template_name
 
 def fixformloaded(formloaded):
-    
     current_app.logger.debug('      inside fixformloaded')
     #fix missing double braces 
     #<h1>Form for template form.html</h1>

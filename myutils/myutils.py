@@ -204,4 +204,67 @@ def findvaluesfromsearch(fv,logsearch,andornot):
             if(n=='1'):
                 fv3.append(fv[i])
         return fv3
-    
+class httpsMappingError(Exception):
+    def __init__(self,message="Error in understanding https mapping"):
+        self.message=message
+        super().__init__(self.message) 
+
+def setEHRbasepaths(hostname,port,protocol,https_mapping):
+    '''set base paths for EHRBase'''
+    if hostname.startswith('http'):
+        hostname=hostname.split("/")[2]
+    if protocol=="http":
+        url_basebase="http://" + hostname + ":" +port + '/ehrbase/'
+        url_base = url_basebase + "rest/openehr/v1/"
+        url_base_ecis = url_basebase + "rest/ecis/v1/"
+        url_base_admin = url_basebase + "rest/admin/"
+        url_base_management = url_basebase + "management/"
+    else:#https
+        if https_mapping.startswith("http"):
+            https_mapping="".join(https_mapping.split("/")[1:])
+        fields=https_mapping.split("/")
+        possible_fields=["ehrbase","rest"]
+        found=0
+        for i,f in enumerate(fields):
+            if f in possible_fields:
+                found=i
+        if found==0:
+            if fields[0][-1].isdigit():
+                url_basebase="https://"+hostname
+            else:
+                url_basebase="https://"+hostname + ":" + port
+            url_base = url_basebase + "rest/openehr/v1/"
+            url_base_ecis = url_basebase + "rest/ecis/v1/"
+            url_base_admin = url_basebase + "rest/admin/"
+            url_base_management = url_basebase + "management/"            
+        elif found==1:#ehrbase in mapping
+            url_base="https://"+hostname + "/rest/openehr/v1"
+            url_base_ecis = "https://"+hostname +"/rest/ecis/v1/"
+            url_base_admin = "https://"+hostname +"/rest/admin/" 
+            url_base_management = "https://"+hostname +"/management/"         
+        # elif found==2:#rest in mapping
+        #     url_base="https//"+hostname + "/openehr/v1"
+        #     url_base_ecis = "https://"+hostname +"/ecis/v1/"
+        #     url_base_admin = "https://"+hostname +"/admin/"    
+        #  url_base_management does not map. That's why it is commented.          
+        else:
+            raise httpsMappingError()
+    return url_base,url_base_ecis,url_base_admin,url_base_management
+
+class EHRBaseVersion(Exception):
+    def __init__(self,message="Error in parsing ehrbase version"):
+        self.message=message
+        super().__init__(self.message) 
+
+def compareEhrbaseVersions(runningversion,specificversion):
+    if runningversion=='latest':
+        return 1
+    if not runningversion[-1].isdigit():
+        raise EHRBaseVersion()
+    rv=runningversion.split('.')
+    sv=specificversion.split('.')
+    for r,s in zip(rv,sv):
+        if int(r)>int(s):
+            return 1
+        elif int(r)<int(s):
+            return 0

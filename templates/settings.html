@@ -272,7 +272,22 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                          <input  class="form-control" type="text" id="nodename" name="nodename">
                         </div>
                       </div>
-                      <br><br>
+                      <br>
+                      <div class="row">
+                        <div class="col">
+                          <label class="form-label" for="protocol">Protocol <br>(Leave empty for http):</label><br>
+                          <input  class="form-control" type="text" id="protocol" name="protocol">
+                        </div>
+                        <div class="col">
+                          <label class="form-label" for="hmap">https-mapping <br>(Only for https):</label><br>
+                          <input  class="form-control" type="text" id="hmap" name="hmap">
+                        </div>
+                        <div class="col">
+                          <label class="form-label" for="hv">ehrbase version<br>(Default latest):</label><br>
+                          <input  class="form-control" type="text" id="hv" name="hv">
+                        </div>
+                      </div>
+                      <br>
                       <div class="row">
                         <div class="col">
                           <label class="form-label" for="username">Username <br>(Leave empty for default username):</label><br>

@@ -1,0 +1,249 @@
+{
+    "ctx": {
+        "language": "en",
+        "territory": "en",
+        "composer_name": "Archetype Designer"
+    },
+    "interhealth_cancer_registry": [
+        {
+            "context": [
+                {
+                    "registry_identifier": [
+                        {
+                            "identifier": [
+                                "identifier"
+                            ]
+                        }
+                    ],
+                    "ihss_identifier": [
+                        {
+                            "case_identifier": [
+                                "case_identifier"
+                            ]
+                        }
+                    ],
+                    "start_time": [
+                        "2024-12-20T18:46:18"
+                    ],
+                    "setting": [
+                        {
+                            "|code": "setting code",
+                            "|value": "setting value"
+                        }
+                    ]
+                }
+            ],
+            "demographic": [
+                {
+                    "birth_summary": [
+                        {
+                            "date_time_of_birth_dob": [
+                                "2024-12-20T18:46:18"
+                            ],
+                            "country_of_birth": [
+                                "country_of_birth"
+                            ],
+                            "place_of_birth": [
+                                "place_of_birth"
+                            ]
+                        }
+                    ],
+                    "death_summary": [
+                        {
+                            "date_time_of_death": [
+                                "2024-12-20T18:46:18"
+                            ]
+                        }
+                    ],
+                    "gender": [
+                        {
+                            "sex_assigned_at_birth": [
+                                "sex_assigned_at_birth"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "condition": [
+                {
+                    "primary_diagnosis": [
+                        {
+                            "diagnosis": [
+                                {
+                                    "|code": "C18"
+                                }
+                            ],
+                            "body_site": [
+                                "Colon"
+                            ],
+                            "date_time_of_onset": [
+                                "2024-12-20T18:46:18"
+                            ],
+                            "tnm_pathological_classification": [
+                                {
+                                    "primary_tumour_pt": [
+                                        "T0"
+                                    ],
+                                    "regional_lymph_nodes_pn": [
+                                        "N0"
+                                    ],
+                                    "distant_metastasis_pm": [
+                                        "M0"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "laboratory_tests": [
+                {
+                    "laboratory_test_result": [
+                        {
+                            "any_event": [
+                                {
+                                    "test_name": [
+                                        "Blood cells count"
+                                    ],
+                                    "overall_test_status": [
+                                        {
+                                            "|code": "at0107",
+                                            "|other": "overall_test_status other"
+                                        }
+                                    ],
+                                    "overall_test_status_timestamp": [
+                                        "2024-12-20T18:46:18"
+                                    ],
+                                    "laboratory_analyte_result": [
+                                        {
+                                            "analyte_name": [
+                                                {
+                                                    "|code": "LP7720-8"
+                                                }
+                                            ],
+                                            "analyte_result": [
+                                                {
+                                                    "coded_text_value": [
+                                                        {
+                                                            "|code": "coded_text_value code",
+                                                            "|value": "coded_text_value value"
+                                                        }
+                                                    ],
+                                                    "text_value": [
+                                                        "text_value"
+                                                    ],
+                                                    "multimedia_value": [
+                                                        "multimedia_value"
+                                                    ],
+                                                    "parsable_value": [
+                                                        {
+                                                            "|value": "parsable_value value",
+                                                            "|formalism": "parsable_value formalism"
+                                                        }
+                                                    ],
+                                                    "state_value": [
+                                                        {
+                                                            "|code": "state_value code",
+                                                            "|value": "state_value value"
+                                                        }
+                                                    ],
+                                                    "identifier_value": [
+                                                        {
+                                                            "|id": "identifier_value id",
+                                                            "|type": "identifier_value type",
+                                                            "|issuer": "identifier_value issuer",
+                                                            "|assigner": "identifier_value assigner"
+                                                        }
+                                                    ],
+                                                    "uri_value": [
+                                                        "uri_value"
+                                                    ],
+                                                    "ehr_uri_value": [
+                                                        "ehr_uri_value"
+                                                    ],
+                                                    "quantity_value": [
+                                                        {
+                                                            "|unit": "quantity_value unit"
+                                                        }
+                                                    ],
+                                                    "date_time_value": [
+                                                        "2024-12-20T18:46:18"
+                                                    ],
+                                                    "date_value": [
+                                                        "2024-12-20"
+                                                    ],
+                                                    "time_value": [
+                                                        "18:46"
+                                                    ],
+                                                    "ordinal_value": [
+                                                        "ordinal_value"
+                                                    ],
+                                                    "scale_value": [
+                                                        "scale_value"
+                                                    ]
+                                                }
+                                            ],
+                                            "reference_range_guidance": [
+                                                "reference_range_guidance"
+                                            ]
+                                        }
+                                    ],
+                                    "time": [
+                                        "2024-12-20T18:46:18"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "adverse_reactions": [
+                {
+                    "adverse_reaction_monitoring": [
+                        {
+                            "monitoring_interval": [
+                                {
+                                    "substance": [
+                                        "Drug_1"
+                                    ],
+                                    "adverse_reaction_event_summary": [
+                                        {
+                                            "manifestation": [
+                                                {
+                                                    "|code": "T88.6"
+                                                }
+                                            ],
+                                            "onset_of_reaction": [
+                                                "2024-12-20T18:46:18"
+                                            ],
+                                            "severity_of_reaction": [
+                                                {
+                                                    "|code": "at0011",
+                                                    "|other": "severity_of_reaction other"
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "math_function": [
+                                        {
+                                            "|code": "math_function code",
+                                            "|value": "math_function value"
+                                        }
+                                    ],
+                                    "time": [
+                                        "2024-12-20T18:46:18"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "category": [
+                {
+                    "|code": "433"
+                }
+            ]
+        }
+    ]
+}

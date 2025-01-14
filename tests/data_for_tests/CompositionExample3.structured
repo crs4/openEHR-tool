@@ -1,0 +1,293 @@
+{
+  "interhealth_cancer_registry" : {
+    "category" : [ {
+      "|code" : "433",
+      "|terminology" : "openehr",
+      "|value" : "event"
+    } ],
+    "context" : [ {
+      "registry_identifier" : [ {
+        "identifier" : [ "Lorem ipsum" ]
+      } ],
+      "ihss_identifier" : [ {
+        "case_identifier" : [ "Lorem ipsum" ]
+      } ],
+      "start_time" : [ "2022-02-03T04:05:06" ],
+      "setting" : [ {
+        "|value" : "home",
+        "|code" : "225",
+        "|terminology" : "openehr"
+      } ],
+      "_end_time" : [ "2022-02-03T04:05:06" ],
+      "_health_care_facility" : [ {
+        "|name" : "DOE, John"
+      } ]
+    } ],
+    "demographic" : [ {
+      "birth_summary" : [ {
+        "date_time_of_birth_dob" : [ "2022-02-03T04:05:06" ],
+        "country_of_birth" : [ "Lorem ipsum" ],
+        "place_of_birth" : [ "Lorem ipsum" ],
+        "language" : [ {
+          "|code" : "en",
+          "|terminology" : "ISO_639-1"
+        } ],
+        "encoding" : [ {
+          "|code" : "UTF-8",
+          "|terminology" : "IANA_character-sets"
+        } ],
+        "_work_flow_id" : [ {
+          "|id" : "2b85c938-2f31-3326-aaad-3d0812a0420a",
+          "|id_scheme" : "scheme",
+          "|namespace" : "unknown",
+          "|type" : "ANY"
+        } ],
+        "_guideline_id" : [ {
+          "|id" : "a42bea93-b511-381b-8c8b-fc9f03002437",
+          "|id_scheme" : "scheme",
+          "|namespace" : "unknown",
+          "|type" : "ANY"
+        } ]
+      } ],
+      "death_summary" : [ {
+        "date_time_of_death" : [ "2022-02-03T04:05:06" ],
+        "language" : [ {
+          "|code" : "en",
+          "|terminology" : "ISO_639-1"
+        } ],
+        "encoding" : [ {
+          "|code" : "UTF-8",
+          "|terminology" : "IANA_character-sets"
+        } ],
+        "_work_flow_id" : [ {
+          "|id" : "d2c12d0c-4ac2-35d5-a07f-8603c3e0ab07",
+          "|id_scheme" : "scheme",
+          "|namespace" : "unknown",
+          "|type" : "ANY"
+        } ],
+        "_guideline_id" : [ {
+          "|id" : "7b55f75c-c9df-34a0-8880-efb485f4eacb",
+          "|id_scheme" : "scheme",
+          "|namespace" : "unknown",
+          "|type" : "ANY"
+        } ]
+      } ],
+      "gender" : [ {
+        "sex_assigned_at_birth" : [ "Lorem ipsum" ],
+        "language" : [ {
+          "|code" : "en",
+          "|terminology" : "ISO_639-1"
+        } ],
+        "encoding" : [ {
+          "|code" : "UTF-8",
+          "|terminology" : "IANA_character-sets"
+        } ],
+        "_work_flow_id" : [ {
+          "|id" : "c9dddc67-dfc2-38e7-b3a1-625289411e8e",
+          "|id_scheme" : "scheme",
+          "|namespace" : "unknown",
+          "|type" : "ANY"
+        } ],
+        "_guideline_id" : [ {
+          "|id" : "6ea8e91f-9d6a-3a6c-a250-e2699697fa1e",
+          "|id_scheme" : "scheme",
+          "|namespace" : "unknown",
+          "|type" : "ANY"
+        } ]
+      } ]
+    } ],
+    "condition" : [ {
+      "primary_diagnosis" : [ {
+        "diagnosis" : [ {
+          "|terminology" : "ICD-10",
+          "|value" : "Malignant neoplasm of colon",
+          "|code" : "C18"
+        } ],
+        "body_site" : [ "Colon" ],
+        "date_time_of_onset" : [ "2022-02-03T04:05:06" ],
+        "tnm_pathological_classification" : [ {
+          "primary_tumour_pt" : [ "T0" ],
+          "regional_lymph_nodes_pn" : [ "N0" ],
+          "distant_metastasis_pm" : [ "M0" ]
+        } ],
+        "language" : [ {
+          "|code" : "en",
+          "|terminology" : "ISO_639-1"
+        } ],
+        "encoding" : [ {
+          "|terminology" : "IANA_character-sets",
+          "|code" : "UTF-8"
+        } ],
+        "_work_flow_id" : [ {
+          "|id" : "3696ddb4-a772-345a-8389-15a9660b1c92",
+          "|id_scheme" : "scheme",
+          "|namespace" : "unknown",
+          "|type" : "ANY"
+        } ],
+        "_guideline_id" : [ {
+          "|id" : "86bc198f-2161-3af8-b0d2-58d5497c5b33",
+          "|id_scheme" : "scheme",
+          "|namespace" : "unknown",
+          "|type" : "ANY"
+        } ]
+      } ]
+    } ],
+    "laboratory_tests" : [ {
+      "laboratory_test_result" : [ {
+        "any_event" : [ {
+          "test_name" : [ "Lorem ipsum" ],
+          "overall_test_status" : [ {
+            "|code" : "at0107",
+            "|value" : "Registered",
+            "|terminology" : "local"
+          } ],
+          "overall_test_status_timestamp" : [ "2022-02-03T04:05:06" ],
+          "laboratory_analyte_result" : [ {
+            "analyte_name" : [ {
+              "|code" : "LP7720-8",
+              "|terminology" : "LOINC",
+              "|value" : "White blood cells"
+            } ],
+            "analyte_result" : [ {
+              "text_value" : [ "Lorem ipsum" ]
+            } ],
+            "reference_range_guidance" : [ "Lorem ipsum" ]
+          } ],
+          "time" : [ "2022-02-03T04:05:06" ],
+          "width" : [ "PT42H" ],
+          "math_function" : [ {
+            "|code" : "145",
+            "|value" : "minimum",
+            "|terminology" : "openehr"
+          } ]
+        }, {
+          "test_name" : [ "Lorem ipsum" ],
+          "overall_test_status" : [ {
+            "|terminology" : "local",
+            "|code" : "at0107",
+            "|value" : "Registered"
+          } ],
+          "overall_test_status_timestamp" : [ "2022-02-03T04:05:06" ],
+          "laboratory_analyte_result" : [ {
+            "analyte_name" : [ {
+              "|terminology" : "LOINC",
+              "|value" : "White blood cells",
+              "|code" : "LP7720-8"
+            } ],
+            "analyte_result" : [ {
+              "text_value" : [ "Lorem ipsum" ]
+            } ],
+            "reference_range_guidance" : [ "Lorem ipsum" ]
+          } ],
+          "time" : [ "2022-02-03T04:05:06" ]
+        }, {
+          "test_name" : [ "Lorem ipsum" ],
+          "overall_test_status" : [ {
+            "|value" : "Registered",
+            "|code" : "at0107",
+            "|terminology" : "local"
+          } ],
+          "overall_test_status_timestamp" : [ "2022-02-03T04:05:06" ],
+          "laboratory_analyte_result" : [ {
+            "analyte_name" : [ {
+              "|value" : "White blood cells",
+              "|terminology" : "LOINC",
+              "|code" : "LP7720-8"
+            } ],
+            "analyte_result" : [ {
+              "text_value" : [ "Lorem ipsum" ]
+            } ],
+            "reference_range_guidance" : [ "Lorem ipsum" ]
+          } ],
+          "time" : [ "2022-02-03T04:05:06" ],
+          "width" : [ "PT42H" ],
+          "math_function" : [ {
+            "|value" : "minimum",
+            "|code" : "145",
+            "|terminology" : "openehr"
+          } ]
+        } ],
+        "language" : [ {
+          "|code" : "en",
+          "|terminology" : "ISO_639-1"
+        } ],
+        "encoding" : [ {
+          "|code" : "UTF-8",
+          "|terminology" : "IANA_character-sets"
+        } ],
+        "_work_flow_id" : [ {
+          "|id" : "9c08be94-54cf-3d23-9c1b-f69229f1975b",
+          "|id_scheme" : "scheme",
+          "|namespace" : "unknown",
+          "|type" : "ANY"
+        } ],
+        "_guideline_id" : [ {
+          "|id" : "af8d7c38-fd5f-3592-a6a5-2a48278f44ff",
+          "|id_scheme" : "scheme",
+          "|namespace" : "unknown",
+          "|type" : "ANY"
+        } ]
+      } ]
+    } ],
+    "adverse_reactions" : [ {
+      "adverse_reaction_monitoring" : [ {
+        "monitoring_interval" : [ {
+          "substance" : [ "Drug_1" ],
+          "adverse_reaction_event_summary" : [ {
+            "manifestation" : [ {
+              "|value" : "Anaphylactic shock due to the adverse effect of a drug",
+              "|terminology" : "ICD-10",
+              "|code" : "T88.6"
+            } ],
+            "onset_of_reaction" : [ "2022-02-03T04:05:06" ],
+            "duration_of_reaction" : [ "PT0S" ],
+            "severity_of_reaction" : [ {
+              "|terminology" : "local",
+              "|code" : "at0011",
+              "|value" : "Mild"
+            } ]
+          } ],
+          "math_function" : [ {
+            "|code" : "145",
+            "|terminology" : "openehr",
+            "|value" : "minimum"
+          } ],
+          "width" : [ "PT0S" ],
+          "time" : [ "2022-02-03T04:05:06" ]
+        } ],
+        "language" : [ {
+          "|terminology" : "ISO_639-1",
+          "|code" : "en"
+        } ],
+        "encoding" : [ {
+          "|terminology" : "IANA_character-sets",
+          "|code" : "UTF-8"
+        } ],
+        "_work_flow_id" : [ {
+          "|id" : "0f09ee49-3698-3e0b-ae96-45c2634bbbb9",
+          "|id_scheme" : "scheme",
+          "|namespace" : "unknown",
+          "|type" : "ANY"
+        } ],
+        "_guideline_id" : [ {
+          "|id" : "4045262a-480d-391c-8717-290bbef996c6",
+          "|id_scheme" : "scheme",
+          "|namespace" : "unknown",
+          "|type" : "ANY"
+        } ]
+      } ]
+    } ],
+    "language" : [ {
+      "|terminology" : "ISO_639-1",
+      "|code" : "en"
+    } ],
+    "territory" : [ {
+      "|terminology" : "ISO_3166-1",
+      "|code" : "DE"
+    } ],
+    "composer" : [ {
+      "|name" : "Max Mustermann"
+    } ]
+  }
+}
+

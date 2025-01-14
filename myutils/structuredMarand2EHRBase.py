@@ -5,7 +5,26 @@ from flask import current_app
 import re
 from terminology import openterm
 import random
+from myutils import myutils
 
+RMvalues=["text_value",
+    "coded_text_value",
+    "multimedia_value",
+    "parsable_value",
+    "state_value",
+    "boolean_value",
+    "identifier_value",
+    "uri_value",
+    "ehr_uri_value",
+    "duration_value",
+    "quantity_value",
+    "count_value",
+    "proportion_value",
+    "date_time_value",
+    "time_value",
+    "ordinal_value",
+    "date_value",
+    'null_flavour']
 
 def get_composition_name(cM):
     '''retrieve the name of the composition (template)'''
@@ -46,6 +65,9 @@ def convert_ctx(cM,cE):
 
 def convert_context(cM,cname):
     '''convert the context from a Marand composition to the equivalent in EHRBase'''
+    if cname not in cM:
+        print(f'cM keys: {cM.keys()}')
+        raise TypeError
     cctx=cM[cname][0]['context'][0]
     cont={}
     if 'setting' in cctx:
@@ -83,11 +105,50 @@ def convert_content(cM,cE,cname):
         if k not in cE:
             cE[k]=cctx[k]
 
+# def wtinfoaddtoList(mylist,elements,rmtypeobj,compulsory=False,parentid="",parentname="",parentpath="",parentrmtype=""):
+#     for el in elements:
+#         if el['id']=='math_function':
+#             continue
+#         print(f'el={el} parentid={parentid} parentname={parentname} parentpath={parentpath} parentrmtype={parentrmtype}')
+#         if parentname==el['name'] and parentrmtype=='ELEMENT' and el['id'] in RMvalues:
+#             print(f'BBBBBBBBBBBBBBBBBBBBBBBBBB')
+#             print(f"parentid={parentid} name={el['name']}")
+#             eid=parentid
+#             aqlpath=parentpath
+#             rmtype=el['rmType']
+#             name=parentname
+#         else:
+#             print(f'CCCCCCCCCCCCCCCCCCCCC')
+#             print(f"parentname={parentname} name={el['name']} parentrmtype={parentrmtype} {el['id'] in RMvalues}")
+#             eid=el['id']
+#             aqlpath=el['aqlPath']
+#             rmtype=el['rmType']
+#             name=el['name']
+#         dvintervalcondition= rmtypeobj=='DV_INTERVAL' and rmtype.startswith(rmtypeobj)
+#         if 'content' in aqlpath and (rmtype==rmtypeobj or dvintervalcondition):
+#             if 'inputs' in el:
+#                 inputs=el['inputs']
+#             else:
+#                 inputs=[]
+#             if compulsory:
+#                 if el['min']>0:
+#                     print(f'added eid={eid} name={name} rmtype={rmtype}')
+#                     mylist.append([eid,aqlpath,rmtype,inputs])
+#             else:
+#                 print(f'added eid={eid} name={name} rmtype={rmtype}')
+#                 mylist.append([eid,aqlpath,rmtype,inputs])
+#         if 'children' in el:
+#             wtinfoaddtoList(mylist,el['children'],rmtypeobj,compulsory,eid,name,aqlpath,rmtype)
+#     return mylist
+
 def wtinfoaddtoList(mylist,elements,rmtypeobj,compulsory=False):
     for el in elements:
+        if el['id']=='math_function':
+            continue
         eid=el['id']
         aqlpath=el['aqlPath']
         rmtype=el['rmType']
+        name=el['name']
         dvintervalcondition= rmtypeobj=='DV_INTERVAL' and rmtype.startswith(rmtypeobj)
         if 'content' in aqlpath and (rmtype==rmtypeobj or dvintervalcondition):
             if 'inputs' in el:
@@ -96,8 +157,10 @@ def wtinfoaddtoList(mylist,elements,rmtypeobj,compulsory=False):
                 inputs=[]
             if compulsory:
                 if el['min']>0:
+                    print(f'added eid={eid} name={name} rmtype={rmtype}')
                     mylist.append([eid,aqlpath,rmtype,inputs])
             else:
+                print(f'added eid={eid} name={name} rmtype={rmtype}')
                 mylist.append([eid,aqlpath,rmtype,inputs])
         if 'children' in el:
             wtinfoaddtoList(mylist,el['children'],rmtypeobj,compulsory)
@@ -137,29 +200,92 @@ def lookforlist(w):
                 advalues.append({'label': label, 'localizedLabels': {'en': label}, 'value': value})
             w[3]=[{'list': advalues, 'suffix': 'code', 'terminology': 'openehr', 'type': 'CODED_TEXT'}]
             return True
+    elif w[0]=='null_flavour':
+        advalues=[]
+        for it in openterm['null_flavours']:
+            value=it['id']
+            label=it['rubric']
+            advalues.append({'label': label, 'localizedLabels': {'en': label}, 'value': value})
+        w[3]=[{'list': advalues, 'suffix': 'code', 'terminology': 'openehr', 'type': 'CODED_TEXT'}]
+        return True        
     return False
 
-def comparelists_WT_ET_DVCODEDTEXT(mylistW,mylistE):
+def maxfrompathobjinwebtemp(elements,pathobj,parentel="",parentname="",parentmax="",parentpath=""):
+    for el in elements:
+        aqlpath=el['aqlPath']
+        elmax = el['max']
+        name=el['name']
+        if aqlpath==pathobj:
+            print(f"element {el['id']} name {name} max {elmax} path {aqlpath}")
+            print(f"parent element {parentel} name {parentname} max {parentmax} path {parentpath}")
+            return parentmax,parentname,elmax,name
+        else:
+            if 'children' in el:
+                parentel=el['id']
+                parentname=el['name']
+                parentpath=aqlpath
+                parentmax=elmax
+                maxfrompathobjinwebtemp(el['children'],pathobj,parentel,parentname,parentmax,parentpath)
+    return -10,-10,-10,-10   
+
+
+def findpathfrompp(pathpairing,pempty,elements,parentelement,parentmax):
+    #find path in webtemplate
+    pmax,pname,emax,ename=maxfrompathobjinwebtemp(elements,pempty)
+    if pmax==-10:
+        return -1
+    closest=-1
+    #look for the path,if any, that differs only for one element
+    pemptysplit=pempty.split("/")[:-2]
+    for i,p in enumerate(pathpairing):
+        psplit=p[0].split("/")[:-2]
+        if psplit==pemptysplit:
+            pflatsplit=p[1].split("/")[:-1]
+            if pmax>1 or pmax==-1:
+                pflatsplit.append(pname+"[0]")
+            else:
+                pflatsplit.append(pname)
+            if emax>1 or emax==-1:
+                pflatsplit.append(ename+"[0]")
+            else:
+                pflatsplit.append(ename)
+            return ".".join(pflatsplit)
+    return -1
+
+
+
+def comparelists_WT_ET_DVCODEDTEXT(mylistW,mylistE,elements):
     '''compare and merge the lists of dv_coded_text elements made from webtemplate and example composition from template
     output: list with id,possiblevalues,[match_indicator,pathfromExample]'''
     newlist=[]
-    for w in mylistW:
+    emptylist=[]
+    pathpairing=[]
+    for i,w in enumerate(mylistW):
         idw=w[0]
         pw=w[1]
         # current_app.logger.debug(f'w={w}')
         # current_app.logger.debug(w[3])
         if not 'list' in w[3][0]:
-            #current_app.logger.debug(f'Creating a list for {w[0]} if possible')
+            current_app.logger.debug(f'w[3)={w[3]}')
+            current_app.logger.debug(f'Creating a list for {w[0]} if possible')
             outcome=lookforlist(w)
             # current_app.logger.debug(f'list transition added w={w}')
-            if not outcome:
-                current_app.logger.error(f"Couldn't find any list of allowed codes/values for w={w}")
-        nvalues=len(w[3][0]['list'])
-        values=[{'code':w[3][0]['list'][i]['value'],'value':w[3][0]['list'][i]['label'],
-                 'terminology':w[3][0]['terminology']} for i in range(nvalues)]
-        if len(w[3])>1:
-            if 'suffix' in w[3][1]:
-                values.append({w[3][1]['suffix']:'othertext'})
+            # if not outcome:
+            #     current_app.logger.error(f"Couldn't find any list of allowed codes/values for w={w}")
+        basepath=w[3][0]
+        # if 'list' not in basepath:
+        #     print(f'NOT LIST IN {w[0]} {w[3]}')
+        #     basepath=w[3][0][0]
+        if 'list' in basepath:
+            nvalues=len(basepath['list'])
+            values=[{'code':basepath['list'][i]['value'],'value':basepath['list'][i]['label'],
+                    'terminology':basepath['terminology']} for i in range(nvalues)]
+            if len(w[3])>1:
+                if 'suffix' in w[3][1]:
+                    values.append({w[3][1]['suffix']:'othertext'})
+        else:
+            nvalues=0
+            values=[]
         pathelements=[]
         if 'name/value' in pw:
             ifind=0
@@ -185,7 +311,27 @@ def comparelists_WT_ET_DVCODEDTEXT(mylistW,mylistE):
                             if p in pe:
                                 g+=1
                     liste.append([g,pe])
+                    pathpairing.append([pw,pe])
+
         newlist.append([idw,values,liste])
+        if len(liste)==0:
+            emptylist.append([i,len(newlist)-1])
+            print(f'empty {pw}')        
+
+    if emptylist:
+        #find the path for the empty lists
+        print(f'path pairing')
+        print(len(pathpairing))
+        for pp in pathpairing:
+            print(pp)
+        for n in emptylist:
+            pempty=mylistW[n[0]][1]
+            fp=findpathfrompp(pathpairing,pempty,elements)
+            if fp==-1:
+                current_app.logger.error(f"Couldn't find the path for {mylistW[n[0]][0]}")
+            else:
+                newlist[n[1]][2]=[0,fp]
+
     final_list=[]
     for n in newlist:
         if len(n[2])>1:
@@ -336,7 +482,7 @@ def findpathtocoded(cE,listofcoded,cname,flattenedcm):
     ''' find path in Marand for dv_coded_text elements in list of paths and return it together with allowed values'''
     pathtocoded=[]
     for lc in listofcoded:
-        # current_app.logger.debug(f'id={lc[0]}')
+        current_app.logger.debug(f'id={lc[0]} 1={lc[1]} 2={lc[2]}')
         (path,lenocc)=createpathstructured(lc[2][0][1])
         # current_app.logger.debug('FINDPATHTOCODED')
         # for l in lenocc:
@@ -349,6 +495,7 @@ def findpathtocoded(cE,listofcoded,cname,flattenedcm):
 
         if len(newpaths)!=0:
             for p in newpaths:
+#                pathtocoded.append([cE+p,lc[1]])
                 pathtocoded.append(["cE"+p,lc[1]])
                 # current_app.logger.debug(f'appended [{"cE"+p} , {lc[1]}]')
         
@@ -356,9 +503,12 @@ def findpathtocoded(cE,listofcoded,cname,flattenedcm):
 
 
 
-def fixes_dv_coded_text(cE,webtemp,extemp,cname,flattenedcm):
+def fixes_dv_coded_text(cE,webtemp,extemp,cname,flattenedcm,ehrbase_version):
     #find all dv_coded_text in webtemplate content
-    wt=webtemp['webTemplate']['tree']['children']
+    if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
+        wt=webtemp['tree']['children']
+    else:#ehrbase_version<2.5.0
+        wt=webtemp['webTemplate']['tree']['children']
     mylistW=[]
     mylistW=wtinfoaddtoList(mylistW,wt,'DV_CODED_TEXT')
     #current_app.logger.debug(len(mylistW))
@@ -370,7 +520,7 @@ def fixes_dv_coded_text(cE,webtemp,extemp,cname,flattenedcm):
     # current_app.logger.debug(f'listE={mylistE}')
 
     #compare and merge the two lists to find the right paths and allowed values
-    listofcoded=comparelists_WT_ET_DVCODEDTEXT(mylistW,mylistE)
+    listofcoded=comparelists_WT_ET_DVCODEDTEXT(mylistW,mylistE,wt)
     # current_app.logger.debug(f'listofcoded={listofcoded}')
 
     #find path in Marand for the dv coded values
@@ -848,7 +998,7 @@ def commitptb(cE,pathtobecommitted,value):
         # current_app.logger.debug(cE)
 
 
-def structuredMarand2EHRBase(compMARAND,client,auth,hostname,port,username,password,composition,eid,tid):
+def structuredMarand2EHRBase(compMARAND,client,auth,url_base,url_base_ecis,tid,ehrbase_version):
     '''convert a structured Marand composition to a EHRBase one
     input: composition returned from Marand Designer, template in webtemplate format
     output: composition in EHRBase structured format'''
@@ -857,9 +1007,7 @@ def structuredMarand2EHRBase(compMARAND,client,auth,hostname,port,username,passw
     # sys.path.append('..')
     from ehrbase_routines import gettemp,examplecomp
 
-    
-
-    cname=tid
+    cname=tid.lower()
     # current_app.logger.debug(f'CNAME={cname}')
 
     #create flattened version of structured composition
@@ -869,7 +1017,7 @@ def structuredMarand2EHRBase(compMARAND,client,auth,hostname,port,username,passw
     #     current_app.logger.debug(fl)
 
     #get webtemplate
-    myresptemp=gettemp(client,auth,hostname,port,username,password,'wt',tid)
+    myresptemp=gettemp(client,auth,url_base,url_base_ecis,'wt',tid,ehrbase_version)
     if 'template' in myresptemp:
         mwtstring=myresptemp['template']
         webtemp=json.loads(mwtstring)
@@ -879,7 +1027,7 @@ def structuredMarand2EHRBase(compMARAND,client,auth,hostname,port,username,passw
         return myresptemp
 
     #get example from template
-    myrespex=examplecomp(client,auth,hostname,port,username,password,tid,'FLAT')
+    myrespex=examplecomp(client,auth,url_base,url_base_ecis,tid,'FLAT',ehrbase_version)
     if 'flat' in myrespex:
         mexstring=myrespex['flat']
         extemp=json.loads(mexstring)
@@ -910,7 +1058,7 @@ def structuredMarand2EHRBase(compMARAND,client,auth,hostname,port,username,passw
 
 
     current_app.logger.info('Fixing DV_CODED_TEXT leafs')
-    fixes_dv_coded_text(comp,webtemp,extemp,cname,flattenedcm)
+    fixes_dv_coded_text(comp,webtemp,extemp,cname,flattenedcm,ehrbase_version)
 
     
     current_app.logger.info('Fixing DV_QUANTITY leafs')

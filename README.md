@@ -88,6 +88,14 @@ For the EHRBase server the following properties are needed:
 * password : password for the user to authenticate with basic authentication on ehrbase
 * (Optional) adusername : username for the admin user to authenticate with basic authentication on ehrbase
 * (Optional) adpassword : password for the admin user to authenticate with basic authentication on ehrbase
+* protocol : the protocol used when contacting EHRBase: i.e.,http or https
+* https_mapping (only for https): the mapping between the https name (e.g., www.myehrbase.com) and the EHRBase server via proxy. For instance, if in nginx.conf we set 
+```
+proxy_pass http://ehrbase:8080
+```
+the we should set ```
+https_mapping = ehrbase:8080
+```
 
 The admin credentials are optional but if they are not available the methods in the ADMIN section will not work and the "dashboard" will not have access to all the information it needs to fill its sections.
 
@@ -303,6 +311,7 @@ and then launch pytest:
 ```
 python -m pytest --capture=tee-sys  -v
 ```
+_WARNING_ : The test file "test_endpoints_real_server.py" checks all the methods implemented agains a real server. So be careful to launch it only with a fresh server you set up for that purpose. It creates and deletes various elements (in particular delete all templates) so it would interfere with a production server.
 # Available methods: #
 Methods in:
 <ul>

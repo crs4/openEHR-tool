@@ -1,0 +1,16 @@
+{"name":{
+  "_type" : "DV_TEXT",
+  "value" : "EHR Status"
+},"subject":{
+  "_type" : "PARTY_SELF",
+  "external_ref" : {
+    "_type" : "PARTY_REF",
+    "namespace" : "CRS4",
+    "type" : "PERSON",
+    "id" : {
+      "_type" : "GENERIC_ID",
+      "value" : "I03",
+      "scheme" : "id_scheme"
+    }
+  }
+},"_type":"EHR_STATUS","archetype_node_id":"openEHR-EHR-EHR_STATUS.generic.v1","is_queryable":true,"is_modifiable":true}

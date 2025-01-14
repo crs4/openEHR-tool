@@ -1,0 +1,30 @@
+{
+    "_type": "FOLDER",
+    "name": {
+        "_type": "DV_TEXT",
+        "value": "root"
+    },
+    "uid": {
+        "_type": "OBJECT_VERSION_ID",
+        "value": "6e13bbdb-893c-4260-b47d-f3585d178667::local.ehrbase.org::1"
+    },
+    "archetype_node_id": "openEHR-EHR-FOLDER.generic.v1",
+    "folders": [
+        {
+            "_type": "FOLDER",
+            "name": {
+                "_type": "DV_TEXT",
+                "value": "subject"
+            },
+            "archetype_node_id": "openEHR-EHR-FOLDER.generic.v1"
+        },
+        {
+            "_type": "FOLDER",
+            "name": {
+                "_type": "DV_TEXT",
+                "value": "persistent"
+            },
+            "archetype_node_id": "openEHR-EHR-FOLDER.generic.v1"
+        }
+    ]
+}

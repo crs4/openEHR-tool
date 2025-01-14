@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.exceptions import HTTPException
 import os
 from config import readconfig,logging_configurations
-import config
+#import config
 from myutils import myutils
 import sys
 import redis
@@ -21,6 +21,9 @@ default_port="8080"
 default_username="ehrbase-user"
 default_password="SuperSecretPassword"
 default_nodename="local.ehrbase.org"
+default_protocol="http"
+default_https_mapping="ehrbase:8080"
+default_ehrbase_version="latest"
 default_adusername="ehrbase-admin"
 default_adpassword="EvenMoreSecretPassword"
 default_redishostname='localhost'
@@ -33,6 +36,9 @@ password=""
 lastehrid=""
 lastcompositionid=""
 nodename=""
+protocol = ""
+https_mapping = ""
+ehrbase_version=""
 adusername=""
 adpassword=""
 redishostname=""
@@ -43,6 +49,10 @@ sessiontotalevents=0
 lastaql=""
 r=''
 client=''
+url_base=""
+url_base_ecis=""
+url_base_admin=""
+url_base_management=""
 
 def init_redis(redishostname,redisport):
     global r
@@ -65,9 +75,9 @@ def insertlogline(line):
 
 
 def create_app():
-    global hostname,port,username,password,lastehrid,lastcompositionid,nodename,adusername, \
+    global hostname,port,username,password,lastehrid,lastcompositionid,nodename,protocol,https_mapping,adusername, \
         adpassword,redishostname,redisport,reventsrecorded,currentposition,sessiontotalevents,auth, \
-            adauth,r,client
+            adauth,r,client,url_base,url_base_ecis,url_base_admin,url_base_management,ehrbase_version
     app = Flask(__name__)
     app.app_context()
     app.config.from_object('config')
@@ -78,7 +88,7 @@ def create_app():
     app.logger.info(f"Running with DEBUG={os.getenv('DEBUG')}")
     app.logger.info(f"Running with TESTING={os.getenv('TESTING')}")
     app.logger.info(f"Running with SEND_FILE_MAX_AGE_DEFAULT={os.getenv('SEND_FILE_MAX_AGE_DEFAULT')}")
-
+    app.logger.info(f"Running with REQUESTS_CA_BUNDLE={os.getenv('REQUESTS_CA_BUNDLE')}")
 
     import ehrbase_routines
 
@@ -98,6 +108,9 @@ def create_app():
     env_varset = [os.environ.get('EHRBASESERVER_hostname', None), 
                   os.environ.get('EHRBASESERVER_port', None),
                   os.environ.get('EHRBASESERVER_nodename', None),
+                  os.environ.get('EHRBASESERVER_protocol', None), 
+                  os.environ.get('EHRBASESERVER_version', None), 
+                  os.environ.get('EHRBASESERVER_https_mapping', None), 
                   os.environ.get('EHRBASEUSERS_username', None),
                   os.environ.get('EHRBASEUSERS_password', None),
                   os.environ.get('EHRBASEUSERS_adusername', None),
@@ -108,21 +121,26 @@ def create_app():
     if (os.path.exists(settingsfile)):
         varset=readconfig.readconfigfromfile(settingsfile)
         #build varset from environment variables
-        for i in ([0,1,2,3,4] +([5,6] if len(varset)==10 else []) +[-3,-2,-1]):
+        for i in ([0,1,2,3,4,5,6,7] +([8,9] if len(varset)==13 else []) +[-3,-2,-1]):
             if env_varset[i] is None:
                 env_varset[i] = varset[i]
     varset = tuple(env_varset)
     if (len([v for v in varset if v is not None])>0):
-        if(len(varset)==10):
-            hostname,port,nodename,username,password,adusername,adpassword,redishostname,redisport,reventsrecorded=varset        
+        if(len(varset)==13):
+            hostname,port,nodename,protocol,https_mapping,ehrbase_version,username,password,adusername,adpassword,redishostname,redisport,reventsrecorded=varset        
             reventsrecorded=int(reventsrecorded)
             global adauth
-            adauth= myutils.getauth(adusername,adpassword)  
+            adauth= myutils.getauth(adusername,adpassword)
         else:
-            hostname,port,nodename,username,password,redishostname,redisport,reventsrecorded=varset  
+            hostname,port,nodename,protocol,https_mapping,ehrbase_version,username,password,redishostname,redisport,reventsrecorded=varset  
             reventsrecorded=int(reventsrecorded)      
         auth = myutils.getauth(username,password)
         r=init_redis(redishostname,redisport)
+        try:
+            url_base,url_base_ecis,url_base_admin,url_base_management=myutils.setEHRbasepaths(hostname,port,protocol,https_mapping)
+        except myutils.httpsMappingError:
+            app.logger.info("Error in https_mapping processing")
+            raise    
         with app.app_context():
             client=ehrbase_routines.init_ehrbase()
     else:
@@ -137,12 +155,15 @@ def create_app():
     @app.route("/fsettings.html",methods=["GET"])
     #load settings from file
     def fset():
-        global hostname,port,username,password,nodename,adusername,adpassword,redishostname,redisport,reventsrecorded, \
-            client
+        global hostname,port,username,password,nodename,protocol,https_mapping,adusername,adpassword,redishostname,redisport,reventsrecorded, \
+            client,url_base,url_base_admin,url_base_ecis,url_base_management,ehrbase_version
         #get vars from env
         env_varset = [os.environ.get('EHRBASESERVER_hostname', None), 
                     os.environ.get('EHRBASESERVER_port', None),
                     os.environ.get('EHRBASESERVER_nodename', None),
+                    os.environ.get('EHRBASESERVER_protocol', None),
+                    os.environ.get('EHRBASESERVER_https_mapping', None),
+                    os.environ.get('EHRBASESERVER_version', None),
                     os.environ.get('EHRBASEUSERS_username', None),
                     os.environ.get('EHRBASEUSERS_password', None),
                     os.environ.get('EHRBASEUSERS_adusername', None),
@@ -153,23 +174,28 @@ def create_app():
         if (os.path.exists(settingsfile)):
                 varset=readconfig.readconfigfromfile(settingsfile)
                 #build varset from environment variables
-                for i in ([0,1,2,3,4] +([5,6] if len(varset)==10 else []) +[-3,-2,-1]):
+                for i in ([0,1,2,3,4,5,6,7] +([8,9] if len(varset)==13 else []) +[-3,-2,-1]):
                     if env_varset[i] is None:
                         env_varset[i] = varset[i]
         varset = tuple(env_varset)
         if (len([v for v in varset if v is not None])>0):
-            if(len(varset)==10):
-                hostname,port,nodename,username,password,adusername,adpassword,redishostname,redisport,reventsrecorded=varset        
+            if(len(varset)==13):
+                hostname,port,nodename,protocol,https_mapping,ehrbase_version,username,password,adusername,adpassword,redishostname,redisport,reventsrecorded=varset        
                 global adauth
                 adauth= myutils.getauth(adusername,adpassword)
                 reventsrecorded=int(reventsrecorded)
             else:
-                hostname,port,nodename,username,password,redishostname,redisport,reventsrecorded=varset  
+                hostname,port,nodename,protocol,https_mapping,ehrbase_version,username,password,redishostname,redisport,reventsrecorded=varset  
                 reventsrecorded=int(reventsrecorded)      
             global auth,r
             auth = myutils.getauth(username,password)  
             r=init_redis(redishostname,redisport)
             client=ehrbase_routines.init_ehrbase()
+            try:
+                url_base,url_base_ecis,url_base_admin,url_base_management=myutils.setEHRbasepaths(hostname,port,protocol,https_mapping)
+            except myutils.httpsMappingError:
+                app.logger.info("Error in https_mapping processing")
+                raise    
             result='Settings Reloaded Successfully'
             app.logger.info("Settings reloaded from file")
         else:
@@ -181,13 +207,17 @@ def create_app():
     @app.route("/settings.html",methods=["GET"])
     #change settings from html page
     def ehrbase():
-        global hostname,port,username,password,nodename,lastehrid,lastcompositionid, \
-            adusername,adpassword,redishostname,redisport,reventsrecorded,client
+        global hostname,port,protocol,https_mapping,username,password,nodename,lastehrid,lastcompositionid, \
+            adusername,adpassword,redishostname,redisport,reventsrecorded,client,ehrbase_version
 
         status='failed'
         if request.args.get("pippo")=="Submit":
             hostname=request.args.get("hname","")
             port=request.args.get("port","")
+            protocol=request.args.get("protocol","")
+            https_mapping=request.args.get("https_mapping","")
+            ehrbase_version=request.args.get("hv","")
+
             username=request.args.get("uname","")
             password=request.args.get("pword","")
             nodename=request.args.get("nodename","")
@@ -199,6 +229,12 @@ def create_app():
                 hostname=default_hostname
             if(port==""):
                 port=default_port
+            if(protocol==""):
+                protocol=default_protocol
+            if(https_mapping==""):
+                https_mapping=default_https_mapping
+            if(ehrbase_version==""):
+                ehrbase_version=default_ehrbase_version               
             if(username==""):
                 username=default_username 
             if(password==""):
@@ -224,42 +260,48 @@ def create_app():
                 adauth= myutils.getauth(adusername,adpassword)
             global auth,r
             client=ehrbase_routines.init_ehrbase()
+            try:
+                url_base,url_base_ecis,url_base_admin,url_base_management=myutils.setEHRbasepaths(hostname,port,protocol,https_mapping)
+            except myutils.httpsMappingError:
+                app.logger.info("Error in https_mapping processing")
+                raise    
             auth = myutils.getauth(username,password)
             r=init_redis(redishostname,redisport)
             app.logger.info("settings changed from within app")
             status='success'
-            return render_template('settings.html',ho=hostname,po=port,us=username,pas=password,no=nodename,
+            return render_template('settings.html',ho=hostname,po=port,pr=protocol,hm=https_mapping,hv=ehrbase_version,us=username,pas=password,no=nodename,
                         adus=adusername,adpas=adpassword,rho=redishostname,rpo=redisport,rr=reventsrecorded,status=status)
-        return render_template('settings.html',ho=hostname,po=port,us=username,pas=password,no=nodename,
+        return render_template('settings.html',ho=hostname,po=port,pr=protocol,hm=https_mapping,hv=ehrbase_version,us=username,pas=password,no=nodename,
                         adus=adusername,adpas=adpassword,rho=redishostname,rpo=redisport,rr=reventsrecorded,status=status)
 
     @app.route("/ssettings.html",methods=["GET"])
     #see current settings 
     def ssettings():
-        global hostname,port,username,password,nodename,lastehrid,lastcompositionid, \
-            adusername,adpassword,redishostname,redisport,reventsrecorded,client
-        return render_template('ssettings.html',ho=hostname,po=port,us=username,pas=password,no=nodename,
+        global hostname,port,protocol,https_mapping,username,password,nodename,lastehrid,lastcompositionid, \
+            adusername,adpassword,redishostname,redisport,reventsrecorded,client,ehrbase_version
+        return render_template('ssettings.html',ho=hostname,po=port,pr=protocol,hm=https_mapping,hv=ehrbase_version,us=username,pas=password,no=nodename,
                         adus=adusername,adpas=adpassword,rho=redishostname,rpo=redisport,rr=reventsrecorded)
 
 
     @app.route("/gtemp.html",methods=["GET"])
     #get template
     def gtemp():
-        global hostname,port,username,password,auth,nodename,mymsg,currentposition
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        global url_base,url_base_ecis,auth,mymsg,currentposition,ehrbase_version
+        if(url_base=="" or url_base_ecis=="" or auth==""):
             return redirect(url_for("ehrbase"))
         yourresults=""
         singletemplate='false'
         singletemplate2='false'
         yourtemp=""
         yourjson='{}'
-        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'gtempbase.html','gtemp.html')
+        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,url_base,'gtempbase.html','gtemp.html')
         if(mymsg['status']=='failure'):
             return redirect(url_for("ehrbase"))
         if request.args.get("pippo")=="Get Template": 
             template_name=request.args.get("tname","")
             tformat=request.args.get("format","")
-            msg=ehrbase_routines.gettemp(client,auth,hostname,port,username,password,tformat,template_name)
+            print(f'ehrbase_version={ehrbase_version}')
+            msg=ehrbase_routines.gettemp(client,auth,url_base,url_base_ecis,tformat,template_name,ehrbase_version)
             if(msg['status']=="success"):            
                 if(tformat=='OPT'):
                     singletemplate='true'
@@ -295,14 +337,14 @@ def create_app():
     @app.route("/ltemp.html",methods=["GET"])
     #get list of templates
     def ltemp():
-        global hostname,port,username,password,auth,nodename,mymsg,currentposition
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        global url_base,auth,mymsg,currentposition
+        if(url_base=="" or auth==""):
             return redirect(url_for("ehrbase"))
         yourresults=""
         yourjson=''
         status='failed'
         if request.args.get("pippo2")=="Get List":
-            msg=ehrbase_routines.listtemp(client,auth,hostname,port,username,password)
+            msg=ehrbase_routines.listtemp(client,auth,url_base)
             if msg['status']=='success':
                 status='success'
                 yourjson=msg['json']
@@ -321,8 +363,8 @@ def create_app():
     @app.route("/ptemp.html",methods=['GET', 'POST'])
     #post template
     def pwrite():
-        global hostname,port,username,password,auth,nodename
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        global url_base,auth
+        if(url_base=="" or auth==""):
             return redirect(url_for("ehrbase"))    
         yourresults=""
         if request.method == 'POST':
@@ -331,7 +373,7 @@ def create_app():
                 render_template('ptemp.html',yourfile="you uploaded "+secure_filename(uploaded_file.filename))
                 uploaded_file.stream.seek(0) # seek to the beginning of file
                 template=uploaded_file.read()
-                msg=ehrbase_routines.posttemp(client,auth,hostname,port,username,password,template)
+                msg=ehrbase_routines.posttemp(client,auth,url_base,template)
                 yourresults=str(msg['status'])+" "+str(msg['status_code'])+ "\n"+ \
                     str(msg['headers'])+"\n"+ \
                         str(msg['text'])           
@@ -351,13 +393,13 @@ def create_app():
     @app.route("/utemp.html",methods=['GET', 'POST'])
     #update template (admin)
     def pupdate():
-        global hostname,port,adusername,adpassword,adauth,nodename,uploaded_file,template,tempname
-        if(hostname=="" or port=="" or nodename==""):
+        global url_base_admin,url_base,adauth,uploaded_file,template,tempname
+        if(url_base=="" or url_base_admin==""):
             return redirect(url_for("ehrbase"))
-        if(adusername=="" or adpassword==""):
+        if(adauth==""):
             return render_template('/utemp.html',warning='WARNING: NO ADMIN CREDENTIALS PROVIDED '), {"Refresh": "3; url="+url_for('ehrbase') }
         yourresults=""
-        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'utempbase.html','utemp.html')
+        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,url_base,'utempbase.html','utemp.html')
         if(mymsg['status']=='failure'):
             return redirect(url_for("ehrbase"))
         if request.method == 'POST':
@@ -375,7 +417,7 @@ def create_app():
             if (request.args.get("pippo")=="Update Template"):
                 templateid=request.args.get("tname","")
                 if(templateid != "" and template):
-                    msg=ehrbase_routines.updatetemp(client,adauth,hostname,port,adusername,adpassword,template,templateid)
+                    msg=ehrbase_routines.updatetemp(client,adauth,url_base_admin,template,templateid)
                     yourresults="you uploaded "+secure_filename(uploaded_file.filename)+"\n"
                     
                     if(msg['status']=='success'):
@@ -392,17 +434,19 @@ def create_app():
     @app.route("/dtemp.html",methods=["GET"])
     #delete template (admin)
     def dtemp():
-        global hostname,port,adusername,adpassword,auth,adauth,nodename,mymsg,username,password
-        if(hostname=="" or port=="" or adusername=="" or adpassword=="" or nodename==""):
+        global url_base,url_base_admin,auth,adauth,mymsg,username,password
+        if(url_base=="" or url_base_admin==""):
             return redirect(url_for("ehrbase"))
+        if(adauth==""):
+            return render_template('/dtemp.html',warning='WARNING: NO ADMIN CREDENTIALS PROVIDED '), {"Refresh": "3; url="+url_for('ehrbase') }        
         yourresults=""
         yourjson='{}'
-        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'dtempbase.html','dtemp.html')
+        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,url_base,'dtempbase.html','dtemp.html')
         if(mymsg['status']=='failure'):
             return redirect(url_for("ehrbase"))
         if request.args.get("pippo")=="Delete Template": 
             template_name=request.args.get("tname","")
-            msg=ehrbase_routines.deltemp(client,adauth,hostname,port,adusername,adpassword,template_name)
+            msg=ehrbase_routines.deltemp(client,adauth,url_base_admin,template_name)
             if(msg['status']=='success'):
                 yourresults=msg['status']+ " "+ str(msg['status_code']) + "\nTemplate "+template_name+ " successfully deleted"
                 insertlogline('Delete template (admin):template '+template_name+' deleted successfully')
@@ -411,7 +455,7 @@ def create_app():
                 insertlogline('Delete template (admin):template '+template_name+' deletion failure')            
             return render_template('dtemp.html',yourresults=yourresults)
         elif request.args.get("pippo")=="Delete all":
-            msg=ehrbase_routines.delalltemp(client,adauth,hostname,port,adusername,adpassword)
+            msg=ehrbase_routines.delalltemp(client,adauth,url_base_admin)
             if(msg['status']=='success'):
                 yourresults=msg['status']+ " "+ str(msg['status_code']) + "\nAll Templates successfully deleted"
                 insertlogline('Delete template: all templates deleted successfully')
@@ -432,14 +476,14 @@ def create_app():
     @app.route("/pehr.html",methods=["GET"])
     #create ehr
     def pehr():
-        global hostname,port,username,password,auth,nodename
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        global url_base,auth
+        if(url_base=="" or auth==""):
             return redirect(url_for("ehrbase"))  
         yourresults=""  
         global lastehrid
         if request.args.get("sform1")=="Submit": #EHRID specified or not
             ehrid=request.args.get("ehrtext","")
-            msg=ehrbase_routines.createehrid(client,auth,hostname,port,username,password,ehrid)
+            msg=ehrbase_routines.createehrid(client,auth,url_base,ehrid)
             if(msg['status']=="success"):
                 ehrid=msg["ehrid"]
                 yourresults=f"EHR created successfully. status_code={msg['status_code']} EHRID={msg['ehrid']}"
@@ -457,7 +501,7 @@ def create_app():
             sna=request.args.get("sna","")
             if(sid=="" or sna==""):
                 return render_template('pehr.html')        
-            msg=ehrbase_routines.createehrsub(client,auth,hostname,port,username,password,sid,sna,eid)
+            msg=ehrbase_routines.createehrsub(client,auth,url_base,sid,sna,eid)
             if(msg['status']=="success"):
                 ehrid=msg["ehrid"]
                 yourresults=f"EHR created successfully. status_code={msg['status_code']} EHRID={msg['ehrid']}"
@@ -475,8 +519,8 @@ def create_app():
     @app.route("/gehr.html",methods=["GET"])
     #get ehr
     def gehr():
-        global hostname,port,username,password,auth,nodename
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        global url_base,auth
+        if(url_base=="" or auth==""):       
             return redirect(url_for("ehrbase"))
         global lastehrid
         status="failed"
@@ -484,7 +528,7 @@ def create_app():
             ehrid=request.args.get("ename","") 
             if(ehrid==""):
                 return render_template('gehr.html',lastehr=lastehrid)
-            msg=ehrbase_routines.getehrid(client,auth,hostname,port,username,password,ehrid)
+            msg=ehrbase_routines.getehrid(client,auth,url_base,ehrid)
             if(msg['status']=="success"):
                 ehrid=msg["ehrid"]
                 yourresults=f"EHR retrieved successfully. status_code={msg['status_code']} EHRID={msg['ehrid']}"
@@ -502,7 +546,7 @@ def create_app():
             sna=request.args.get("sna","")
             if(sid=="" or sna==""):
                 return render_template('gehr.html',lastehr=lastehrid)
-            msg=ehrbase_routines.getehrsub(client,auth,hostname,port,username,password,sid,sna)
+            msg=ehrbase_routines.getehrsub(client,auth,url_base,sid,sna)
             if(msg['status']=="success"):
                 ehrid=msg["ehrid"]
                 yourresults=f"EHR retrieved successfully. status_code={msg['status_code']} EHRID={msg['ehrid']}"
@@ -520,16 +564,18 @@ def create_app():
     @app.route("/dehr.html",methods=["GET"])
     #delete ehr
     def dehr():
-        global hostname,port,adusername,adpassword,auth,adauth,nodename
-        if(hostname=="" or port=="" or adusername=="" or adpassword=="" or nodename==""):       
+        global url_base_admin,adauth
+        if(url_base_admin==""):       
             return redirect(url_for("ehrbase"))
+        if(adauth==""):
+            return render_template('/dehr.html',warning='WARNING: NO ADMIN CREDENTIALS PROVIDED '), {"Refresh": "3; url="+url_for('ehrbase') }                 
         status="failed"
         yourresults=''
         if request.args.get("fform1")=="Delete": 
             ehrid=request.args.get("ename","") 
             if(ehrid==""):
                 return render_template('dehr.html')
-            msg=ehrbase_routines.delehrid(client,adauth,hostname,port,adusername,adpassword,ehrid)
+            msg=ehrbase_routines.delehrid(client,adauth,url_base_admin,ehrid)
             if(msg['status']=="success"):
                 ehrid=msg["ehrid"]
                 yourresults=f"EHR deleted successfully. status_code={msg['status_code']} EHRID={msg['ehrid']}"
@@ -545,8 +591,8 @@ def create_app():
     @app.route("/pehrstatus.html",methods=['GET', 'POST'])
     #post template
     def pehrstatus():
-        global hostname,port,username,password,auth,nodename
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        global url_base,auth
+        if(url_base=="" or auth==""):
             return redirect(url_for("ehrbase"))    
         yourresults=""
         compjson=''
@@ -557,7 +603,7 @@ def create_app():
                 render_template('ptemp.html',yourfile="you uploaded "+secure_filename(uploaded_file.filename))
                 uploaded_file.stream.seek(0) # seek to the beginning of file
                 ehrstatus=uploaded_file.read()
-                msg=ehrbase_routines.postehrstatus(client,auth,hostname,port,username,password,ehrstatus)
+                msg=ehrbase_routines.postehrstatus(client,auth,url_base,ehrstatus)
                           
                 if(msg['status']=='success'):
                     status='success'
@@ -584,10 +630,10 @@ def create_app():
     @app.route("/gehrstatus.html",methods=["GET"])
     #get ehr_status
     def gehrstatus():
-        global hostname,port,username,password,auth,nodename
-        compjson=""
+        global url_base,auth
+        ehrjson=""
         status='failed'
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        if(url_base=="" or auth==""):       
             return redirect(url_for("ehrbase"))
         global lastehrid
         if request.args.get("fform1")=="Submit":
@@ -601,12 +647,12 @@ def create_app():
                 vid=request.args.get("vid","")
             app.logger.debug(f'outtype={outtype} eid={eid} vat={vat} vid={vid}')
             if(eid==""):
-                return render_template('gehrstatus.html',lastehr=lastehrid,compjson=compjson)
-            msg=ehrbase_routines.getehrstatus(client,auth,hostname,port,username,password,eid,outtype,vat,vid)
+                return render_template('gehrstatus.html',lastehr=lastehrid,ehrjson=ehrjson)
+            msg=ehrbase_routines.getehrstatus(client,auth,url_base,eid,outtype,vat,vid)
             if(msg['status']=="success"):
                 status='success'
-                compjson=msg['text']
-                ehrsid=json.loads(compjson)['uid']['value']
+                ehrjson=msg['text']
+                ehrsid=json.loads(ehrjson)['uid']['value']
                 if outtype=='VAT':
                     insertlogline('Get EHR_STATUS at time: EHR_STATUS '+ehrsid+' from ehrid='+eid+' at time='+vat+' retrieved successfully')
                     yourresults=f"EHR_STATUS at time retrieved successfully. status_code={msg['status_code']} \n \
@@ -627,17 +673,17 @@ def create_app():
                     yourresults=f"EHR_STATUS by version retrieval failure. status_code={msg['status_code']} \n \
                 EHRID={eid}\n versionUID={vid}\n headers={msg['headers']}"    
             return render_template('gehrstatus.html',yourresults=yourresults,
-                    lastehr=lastehrid,compjson=compjson,status=status)
+                    lastehr=lastehrid,ehrjson=ehrjson,status=status)
         else:
-            return render_template('gehrstatus.html',lastehr=lastehrid,status=status,compjson=compjson)
+            return render_template('gehrstatus.html',lastehr=lastehrid,status=status,ehrjson=ehrjson)
 
     @app.route("/gehrstatusversioned.html",methods=["GET"])
     #get ehr_status versioned
     def gehrstatusversioned():
-        global hostname,port,username,password,auth,nodename
-        compjson=""
+        global url_base,auth
+        ehrjson=""
         status='failed'
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        if(url_base=="" or auth==""):       
             return redirect(url_for("ehrbase"))
         global lastehrid
         if request.args.get("fform1")=="Submit":
@@ -654,13 +700,13 @@ def create_app():
                 vid=request.args.get("vid","")
             app.logger.debug(f'outtype={outtype} eid={eid} vat={vat} vid={vid}')
             if(eid==""):
-                return render_template('gehrstatusversioned.html',lastehr=lastehrid,compjson=compjson)
-            msg=ehrbase_routines.getehrstatusversioned(client,auth,hostname,port,username,password,eid,outtype,vat,vid)
+                return render_template('gehrstatusversioned.html',lastehr=lastehrid,ehrjson=ehrjson)
+            msg=ehrbase_routines.getehrstatusversioned(client,auth,url_base,eid,outtype,vat,vid)
             if(msg['status']=="success"):
                 status='success'
-                compjson=msg['text']
+                ehrjson=msg['text']
                 if outtype!='REVHIST':
-                    ehrsid=json.loads(compjson)['uid']['value']
+                    ehrsid=json.loads(ehrjson)['uid']['value']
                 if outtype=='INFO':
                     insertlogline('Get EHR_STATUS Versioned info: EHR_STATUS '+ehrsid+' from ehrid='+eid+' at time='+vat+' retrieved successfully')
                     yourresults=f"EHR_STATUS Versioned info retrieved successfully. status_code={msg['status_code']} \n \
@@ -697,20 +743,20 @@ def create_app():
                     yourresults=f"EHR_STATUS by version retrieval failure. status_code={msg['status_code']} \n \
                 EHRID={eid}\n versionUID={vid}\n headers={msg['headers']}"    
             return render_template('gehrstatusversioned.html',yourresults=yourresults,
-                    lastehr=lastehrid,compjson=compjson,status=status)
+                    lastehr=lastehrid,ehrjson=ehrjson,status=status)
         else:
-            return render_template('gehrstatusversioned.html',lastehr=lastehrid,status=status,compjson=compjson)
+            return render_template('gehrstatusversioned.html',lastehr=lastehrid,status=status,ehrjson=ehrjson)
 
     @app.route("/uehrstatus.html",methods=["GET","POST"])
     #update ehrstatus 
     def uehrstatus():
-        global hostname,port,username,password,auth,nodename
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        global url_base,auth
+        if(url_base=="" or auth==""):
             return redirect(url_for("ehrbase"))  
         yourresults=""  
-        compjson=""
+        ehrjson=""
         status='failure'
-        global lastehrid,filename,uploaded_file,comp
+        global lastehrid,filename,uploaded_file,ehrstatus
         if request.method == 'POST':
             uploaded_file = request.files['file']
             filename=uploaded_file.filename
@@ -718,51 +764,51 @@ def create_app():
             if filename != '':
                 filename=secure_filename(filename)
                 uploaded_file.stream.seek(0)
-                comp=uploaded_file.read()
-                return render_template('uehrstatus.html',yourfile=f"you have chosen {filename}",laste=lastehrid,compjson=compjson,status=status)
+                ehrstatus=uploaded_file.read()
+                return render_template('uehrstatus.html',yourfile=f"you have chosen {filename}",laste=lastehrid,ehrjson=ehrjson,status=status)
             else:
                 yourresults="Please, choose the file first"
-                return render_template('uehrstatus.html',yourresults=yourresults,laste=lastehrid,compjson=compjson,status=status)                
+                return render_template('uehrstatus.html',yourresults=yourresults,laste=lastehrid,ehrjson=ehrjson,status=status)                
         else:
             if request.args.get("fform1")=="Submit":
                 if(filename==""):
                     yourresults="Please, choose the file first"
-                    return render_template('uehrstatus.html',yourresults=yourresults,laste=lastehrid,compjson=compjson,status=status)
-                filetype=request.args.get("filetype","")
+                    return render_template('uehrstatus.html',yourresults=yourresults,laste=lastehrid,ehrjson=ehrjson,status=status)
+                #filetype=request.args.get("filetype","")
                 eid=request.args.get("ename","")
                 vid=request.args.get("vid","")
                 if(eid=="" or vid==""):
-                    return render_template('uehrstatus.html',yourfile=f"you have chosen {filename}",laste=lastehrid,compjson=compjson,status=status)
+                    return render_template('uehrstatus.html',yourfile=f"you have chosen {filename}",laste=lastehrid,ehrjson=ehrjson,status=status)
                 if len(vid.split('::'))==1:
-                    return render_template('uehrstatus.html',yourfile=f"you have chosen {filename}",laste=lastehrid,compjson=compjson,status=status)
-                msg=ehrbase_routines.updateehrstatus(client,auth,hostname,port,username,password,comp,eid,vid)
+                    return render_template('uehrstatus.html',yourfile=f"you have chosen {filename}",laste=lastehrid,ehrjson=ehrjson,status=status)
+                msg=ehrbase_routines.updateehrstatus(client,auth,url_base,ehrstatus,eid,vid)
                 if(msg['status']=="success"):
                     status='success'
-                    compjson=msg['text']
-                    ehrsid=json.loads(compjson)['uid']['value']
+                    ehrjson=msg['text']
+                    ehrsid=json.loads(ehrjson)['uid']['value']
                     yourresults=f"EHR_STATUS updated successfully.\n status_code={msg['status_code']} new versionuid={ehrsid}\n text={msg['text']}\n headers={msg['headers']}"
                     insertlogline('Put EHR_STATUS: EHR_STATUS (newid='+vid+') updated successfully to '+ehrsid)
                 else:
                     yourresults=f"EHR_STATUS update failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"        
                     insertlogline('Put EHR_STATUS: EHR_STATUS '+vid+' from file '+filename+'  updating failure')
-                return render_template('uehrstatus.html',yourfile=f"you have chosen {filename}",yourresults=yourresults,laste=lastehrid,compjson=compjson,status=status)        
+                return render_template('uehrstatus.html',yourfile=f"you have chosen {filename}",yourresults=yourresults,laste=lastehrid,ehrjson=ehrjson,status=status)        
             else:
                 if("filename" not in vars()):
                     filename=""
-                    return render_template('uehrstatus.html',yourfile="",laste=lastehrid,status=status,compjson=compjson)
+                    return render_template('uehrstatus.html',yourfile="",laste=lastehrid,status=status,ehrjson=ehrjson)
                 else:
-                    return render_template('uehrstatus.html',yourfile=f"you have chosen {filename}",laste=lastehrid,status=status,compjson=compjson)
+                    return render_template('uehrstatus.html',yourfile=f"you have chosen {filename}",laste=lastehrid,status=status,ehrjson=ehrjson)
 
     @app.route("/gdir.html",methods=["GET"])
     #get directory FOLDER
     def gdir():
-        global hostname,port,username,password,auth,nodename,lastehrid
+        global url_base,auth,lastehrid
         compxml=""
         compjson=""
         status='failed'
         yourresults=''
         myformat="JSON"
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        if(url_base=="" or auth==""):       
             return redirect(url_for("ehrbase"))
         if request.args.get("fform1")=="Submit":
             outtype=request.args.get("outtype","") 
@@ -779,7 +825,7 @@ def create_app():
             app.logger.debug(f'outtype={outtype} eid={eid} path={path} vat={vat} vid={vid}')
             if(eid==""):
                 return render_template('gdir.html',lastehr=lastehrid,status=status,compxml=compxml,yourresults=yourresults,format=myformat)
-            msg=ehrbase_routines.getdir(client,auth,hostname,port,username,password,eid,outtype,vat,vid,path,filetype)
+            msg=ehrbase_routines.getdir(client,auth,url_base,eid,outtype,vat,vid,path,filetype)
             if(msg['status']=='success'):
                 status='success'
                 if 'xml' in msg:
@@ -814,17 +860,19 @@ def create_app():
     @app.route("/dfolder.html",methods=["GET"])
     #delete directory FOLDER (admin)
     def dfolder():
-        global hostname,port,adusername,adpassword,adauth,nodename,lastehrid
+        global url_base_admin,adauth,lastehrid
         yourresults=''
-        if(hostname=="" or port=="" or adusername=="" or adpassword=="" or nodename==""):       
+        if(url_base==""):       
             return redirect(url_for("ehrbase"))
+        if(adauth==''):
+            return render_template('/dfolder.html',warning='WARNING: NO ADMIN CREDENTIALS PROVIDED '), {"Refresh": "3; url="+url_for('ehrbase') }
         if request.args.get("fform1")=="Submit":
             eid=request.args.get("ename","")
             vid=request.args.get("vid","")
             if(eid=="" or vid==""):
                 return render_template('dfolder.html',lastehr=lastehrid,yourresults=yourresults)
             vid=vid.split('::')[0]
-            msg=ehrbase_routines.delfolder(client,adauth,hostname,port,adusername,adpassword,eid,vid)
+            msg=ehrbase_routines.deldiradmin(client,adauth,url_base_admin,eid,vid)
             if(msg['status']=='success'):
                 insertlogline('Delete Directory FOLDER (admin):Directory FOLDER '+vid+' for ehr='+eid+' deleted successfully')
                 yourresults=f"Directory FOLDER {vid} deleted successfully\n \
@@ -840,16 +888,16 @@ def create_app():
     @app.route("/ddir.html",methods=["GET"])
     #delete directory FOLDER
     def ddir():
-        global hostname,port,username,password,auth,nodename,lastehrid
+        global url_base,auth,lastehrid
         yourresults=''
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        if(url_base=="" or auth==""):       
             return redirect(url_for("ehrbase"))
         if request.args.get("fform1")=="Submit":
             eid=request.args.get("ename","")
             vid=request.args.get("vid","")
             if(eid=="" or vid==""):
                 return render_template('ddir.html',lastehr=lastehrid,yourresults=yourresults)
-            msg=ehrbase_routines.deldir(client,auth,hostname,port,username,password,eid,vid)
+            msg=ehrbase_routines.deldir(client,auth,url_base,eid,vid)
             if(msg['status']=='success'):
                 insertlogline('Delete Directory FOLDER:Directory FOLDER '+vid+' for ehr='+eid+' deleted successfully')
                 yourresults=f"Directory FOLDER {vid} deleted succcessfully\n \
@@ -865,8 +913,8 @@ def create_app():
     @app.route("/pdir.html",methods=['GET', 'POST'])
     #post directory folder
     def pdir():
-        global hostname,port,username,password,auth,nodename,filename,uploaded_file,dir
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        global url_base,auth,filename,uploaded_file,dir
+        if(url_base=="" or auth==""):
             return redirect(url_for("ehrbase"))    
         yourresults=""
         compxml=''
@@ -894,7 +942,7 @@ def create_app():
                 myformat=filetype
                 if(eid==""):
                     return render_template('pdir.html',yourfile=f"you have chosen {filename}",laste=lastehrid,format=myformat)
-                msg=ehrbase_routines.postdir(client,auth,hostname,port,username,password,eid,dir,filetype)
+                msg=ehrbase_routines.postdir(client,auth,url_base,eid,dir,filetype)
                 if(msg['status']=='success'):
                     status='success'
                     if 'xml' in msg:
@@ -921,8 +969,8 @@ def create_app():
     @app.route("/udir.html",methods=['GET', 'POST'])
     #update directory folder
     def udir():
-        global hostname,port,username,password,auth,nodename,filename,dir,uploaded_file
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        global url_base,auth,filename,dir,uploaded_file
+        if(url_base=="" or auth==""):
             return redirect(url_for("ehrbase"))    
         yourresults=""
         compxml=''
@@ -954,7 +1002,7 @@ def create_app():
                     myformat='JSON'             
                 if(eid==""):
                     return render_template('udir.html',yourfile=f"you have chosen {filename}",laste=lastehrid,format=myformat)
-                msg=ehrbase_routines.updatedir(client,auth,hostname,port,username,password,eid,vid,dir,filetype)
+                msg=ehrbase_routines.updatedir(client,auth,url_base,eid,vid,dir,filetype)
                 if(msg['status']=='success'):
                     status='success'
                     if 'xml' in msg:
@@ -983,12 +1031,12 @@ def create_app():
     @app.route("/pcomp.html",methods=["GET","POST"])
     #post composition
     def pcomp():
-        global hostname,port,username,password,auth,nodename
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        global url_base,url_base_ecis,auth,ehrbase_version
+        if(url_base=="" or url_base_ecis=="" or auth==""):
             return redirect(url_for("ehrbase"))  
         yourresults=""  
         global lastehrid,lastcompositionid,filename,uploaded_file,comp
-        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'pcompbase.html','pcomp.html')
+        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,url_base,'pcompbase.html','pcomp.html')
         if(mymsg['status']=='failure'):
             return redirect(url_for("ehrbase"))
         if request.method == 'POST':
@@ -1016,7 +1064,7 @@ def create_app():
                 checkinfo=""
                 if(eid=="" or tid==""):
                     return render_template('pcomp.html',yourfile=f"you have chosen {filename}",laste=lastehrid)
-                msg=ehrbase_routines.postcomp(client,auth,hostname,port,username,password,comp,eid,tid,filetype,check)
+                msg=ehrbase_routines.postcomp(client,auth,url_base,url_base_ecis,comp,eid,tid,filetype,check,ehrbase_version)
                 if(msg['status']=="success"):
                     yourresults=f"Composition inserted successfully.\n status_code={msg['status_code']} VersionUID={msg['compositionid']}\n text={msg['text']}\n headers={msg['headers']}"
                     lastcompositionid=msg['compositionid']
@@ -1038,12 +1086,12 @@ def create_app():
     @app.route("/ucomp.html",methods=["GET","POST"])
     #update composition 
     def ucomp():
-        global hostname,port,username,password,auth,nodename
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        global url_base,url_base_ecis,auth,ehrbase_version
+        if(url_base=="" or url_base_ecis=="" or auth==""):
             return redirect(url_for("ehrbase"))  
         yourresults=""  
         global lastehrid,lastcompositionid,filename,uploaded_file,comp
-        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'ucompbase.html','ucomp.html')
+        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,url_base,'ucompbase.html','ucomp.html')
         if(mymsg['status']=='failure'):
             return redirect(url_for("ehrbase"))
         if request.method == 'POST':
@@ -1074,7 +1122,7 @@ def create_app():
                     return render_template('ucomp.html',yourfile=f"you have chosen {filename}",laste=lastehrid)
                 if len(compid.split('::'))==1:
                     return render_template('ucomp.html',yourfile=f"you have chosen {filename}",laste=lastehrid)
-                msg=ehrbase_routines.updatecomp(client,auth,hostname,port,username,password,comp,eid,tid,compid,filetype,check)
+                msg=ehrbase_routines.updatecomp(client,auth,url_base,url_base_ecis,comp,eid,tid,compid,filetype,check,ehrbase_version)
                 if(msg['status']=="success"):
                     yourresults=f"Composition updated successfully.\n status_code={msg['status_code']} VersionUID={msg['compositionid']}\n text={msg['text']}\n headers={msg['headers']}"
                     lastcompositionid=msg['compositionid']
@@ -1097,13 +1145,13 @@ def create_app():
     @app.route("/gcomp.html",methods=["GET"])
     #get composition
     def gcomp():
-        global hostname,port,username,password,auth,nodename
+        global url_base,url_base_ecis,auth,ehrbase_version
         compflat="{}"
         compxml=""
         compjson=""
         status='failed'
         myformat='xml'
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        if(url_base=="" or url_base_ecis=="" or auth==""):       
             return redirect(url_for("ehrbase"))
         global lastcompositionid,lastehrid
         if request.args.get("fform1")=="Submit":
@@ -1113,7 +1161,7 @@ def create_app():
             app.logger.debug(f'filetype={filetype} compid={compid} eid={eid}')
             if(compid=="" or eid==""):
                 return render_template('gcomp.html',last=lastcompositionid,lastehr=lastehrid,compflat=compflat)
-            msg=ehrbase_routines.getcomp(client,auth,hostname,port,username,password,compid,eid,filetype)
+            msg=ehrbase_routines.getcomp(client,auth,url_base,url_base_ecis,compid,eid,filetype,ehrbase_version)
             # compjson=""
             # compxml=""
             if(msg['status']=="success"):
@@ -1160,10 +1208,10 @@ def create_app():
     @app.route("/gcompversioned.html",methods=["GET"])
     #get composition versioned
     def gcompversioned():
-        global hostname,port,username,password,auth,nodename
+        global url_base,auth
         compjson=""
         status='failed'
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        if(url_base=="" or auth==""):       
             return redirect(url_for("ehrbase"))
         global lastcompositionid,lastehrid
         if request.args.get("fform1")=="Submit":
@@ -1183,7 +1231,7 @@ def create_app():
             if(compid=="" or eid==""):
                 return render_template('gcompversioned.html',lastc=lastcompositionid,lastehr=lastehrid,compjson=compjson)
             compid=compid.split('::')[0]
-            msg=ehrbase_routines.getcompversioned(client,auth,hostname,port,username,password,compid,eid,outtype,vat,vid)
+            msg=ehrbase_routines.getcompversioned(client,auth,url_base,compid,eid,outtype,vat,vid)
             if(msg['status']=="success"):
                 status='success'
                 compjson=msg['text']
@@ -1231,8 +1279,8 @@ def create_app():
     @app.route("/dcompuser.html",methods=["GET"])
     #delete composition
     def dcompuser():
-        global hostname,port,username,password,auth,nodename
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        global url_base,auth
+        if(url_base=="" or auth==""):       
             return redirect(url_for("ehrbase"))
         status="failed"
         yourresults=''
@@ -1244,7 +1292,7 @@ def create_app():
                 return render_template('dcompuser.html')
             if len(compid.split('::'))==1:
                 return render_template('dcompuser.html',yourresults='Please use a Composition VersionUID not an ID')
-            msg=ehrbase_routines.delcompuser(client,auth,hostname,port,username,password,compid,eid)
+            msg=ehrbase_routines.delcompuser(client,auth,url_base,compid,eid)
             if(msg['status']=="success"):
                 yourresults=f"Composition deleted successfully. \nstatus_code={msg['status_code']} \nversionUid={compid} \nehrid={eid}"
                 status='success'
@@ -1259,9 +1307,11 @@ def create_app():
     @app.route("/dcomp.html",methods=["GET"])
     #delete composition (admin)
     def dcomp():
-        global hostname,port,adusername,adpassword,auth,adauth,nodename
-        if(hostname=="" or port=="" or adusername=="" or adpassword=="" or nodename==""):       
+        global url_base,url_base_admin,auth,adauth
+        if(url_base=="" or url_base_admin==""):       
             return redirect(url_for("ehrbase"))
+        if(adauth==""):
+            return render_template('/dcomp.html',warning='WARNING: NO ADMIN CREDENTIALS PROVIDED '), {"Refresh": "3; url="+url_for('ehrbase') }        
         status="failed"
         yourresults=''
         if request.args.get("fform1")=="Delete": 
@@ -1271,7 +1321,7 @@ def create_app():
             if(compid=="" or eid==""): 
                 return render_template('dcomp.html')
             compid=compid.split('::')[0]
-            msg=ehrbase_routines.delcomp(client,adauth,hostname,port,adusername,adpassword,compid,eid)
+            msg=ehrbase_routines.delcomp(client,adauth,url_base_admin,compid,eid)
             if(msg['status']=="success"):
                 yourresults=f"Composition deleted successfully. \nstatus_code={msg['status_code']} \nid={compid} \nehrid={eid}"
                 status='success'
@@ -1286,11 +1336,11 @@ def create_app():
     @app.route("/gcontrib.html",methods=["GET"])
     #get contribution
     def gcontrib():
-        global hostname,port,username,password,auth,nodename,lastehrid
+        global url_base,auth,lastehrid
         compjson=""
         status='failed'
         yourresults=''
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        if(url_base=="" or auth==""):       
             return redirect(url_for("ehrbase"))
         if request.args.get("fform1")=="Submit": 
             eid=request.args.get("ename","")
@@ -1298,7 +1348,7 @@ def create_app():
             app.logger.debug(f'eid={eid} vid={vid}')
             if(eid==""):
                 return render_template('gcontrib.html',lastehr=lastehrid,status=status,yourresults=yourresults)
-            msg=ehrbase_routines.getcontrib(client,auth,hostname,port,username,password,eid,vid)
+            msg=ehrbase_routines.getcontrib(client,auth,url_base,eid,vid)
             if(msg['status']=='success'):
                 status='success'
                 compjson=msg['json']
@@ -1319,8 +1369,8 @@ def create_app():
     @app.route("/pcontrib.html",methods=['GET', 'POST'])
     #post contribution
     def pcontrib():
-        global hostname,port,username,password,auth,nodename,filename,uploaded_file,contrib
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        global url_base,auth,nodename,filename,uploaded_file,contrib
+        if(url_base=="" or auth==""):
             return redirect(url_for("ehrbase"))    
         yourresults=""
         compjson=''
@@ -1344,7 +1394,7 @@ def create_app():
                 eid=request.args.get("ename","")
                 if(eid==""):
                     return render_template('pcontrib.html',yourfile=f"you have chosen {filename}",laste=lastehrid)
-                msg=ehrbase_routines.postcontrib(client,auth,hostname,port,username,password,eid,contrib)
+                msg=ehrbase_routines.postcontrib(client,auth,url_base,eid,contrib)
                 if(msg['status']=='success'):
                     status='success'
                     compjson=msg['json']
@@ -1365,15 +1415,11 @@ def create_app():
                 else:
                     return render_template('pcontrib.html',yourfile=f"you have chosen {filename}",status=status,laste=lastehrid,compjson=compjson)
 
-
-
-
-
     @app.route("/paql.html",methods=["GET"])
     #post aql query
     def paql():
-        global hostname,port,username,password,auth,nodename
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        global url_base,auth,nodename
+        if(url_base=="" or auth=="" or nodename==""):       
             return redirect(url_for("ehrbase"))
         aqltext={}
         yourresults=''
@@ -1389,7 +1435,7 @@ def create_app():
             reversed_nodename=".".join(reversed(nodename.split(".")))
             qname=reversed_nodename+"::"+qname+"/"
             app.logger.info(aqltext)
-            msg=ehrbase_routines.postaql(client,auth,hostname,port,username,password,aqltext,qname,version,qtype)
+            msg=ehrbase_routines.postaql(client,auth,url_base,aqltext,qname,version,qtype)
             if(msg['status']=="success"):
                 insertlogline('Post AQL Query: query '+qname+' version='+version+' type='+qtype+' posted successfully')
                 yourresults=f"Query {msg['name']} version={msg['version']} inserted successfully\nstatus_code={msg['status_code']}\ntext={msg['text']}\n,headers={msg['headers']}"
@@ -1403,10 +1449,10 @@ def create_app():
     @app.route("/gaql.html",methods=["GET"])
     #get aql query
     def gaql():
-        global hostname,port,username,password,auth,nodename
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        global url_base,auth,nodename
+        if(url_base=="" or auth=="" or nodename==""):       
             return redirect(url_for("ehrbase"))
-        mymsg=ehrbase_routines.createPageFromBase4querylist(client,auth,hostname,port,username,password,'gaqlbase.html','gaql.html')
+        mymsg=ehrbase_routines.createPageFromBase4querylist(client,auth,url_base,'gaqlbase.html','gaql.html')
         if(mymsg['status']=='failure'):
             return redirect(url_for("ehrbase"))
         aql=""
@@ -1423,7 +1469,7 @@ def create_app():
             #reversed_nodename=".".join(reversed(nodename.split(".")))
             #if(qname != "" and "::" not in qname):
             #    qname=reversed_nodename+"::"+qname+"/"
-            msg=ehrbase_routines.getaql(client,auth,hostname,port,username,password,qname,version)
+            msg=ehrbase_routines.getaql(client,auth,url_base,qname,version)
             if(msg['status']=="success"):
                 insertlogline('Get AQL Query: query '+qname+' version'+version+' retrieved successfully')
                 yourresults=f"Query retrieved successfully.\n status_code={msg['status_code']}\n text={msg['text']}\n headers={msg['headers']}"
@@ -1446,8 +1492,8 @@ def create_app():
     @app.route("/raql.html",methods=["GET"])
     #run aql query
     def raql():
-        global hostname,port,username,password,auth,nodename,qname,version,aqltext2,lastaql
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        global url_base,auth,nodename,qname,version,aqltext2,lastaql
+        if(url_base=="" or auth=="" or nodename==""):       
             return redirect(url_for("ehrbase"))
         global lastehrid
         resultsave='false'
@@ -1475,7 +1521,7 @@ def create_app():
                 lastaql=aqltext              
                 aqltext=aqltext.translate({ord(ch):' ' for ch in '\n\r'})
             app.logger.info(f'AQLTEXT={aqltext}')
-            msg=ehrbase_routines.runaql(client,auth,hostname,port,username,password,aqltext,qmethod,limit,offset,eid,qparam,qname,version)
+            msg=ehrbase_routines.runaql(client,auth,url_base,aqltext,qmethod,limit,offset,eid,qparam,qname,version)
             if(msg['status']=="success"):
                 status='success'
                 app.logger.debug(f"aqltext={aqltext} msg[text]={msg['text']} msg['status_code']={msg['status_code']} msg['headers']={msg['headers']}")
@@ -1508,8 +1554,8 @@ def create_app():
     @app.route("/raqlstored.html",methods=["GET"])
     #run stored aql query
     def raqlstored():
-        global hostname,port,username,password,auth,nodename,qname,version,aqltext2,myvalue,lastaql
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
+        global url_base,auth,nodename,qname,version,aqltext2,myvalue,lastaql
+        if(url_base=="" or auth=="" or nodename==""):       
             return redirect(url_for("ehrbase"))
         global lastehrid
         resultsave='false'
@@ -1523,7 +1569,7 @@ def create_app():
             lastaql=''
 #       qname=""
 #       version=""
-        mymsg=ehrbase_routines.createPageFromBase4querylist(client,auth,hostname,port,username,password,'raqlbasestored.html','raqlstored.html')
+        mymsg=ehrbase_routines.createPageFromBase4querylist(client,auth,url_base,'raqlbasestored.html','raqlstored.html')
         if(mymsg['status']=='failure'):
             return redirect(url_for("ehrbase"))
         if request.args.get("pippo")=="Select":
@@ -1536,7 +1582,7 @@ def create_app():
                 qdatas=qdata.split('$v')
                 qname=qdatas[0]
                 version=qdatas[1]
-                msg=ehrbase_routines.getaql(client,auth,hostname,port,username,password,qname,version)
+                msg=ehrbase_routines.getaql(client,auth,url_base,qname,version)
                 if(msg['status']=="success"):
                     insertlogline('Get AQL Query: query '+qname+' version'+version+' retrieved successfully')
                     yourresultspre=f"Query {qname} v{version} retrieved successfully"
@@ -1569,7 +1615,7 @@ def create_app():
             #reversed_nodename=".".join(reversed(nodename.split(".")))
             if(aqltext2==""):
                 return render_template('raqlstored.html',lastehr=lastehrid,resultsave=resultsave,temp=temp,aqltext2=aqltext2,res=res,status=status,lastaql=lastaql,myvalue=myvalue)
-            msg=ehrbase_routines.runaql(client,auth,hostname,port,username,password,aqltext2,qmethod,limit,offset,eid,qparam,qname,version)    
+            msg=ehrbase_routines.runaql(client,auth,url_base,aqltext2,qmethod,limit,offset,eid,qparam,qname,version)    
             if(msg['status']=="success"):
                 insertlogline('Run AQL Stored Query: query '+qname+' version'+version+' run successfully')
                 msgtext=json.loads(msg['text'])
@@ -1593,27 +1639,25 @@ def create_app():
     @app.route("/daqlstored.html",methods=["GET"])
     #delete aql query
     def daql():
-        global hostname,port,adusername,adpassword,auth,adauth,nodename,username,password
+        global url_base,url_base_admin,auth,adauth,nodename,username,password
         if(hostname=="" or port=="" or adusername=="" or adpassword=="" or nodename=="" or username=="" or password==""):       
             return redirect(url_for("ehrbase"))
-        mymsg=ehrbase_routines.createPageFromBase4querylist(client,auth,hostname,port,username,password,'daqlbase.html','daqlstored.html')
+        mymsg=ehrbase_routines.createPageFromBase4querylist(client,auth,url_base,'daqlbase.html','daqlstored.html')
         if(mymsg['status']=='failure'):
             return redirect(url_for("ehrbase"))
-        #aql=""
-        #aqlpresent='false'
         yourresults=""
         if request.args.get("pippo")=="Delete query":
             qdata=request.args.get("qdata","")
             if "$v" not in qdata: #no query choosable
                 yourresults=f"No queries available"
-                return render_template('daqlstored.html',yourresults=yourresults,aql=aql,aqlpresent=aqlpresent)        
+                return render_template('daqlstored.html',yourresults=yourresults)        
             qdatas=qdata.split('$v')
             qname=qdatas[0]
             version=qdatas[1]
             #reversed_nodename=".".join(reversed(nodename.split(".")))
             #if(qname != "" and "::" not in qname):
             #    qname=reversed_nodename+"::"+qname+"/"
-            msg=ehrbase_routines.delaql(client,adauth,hostname,port,adusername,adpassword,qname,version)
+            msg=ehrbase_routines.delaql(client,adauth,url_base_admin,qname,version)
             if(msg['status']=="success"):
                 insertlogline('Delete AQL Query: query '+qname+' version'+version+' deleted successfully')
                 yourresults=f"Query deleted successfully.\n status_code={msg['status_code']}\n text={msg['text']}\n headers={msg['headers']}"
@@ -1652,7 +1696,7 @@ def create_app():
         if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):       
             return redirect(url_for("ehrbase"))
     #    if request.args.get("pippo")=="Update":
-        msg=ehrbase_routines.get_dashboard_info(client,auth,hostname,port,username,password,adauth,adusername,adpassword)
+        msg=ehrbase_routines.get_dashboard_info(client,auth,url_base,adauth,url_base_management)
 
         if('success' in msg['status']):
             info=health=env0=env1=env2=env3=env4=env5={'status':'no data available'}
@@ -1716,12 +1760,12 @@ def create_app():
     @app.route("/pbatch1.html",methods=["GET","POST"])
     #post batch of compositions to different ehrs
     def pbatch():
-        global hostname,port,username,password,auth,nodename
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        global url_base,url_base_ecis,auth,ehrbase_version
+        if(url_base=="" or url_base_ecis=="" or auth==""):
             return redirect(url_for("ehrbase"))  
         yourresults=""  
         global lastehrid,lastcompositionid,numberoffiles,uploaded_files,filenames,comps
-        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'pbatch1base.html','pbatch1.html')
+        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,url_base,'pbatch1base.html','pbatch1.html')
         if(mymsg['status']=='failure'):
             return redirect(url_for("ehrbase"))    
         if request.method == 'POST':
@@ -1768,7 +1812,7 @@ def create_app():
                     myformat='json'
                 else:
                     myformat='flat'    
-                msg=ehrbase_routines.postbatch1(client,auth,hostname,port,username,password,uploaded_files,tid,check,sidpath,snamespace,filetype,random,comps,inlist)
+                msg=ehrbase_routines.postbatch1(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,sidpath,snamespace,filetype,random,comps,inlist,ehrbase_version)
                 if(msg['status']=="success"):
                     yourresults=str(msg['nsuccess'])+"/"+str(numberoffiles)+" Compositions inserted successfully.\n" \
                         +"EHRIDs=" +str(msg['ehrid'])+"\n"  \
@@ -1810,14 +1854,14 @@ def create_app():
 
 
     @app.route("/pbatch2.html",methods=["GET","POST"])
-    #post batch of compositions tp the same ehr
+    #post batch of compositions to the same ehr
     def pbatchsameehr():
-        global hostname,port,username,password,auth,nodename
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        global url_base,url_base_ecis,auth,nodename,ehrbase_version
+        if(url_base=="" or url_base_ecis=="" or auth==""):
             return redirect(url_for("ehrbase"))  
         yourresults=""  
         global lastehrid,lastcompositionid,numberoffiles,uploaded_files,filenames,comps
-        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'pbatch2base.html','pbatch2.html')
+        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,url_base,'pbatch2base.html','pbatch2.html')
         if(mymsg['status']=='failure'):
             return redirect(url_for("ehrbase"))    
         if request.method == 'POST':
@@ -1859,7 +1903,7 @@ def create_app():
                     myformat='json'
                 else:
                     myformat='flat'               
-                msg=ehrbase_routines.postbatch2(client,auth,hostname,port,username,password,uploaded_files,tid,check,eid,filetype,random,comps)
+                msg=ehrbase_routines.postbatch2(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,eid,filetype,random,comps,ehrbase_version)
                 if(msg['status']=="success"):
                     yourresults=str(msg['nsuccess'])+"/"+str(numberoffiles)+" Compositions inserted successfully.\n" \
                         +"EHRID=" +str(msg['ehrid'])+"\n"  \
@@ -1903,8 +1947,8 @@ def create_app():
     @app.route("/ecomp.html",methods=["GET"])
     #get example composition
     def excomp():
-        global hostname,port,username,password,auth,nodename
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        global url_base,url_base_ecis,auth,ehrbase_version
+        if(url_base=="" or url_base_ecis=="" or auth==""):
             return redirect(url_for("ehrbase"))
         yourresults=""
         success='false'
@@ -1913,14 +1957,14 @@ def create_app():
         compjson=""
         status='failed'
         myformat='xml'
-        mymsg=ehrbase_routines.mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'ecompbase.html','ecomp.html')
+        mymsg=ehrbase_routines.mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,url_base,'ecompbase.html','ecomp.html')
         if(mymsg['status']=='failure'):
             return redirect(url_for("ehrbase"))
         if request.args.get("pippo")=="Submit": 
             template_name=request.args.get("tname","")
             filetype=request.args.get("filetype","") 
             app.logger.debug(f'filetype={filetype} template_name={template_name}')
-            msg=ehrbase_routines.examplecomp(client,auth,hostname,port,username,password,template_name,filetype)
+            msg=ehrbase_routines.examplecomp(client,auth,url_base,url_base_ecis,template_name,filetype,ehrbase_version)
 
             if(msg['status']=="success"):
                 status='success'
@@ -1963,16 +2007,16 @@ def create_app():
     @app.route("/cform.html",methods=["GET"])
     #create form 
     def cform():
-        global hostname,port,username,password,auth,nodename
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
+        global url_base,url_base_ecis,auth,ehrbase_version
+        if(url_base=="" or url_base_ecis=="" or auth==""):
             return redirect(url_for("ehrbase"))
         yourresults=""
-        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,hostname,port,username,password,'cformbase.html','cform.html')
+        mymsg=ehrbase_routines.createPageFromBase4templatelist(client,auth,url_base,'cformbase.html','cform.html')
         if(mymsg['status']=='failure'):
             return redirect(url_for("ehrbase"))
         if request.args.get("pippo")=="Submit": 
             template_name=request.args.get("tname","")
-            msg=ehrbase_routines.createform(client,auth,hostname,port,username,password,template_name)
+            msg=ehrbase_routines.createform(client,auth,url_base,url_base_ecis,template_name,ehrbase_version)
 
             if(msg['status']=="success"):    
                 insertlogline('Form Creation:form from template '+template_name+' creation successful')                
@@ -1993,7 +2037,7 @@ def create_app():
         if(formname.endswith(".html")):
             if(formname != 'form.html'):
                 return redirect("/"+formname)
-        global hostname,port,username,password,auth,nodename
+        global url_base,auth,url_base_ecis,ehrbase_version
         if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
             return redirect(url_for("ehrbase"))
         global lastehrid,lastcompositionid
@@ -2001,7 +2045,7 @@ def create_app():
         checkresults=""
         checkinfo=""
         if request.args.get("pippo")=="Submit Composition": 
-            msg=ehrbase_routines.postform(client,auth,hostname,port,username,password,formname)
+            msg=ehrbase_routines.postform(client,auth,url_base,url_base_ecis,formname,ehrbase_version)
             if(msg['status']=="success"):
                 yourresults=f"Composition inserted successfully.\n status_code={msg['status_code']} VersionUID={msg['compositionid']}\n text={msg['text']}\n headers={msg['headers']}"
                 lastcompositionid=msg['compositionid']
@@ -2020,10 +2064,6 @@ def create_app():
     @app.route("/lform.html",methods=["GET","POST"])
     #load form
     def lform():
-        global hostname,port,username,password,auth,nodename
-        if(hostname=="" or port=="" or username=="" or password=="" or nodename==""):
-            return redirect(url_for("ehrbase"))
-
         if request.method == 'POST': 
             uploaded_file = request.files['file']
             uploaded_file.stream.seek(0) # seek to the beginning of file
