@@ -35,6 +35,9 @@ Thanks to @Meelzak settings can be set also through the following environment va
 * EHRBASESERVER_hostname 
 * EHRBASESERVER_port 
 * EHRBASESERVER_nodename 
+* EHRBASESERVER_protocol
+* EHRBASESERVER_version 
+* EHRBASESERVER_https_mapping 
 * EHRBASEUSERS_username 
 * EHRBASEUSERS_password 
 * EHRBASEUSERS_adusername 
@@ -93,7 +96,8 @@ For the EHRBase server the following properties are needed:
 ```
 proxy_pass http://ehrbase:8080
 ```
-the we should set ```
+the we should set 
+```
 https_mapping = ehrbase:8080
 ```
 
@@ -311,7 +315,7 @@ and then launch pytest:
 ```
 python -m pytest --capture=tee-sys  -v
 ```
-_WARNING_ : The test file "test_endpoints_real_server.py" checks all the methods implemented agains a real server. So be careful to launch it only with a fresh server you set up for that purpose. It creates and deletes various elements (in particular delete all templates) so it would interfere with a production server.
+**WARNING** _ : The test file "test_endpoints_real_server.py" checks all the methods implemented agains a real server. So be careful to launch it only with a fresh server you set up for that purpose. It creates and deletes various elements (in particular delete all templates) so it would interfere with a production server.
 # Available methods: #
 Methods in:
 <ul>
