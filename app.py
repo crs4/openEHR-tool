@@ -1073,7 +1073,17 @@ def create_app():
                         checkresults=msg['check']
                         checkinfo=msg['checkinfo']
                 else:
-                    yourresults=f"Composition insertion failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={msg['text']}"        
+                    dictmsg=json.loads(msg['text'])
+                    newmsgtext=msg['text']
+                    if 'message' in dictmsg:
+                        if dictmsg['message'].startswith('Could not consume Parts'):
+                            mtm=dictmsg['message'][25:-1]
+                            mtms=mtm.split(",")
+                            mtms.sort()
+                            newmessage=["Could not consume Parts:"]
+                            newmessage.extend(mtms)
+                            newmsgtext="error: "+str(dictmsg['error'])+"\n"+"message: "+"\n".join(newmessage)
+                    yourresults=f"Composition insertion failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={newmsgtext}"        
                     insertlogline('Post Composition: composition from file '+filename+' for ehr='+eid+' posting failure')
                 return render_template('pcomp.html',yourfile=f"you have chosen {filename}",yourresults=yourresults,laste=lastehrid,checkresults=checkresults,checkinfo=checkinfo)        
             else:

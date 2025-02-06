@@ -83,11 +83,22 @@ def test_del_alltemp(gapp):
     with gapp.app_context():
         result=ehrbase_routines.delalltemp(client,adauth,url_base_admin)
         assert result['status']=='success'
+
+        
 #1)
 def test_post_template_opt(gapp):
     with gapp.app_context():
         # Call the function to test
         with open('./tests/data_for_tests/Interhealth_cancer_registry.opt', 'rb') as f:
+            template = f.read()
+        result = ehrbase_routines.posttemp(client,auth,url_base,template)
+        # print(f'result={result}')
+        assert result['status_code'] == 201
+
+def test_post_template_opt2(gapp):
+    with gapp.app_context():
+        # Call the function to test
+        with open('./tests/data_for_tests/test_simple_template.opt', 'rb') as f:
             template = f.read()
         result = ehrbase_routines.posttemp(client,auth,url_base,template)
         # print(f'result={result}')
@@ -128,7 +139,7 @@ def test_get_template_webtemplate(gapp):
 def test_update_template_opt(gapp):
     with gapp.app_context():
         # Call the function to test
-        with open('./tests/data_for_tests/Interhealth_cancer_registry.opt', 'rb') as f:
+        with open('./tests/data_for_tests/test_simple_template_mod.opt', 'rb') as f:
             template = f.read()
         templateid='Interhealth_cancer_registry'
         result = ehrbase_routines.updatetemp(client,adauth,url_base_admin,template,templateid)
