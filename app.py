@@ -1156,6 +1156,11 @@ def create_app():
                             newmessage=["Could not consume Parts:"]
                             newmessage.extend(mtms)
                             newmsgtext="error: "+str(dictmsg['error'])+"\n"+"message: "+"\n".join(newmessage)
+                        elif dictmsg['error']=="Unprocessable Entity":
+                            mtm=dictmsg['message']
+                            mtms=mtm.split(", /")
+                            newmessage=mtms
+                            newmsgtext="error: "+str(dictmsg['error'])+"\n"+"message: "+"\n/".join(newmessage)
                     yourresults=f"Composition insertion failure.\n status_code={msg['status_code']}\n headers={msg['headers']}\n text={newmsgtext}"        
                     insertlogline('Post Composition: composition from file '+filename+' for ehr='+eid+' posting failure')
                 return render_template('pcomp.html',yourfile=f"you have chosen {filename}",yourresults=yourresults,laste=lastehrid,checkresults=checkresults,checkinfo=checkinfo)        
