@@ -152,6 +152,7 @@ def create_app():
     @app.route('/about.html')
     def about():
         global url_base,url_base_ecis,auth,mymsg,currentposition,ehrbase_version
+        result=""
         msg=ehrbase_routines.getstatus(client,auth,url_base_status)
         if msg['status']=='success':
             status='success'
@@ -159,9 +160,11 @@ def create_app():
             yourresults='EHRBase Server Status: Running\n\n'
             data=[]
             for m in yourjson:
-                data.append(m+':'+yourjson[m]+"\n")
+                data.append(m+': '+yourjson[m]+"\n")
             yourresults=yourresults+"".join(data)
-            insertlogline('Get status successful')   
+            insertlogline('Get status successful')
+            if 'ehrbase_version' in yourjson:
+                ehrbase_version=yourjson['ehrbase_version']
         else:
             status='No Connection to EHRBase Server'
             yourresults=f"Server status: {status}\n\nstatus_info={msg['status']}\nstatus_code={msg['status_code']}\nmessage={msg['text']}"
@@ -171,17 +174,15 @@ def create_app():
             yr2="Redis Server Status: Running"
         else:
             yr2="Redis Server Status: No connection to server\n You cannot use the session log"
-        return render_template('about.html',yourresults=yourresults,yr2=yr2)
-
-
-
-        return render_template('about.html',result=result)
+        return render_template('about.html',result=result,yourresults=yourresults,yr2=yr2)
 
     @app.route("/fsettings.html",methods=["GET"])
     #load settings from file
     def fset():
         global hostname,port,username,password,nodename,protocol,https_mapping,adusername,adpassword,redishostname,redisport,reventsrecorded, \
             client,url_base,url_base_admin,url_base_ecis,url_base_management,url_base_status,ehrbase_version
+        yourresults=""
+        yr2=""
         #get vars from env
         env_varset = [os.environ.get('EHRBASESERVER_hostname', None), 
                     os.environ.get('EHRBASESERVER_port', None),
@@ -223,10 +224,31 @@ def create_app():
                 raise    
             result='Settings Reloaded Successfully'
             app.logger.info("Settings reloaded from file")
+            msg=ehrbase_routines.getstatus(client,auth,url_base_status)
+            if msg['status']=='success':
+                status='success'
+                yourjson=msg['json']
+                yourresults='EHRBase Server Status: Running\n\n'
+                data=[]
+                for m in yourjson:
+                    data.append(m+': '+yourjson[m]+"\n")
+                yourresults=yourresults+"".join(data)
+                insertlogline('Get status successful')
+                if 'ehrbase_version' in yourjson:
+                    ehrbase_version=yourjson['ehrbase_version']   
+            else:
+                status='No Connection to EHRBase Server'
+                yourresults=f"Server status: {status}\n\nstatus_info={msg['status']}\nstatus_code={msg['status_code']}\nmessage={msg['text']}"
+                insertlogline('Get status: failure')
+            msg2=ehrbase_routines.getstatusredis(r)
+            if msg2=='ok':
+                yr2="Redis Server Status: Running"
+            else:
+                yr2="Redis Server Status: No connection to server\n You cannot use the session log"    
         else:
             result='Settings File "config/openehrtool.cfg" not found'
             app.logger.warning(result)
-        return render_template('about.html',result=result)
+        return render_template('about.html',result=result,yourresults=yourresults,yr2=yr2)
 
 
     @app.route("/settings.html",methods=["GET"])
@@ -234,7 +256,9 @@ def create_app():
     def ehrbase():
         global hostname,port,protocol,https_mapping,username,password,nodename,lastehrid,lastcompositionid, \
             adusername,adpassword,redishostname,redisport,reventsrecorded,client,ehrbase_version
-
+        yourresults=""
+        yr2=""
+        result=""
         status='failed'
         if request.args.get("pippo")=="Submit":
             hostname=request.args.get("hname","")
@@ -293,9 +317,33 @@ def create_app():
             auth = myutils.getauth(username,password)
             r=init_redis(redishostname,redisport)
             app.logger.info("settings changed from within app")
-            status='success'
-            return render_template('settings.html',ho=hostname,po=port,pr=protocol,hm=https_mapping,hv=ehrbase_version,us=username,pas=password,no=nodename,
-                        adus=adusername,adpas=adpassword,rho=redishostname,rpo=redisport,rr=reventsrecorded,status=status)
+            # status='success'
+            # return render_template('settings.html',ho=hostname,po=port,pr=protocol,hm=https_mapping,hv=ehrbase_version,us=username,pas=password,no=nodename,
+            #             adus=adusername,adpas=adpassword,rho=redishostname,rpo=redisport,rr=reventsrecorded,status=status)
+            result='Settings Modified Successfully'
+            app.logger.info("Settings changed within the app")
+            msg=ehrbase_routines.getstatus(client,auth,url_base_status)
+            if msg['status']=='success':
+                status='success'
+                yourjson=msg['json']
+                yourresults='EHRBase Server Status: Running\n\n'
+                data=[]
+                for m in yourjson:
+                    data.append(m+': '+yourjson[m]+"\n")
+                yourresults=yourresults+"".join(data)
+                insertlogline('Get status successful') 
+                if 'ehrbase_version' in yourjson:
+                    ehrbase_version=yourjson['ehrbase_version']  
+            else:
+                status='No Connection to EHRBase Server'
+                yourresults=f"Server status: {status}\n\nstatus_info={msg['status']}\nstatus_code={msg['status_code']}\nmessage={msg['text']}"
+                insertlogline('Get status: failure')
+            msg2=ehrbase_routines.getstatusredis(r)
+            if msg2=='ok':
+                yr2="Redis Server Status: Running"
+            else:
+                yr2="Redis Server Status: No connection to server\n You cannot use the session log"    
+            return render_template('about.html',result=result,yourresults=yourresults,yr2=yr2)
         return render_template('settings.html',ho=hostname,po=port,pr=protocol,hm=https_mapping,hv=ehrbase_version,us=username,pas=password,no=nodename,
                         adus=adusername,adpas=adpassword,rho=redishostname,rpo=redisport,rr=reventsrecorded,status=status)
 
