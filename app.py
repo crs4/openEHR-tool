@@ -53,6 +53,7 @@ url_base=""
 url_base_ecis=""
 url_base_admin=""
 url_base_management=""
+url_base_status=""
 
 def init_redis(redishostname,redisport):
     global r
@@ -77,7 +78,7 @@ def insertlogline(line):
 def create_app():
     global hostname,port,username,password,lastehrid,lastcompositionid,nodename,protocol,https_mapping,adusername, \
         adpassword,redishostname,redisport,reventsrecorded,currentposition,sessiontotalevents,auth, \
-            adauth,r,client,url_base,url_base_ecis,url_base_admin,url_base_management,ehrbase_version
+            adauth,r,client,url_base,url_base_ecis,url_base_admin,url_base_management,url_base_status,ehrbase_version
     app = Flask(__name__)
     app.app_context()
     app.config.from_object('config')
@@ -137,7 +138,7 @@ def create_app():
         auth = myutils.getauth(username,password)
         r=init_redis(redishostname,redisport)
         try:
-            url_base,url_base_ecis,url_base_admin,url_base_management=myutils.setEHRbasepaths(hostname,port,protocol,https_mapping)
+            url_base,url_base_ecis,url_base_admin,url_base_management,url_base_status=myutils.setEHRbasepaths(hostname,port,protocol,https_mapping)
         except myutils.httpsMappingError:
             app.logger.info("Error in https_mapping processing")
             raise    
@@ -150,13 +151,37 @@ def create_app():
     @app.route("/")
     @app.route('/about.html')
     def about():
-        return render_template('about.html')
+        global url_base,url_base_ecis,auth,mymsg,currentposition,ehrbase_version
+        msg=ehrbase_routines.getstatus(client,auth,url_base_status)
+        if msg['status']=='success':
+            status='success'
+            yourjson=msg['json']
+            yourresults='EHRBase Server Status: Running\n\n'
+            data=[]
+            for m in yourjson:
+                data.append(m+':'+yourjson[m]+"\n")
+            yourresults=yourresults+"".join(data)
+            insertlogline('Get status successful')   
+        else:
+            status='No Connection to EHRBase Server'
+            yourresults=f"Server status: {status}\n\nstatus_info={msg['status']}\nstatus_code={msg['status_code']}\nmessage={msg['text']}"
+            insertlogline('Get status: failure')
+        msg2=ehrbase_routines.getstatusredis(r)
+        if msg2=='ok':
+            yr2="Redis Server Status: Running"
+        else:
+            yr2="Redis Server Status: No connection to server\n You cannot use the session log"
+        return render_template('about.html',yourresults=yourresults,yr2=yr2)
+
+
+
+        return render_template('about.html',result=result)
 
     @app.route("/fsettings.html",methods=["GET"])
     #load settings from file
     def fset():
         global hostname,port,username,password,nodename,protocol,https_mapping,adusername,adpassword,redishostname,redisport,reventsrecorded, \
-            client,url_base,url_base_admin,url_base_ecis,url_base_management,ehrbase_version
+            client,url_base,url_base_admin,url_base_ecis,url_base_management,url_base_status,ehrbase_version
         #get vars from env
         env_varset = [os.environ.get('EHRBASESERVER_hostname', None), 
                     os.environ.get('EHRBASESERVER_port', None),
@@ -192,7 +217,7 @@ def create_app():
             r=init_redis(redishostname,redisport)
             client=ehrbase_routines.init_ehrbase()
             try:
-                url_base,url_base_ecis,url_base_admin,url_base_management=myutils.setEHRbasepaths(hostname,port,protocol,https_mapping)
+                url_base,url_base_ecis,url_base_admin,url_base_management,url_base_status=myutils.setEHRbasepaths(hostname,port,protocol,https_mapping)
             except myutils.httpsMappingError:
                 app.logger.info("Error in https_mapping processing")
                 raise    
@@ -261,7 +286,7 @@ def create_app():
             global auth,r
             client=ehrbase_routines.init_ehrbase()
             try:
-                url_base,url_base_ecis,url_base_admin,url_base_management=myutils.setEHRbasepaths(hostname,port,protocol,https_mapping)
+                url_base,url_base_ecis,url_base_admin,url_base_management,url_base_status=myutils.setEHRbasepaths(hostname,port,protocol,https_mapping)
             except myutils.httpsMappingError:
                 app.logger.info("Error in https_mapping processing")
                 raise    

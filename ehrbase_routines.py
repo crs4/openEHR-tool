@@ -8,12 +8,59 @@ import sys
 from flask import request
 from myutils import myutils,structuredMarand2EHRBase
 from flask import current_app
+import redis
 #import uuid
 
 def init_ehrbase():
     current_app.logger.debug('inside init_ehrbase')
     client=requests.Session()
     return client
+
+def getstatusredis(r):
+    try:
+        if r.ping():
+            return "ok"
+    except redis.ConnectionError as e:
+        return e
+
+
+def getstatus(client,auth,url_base_status):
+    current_app.logger.debug('inside getstatus')
+    myresp={}
+    myurl=url_normalize(url_base_status)
+    try:
+        response=client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json',
+                                       'Accept': 'application/json'})
+    except requests.exceptions.RequestException as e:
+        myresp['status']='Failed to connect. Check your configuration and that EHRBase is running'
+        myresp['status_code']="503"
+        myresp['text']=e
+        return myresp
+
+    current_app.logger.debug('Get status')
+    current_app.logger.debug('Response Url')
+    current_app.logger.debug(response.url)
+    current_app.logger.debug('Response Status Code')
+    current_app.logger.debug(response.status_code)
+    current_app.logger.debug('Response Text')
+    current_app.logger.debug(response.text)
+    current_app.logger.debug('Response Headers')
+    current_app.logger.debug(response.headers)
+    if(response.status_code<210 and response.status_code>199):
+        myresp['text']=response.text
+        myresp['status']='success'
+        myresp['headers']=response.headers
+        myresp['status_code']=  response.status_code
+        myresp['json']=json.loads(response.text)
+        return myresp
+    else:
+        myresp['text']=response.text
+        myresp['status']='failure'
+        myresp['headers']=response.headers  
+        myresp['status_code']=  response.status_code   
+        current_app.logger.warning("GET status failure")
+        return myresp    
+
 
 
 def createPageFromBase4templatelist(client,auth,url_base,basefile,targetfile):

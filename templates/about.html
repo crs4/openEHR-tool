@@ -242,12 +242,27 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
         <a href="settings.html" class="list-group-item list-group-item-success">Fill in all EHRBase server details in Settings.</a>
         <a href="fsettings.html" class="list-group-item list-group-item-danger">Create the file openehrtool.cfg in config dir (Many examples are available in the same dir)</a>
       </div> 
-<br><br>
+
     <div class="pluto" >
-      <h3>
-      {{result if result!=''}}
-      </h3>
+      
+        {% macro linebreaks_for_string( the_string ) -%}
+        {% if the_string %}
+        {% for line in the_string.split('\n') %}
+        <br />
+        {{ line }}
+        {% endfor %}
+        {% else %}
+        {{ the_string }}
+        {% endif %}
+        {%- endmacro %}
+        {{ linebreaks_for_string( yourresults) }}
+      
     </div>
+    <br>
+    <div class="paperino">
+      {{ linebreaks_for_string(yr2)}}
+    </div>
+    <br><br>
       
 </div>
 <style>
@@ -267,7 +282,11 @@ background-size: auto;
 
 div.pluto {
   text-indent: 5%;
-  color: red;
+  color:darkolivegreen
+}
+
+div.paperino {
+  color:burlywood
 }
 
 </style>

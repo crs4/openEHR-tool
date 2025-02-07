@@ -219,6 +219,7 @@ def setEHRbasepaths(hostname,port,protocol,https_mapping):
         url_base_ecis = url_basebase + "rest/ecis/v1/"
         url_base_admin = url_basebase + "rest/admin/"
         url_base_management = url_basebase + "management/"
+        url_base_status = url_basebase + "rest/status"
     else:#https
         if https_mapping.startswith("http"):
             https_mapping="".join(https_mapping.split("/")[1:])
@@ -236,12 +237,14 @@ def setEHRbasepaths(hostname,port,protocol,https_mapping):
             url_base = url_basebase + "rest/openehr/v1/"
             url_base_ecis = url_basebase + "rest/ecis/v1/"
             url_base_admin = url_basebase + "rest/admin/"
-            url_base_management = url_basebase + "management/"            
+            url_base_management = url_basebase + "management/"  
+            url_base_status =   url_basebase + "rest/status"        
         elif found==1:#ehrbase in mapping
             url_base="https://"+hostname + "/rest/openehr/v1"
             url_base_ecis = "https://"+hostname +"/rest/ecis/v1/"
             url_base_admin = "https://"+hostname +"/rest/admin/" 
-            url_base_management = "https://"+hostname +"/management/"         
+            url_base_management = "https://"+hostname +"/management/" 
+            url_base_status =  "https://"+hostname +"/rest/status"
         # elif found==2:#rest in mapping
         #     url_base="https//"+hostname + "/openehr/v1"
         #     url_base_ecis = "https://"+hostname +"/ecis/v1/"
@@ -249,7 +252,7 @@ def setEHRbasepaths(hostname,port,protocol,https_mapping):
         #  url_base_management does not map. That's why it is commented.          
         else:
             raise httpsMappingError()
-    return url_base,url_base_ecis,url_base_admin,url_base_management
+    return url_base,url_base_ecis,url_base_admin,url_base_management,url_base_status
 
 class EHRBaseVersion(Exception):
     def __init__(self,message="Error in parsing ehrbase version"):
