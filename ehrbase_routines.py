@@ -30,7 +30,7 @@ def getstatus(client,auth,url_base_status):
     myurl=url_normalize(url_base_status)
     try:
         response=client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json',
-                                       'Accept': 'application/json'})
+                                       'Accept': 'application/json'},verify=True)
     except requests.exceptions.RequestException as e:
         myresp['status']='Failed to connect. Check your configuration and that EHRBase is running'
         myresp['status_code']="503"
@@ -68,7 +68,7 @@ def createPageFromBase4templatelist(client,auth,url_base,basefile,targetfile):
     #client.auth = (username,password)
     myresp={}
     myurl=url_normalize(url_base  + 'definition/template/adl1.4')
-    response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'})
+    response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'},verify=True)
     current_app.logger.debug('Get list templates')
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
@@ -122,18 +122,18 @@ def gettemp(client,auth,url_base,url_base_ecis,tformat,template,ehrbase_version)
     current_app.logger.info(f'Get Template: template={template} format={tformat}')
     if(tformat=="OPT"):
         myurl=url_normalize(url_base  + 'definition/template/adl1.4/'+template)
-        response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'})
+        response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'},verify=True)
     else: #format webtemplate
         try:
             if myutils.compareEhrbaseVersions(ehrbase_version,"2.5.0")>0: #EHRBase version>=2.5.0
                 myurl=url_normalize(url_base  + 'definition/template/adl1.4/'+template)
                 response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/JSON',
-                                                      'Accept': 'application/openehr.wt+json'})
+                                                      'Accept': 'application/openehr.wt+json'},verify=True)
             else:#EHRBase version<2.5.0
                 myurl=url_normalize(url_base_ecis+'template/'+template)
                 current_app.logger.debug('myurl')
                 current_app.logger.debug(myurl)        
-                response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/openehr.wt+json'})
+                response=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/openehr.wt+json'},verify=True)
         except myutils.EHRBaseVersion:
             current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
             raise 
@@ -210,7 +210,7 @@ def posttemp(client,auth,url_base,uploaded_template):
         current_app.logger.info('POST Template')
     myurl=url_normalize(url_base  + 'definition/template/adl1.4/')
     response=client.post(myurl,params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/XML'},
-        data=etree.tostring(root))
+        data=etree.tostring(root),verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -238,7 +238,7 @@ def updatetemp(client,adauth,url_base_admin,uploaded_template,templateid):
     myurl=url_normalize(url_base_admin  + 'template/'+templateid)
     response=client.put(myurl,params={'format': 'XML'},headers={'Authorization':adauth,'Content-Type':'application/xml',
                  'prefer':'return=minimal','accept':'application/xml' },
-                 data=etree.tostring(root))
+                 data=etree.tostring(root),verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -263,7 +263,7 @@ def deltemp(client,adauth,url_base_admin,templateid):
     current_app.logger.debug('inside deletetemp')
     current_app.logger.info(f'Deleting template: template={templateid}')
     myurl=url_normalize(url_base_admin  + 'template/'+templateid)
-    response=client.delete(myurl,headers={'Authorization':adauth })
+    response=client.delete(myurl,headers={'Authorization':adauth },verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -288,7 +288,7 @@ def delalltemp(client,adauth,url_base_admin):
     current_app.logger.debug('inside deletealltemp')
     current_app.logger.info(f'Deleting all template')
     myurl=url_normalize(url_base_admin  + 'template/all')
-    response=client.delete(myurl,headers={'Authorization':adauth })
+    response=client.delete(myurl,headers={'Authorization':adauth },verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -325,11 +325,11 @@ def createehrid(client,auth,url_base,eid):
         myurl=url_normalize(url_base  + 'ehr')
         current_app.logger.info("Create ehr without ehrid")
         response=client.post(myurl, params={},headers={'Authorization':auth, \
-            'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'})
+            'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'},verify=True)
     else:
         myurl=url_normalize(url_base  + 'ehr/'+eid)
         current_app.logger.info(f"Create ehr with ehrid: ehrid={eid}")
-        response=client.put(myurl, params={},headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'})
+        response=client.put(myurl, params={},headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'},verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -405,12 +405,12 @@ def createehrsub(client,auth,url_base,sid,sna,eid):
         myurl=url_normalize(url_base  + 'ehr')
         response=client.post(myurl, params={},headers={'Authorization':auth, \
                 'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'},
-                data=body)
+                data=body,verify=True)
     else:
         myurl=url_normalize(url_base  + 'ehr/'+eid)
         response=client.put(myurl, params={},headers={'Authorization':auth, \
                 'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'},
-                data=body)       
+                data=body,verify=True)       
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -449,7 +449,7 @@ def getehrid(client,auth,url_base,ehrid):
     current_app.logger.debug("launched getehr")
     myurl=url_normalize(url_base  + 'ehr/'+ehrid)
     response=client.get(myurl, params={},headers={'Authorization':auth, \
-            'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'})
+            'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'},verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -477,7 +477,7 @@ def delehrid(client,adauth,url_base_admin,ehrid):
     current_app.logger.debug('inside delehrid')
     current_app.logger.info(f'Deleting ehr: ehrid={ehrid}')  
     myurl=url_normalize(url_base_admin  + 'ehr/'+ehrid)
-    response=client.delete(myurl,headers={'Authorization':adauth })
+    response=client.delete(myurl,headers={'Authorization':adauth },verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -506,7 +506,7 @@ def getehrsub(client,auth,url_base,sid,sna):
     current_app.logger.debug(f'sid={sid} sna={sna}')
     myurl=url_normalize(url_base  + 'ehr')
     response=client.get(myurl, params={'subject_id':sid,'subject_namespace':sna},headers={'Authorization':auth, \
-            'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'})
+            'Content-Type':'application/JSON','Accept': 'application/json','Prefer': 'return={representation|minimal}'},verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -538,7 +538,7 @@ def postehrstatus(client,auth,url_base,uploaded_ehrstatus):
     myurl=url_normalize(url_base  + 'ehr')
     response=client.post(myurl,headers={'Authorization':auth,\
         'Content-Type':'application/json','Prefer': 'return=representation'},
-        data=ehrsjson)
+        data=ehrsjson,verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -565,9 +565,9 @@ def getehrstatus(client,auth,url_base,eid,outtype,vat,vid):
     if outtype=='VAT':
         myurl=url_normalize(url_base  + 'ehr/'+eid+'/ehr_status')
         if vat=="":
-            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'},verify=True )
         else:
-            response = client.get(myurl,params={'version_at_time':vat},headers={'Authorization':auth,'Content-Type':'application/json'} )
+            response = client.get(myurl,params={'version_at_time':vat},headers={'Authorization':auth,'Content-Type':'application/json'} ,verify=True)
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -592,7 +592,7 @@ def getehrstatus(client,auth,url_base,eid,outtype,vat,vid):
             myurl=url_normalize(url_base  + 'ehr/'+eid+'/ehr_status/')
         else:
             myurl=url_normalize(url_base  + 'ehr/'+eid+'/ehr_status/'+vid)
-        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'},verify=True )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -620,7 +620,7 @@ def updateehrstatus(client,auth,url_base,ehrfile,eid,vid):
     ehrstatusjson=json.dumps(ehrstat)
     response = client.put(myurl,params={'format': 'RAW'},headers={'Authorization':auth,'Content-Type':'application/json', \
             'accept':'application/json','If-Match':vid, \
-        'Prefer': 'return=representation'}, data=ehrstatusjson) 
+        'Prefer': 'return=representation'}, data=ehrstatusjson,verify=True) 
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -646,7 +646,7 @@ def getehrstatusversioned(client,auth,url_base,eid,outtype,vat,vid):
     current_app.logger.debug('inside getehrstatus')
     if outtype=='INFO':
         myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_ehr_status')
-        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} ,verify=True)
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -668,7 +668,7 @@ def getehrstatusversioned(client,auth,url_base,eid,outtype,vat,vid):
         return myresp
     elif outtype=='REVHIST':
         myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_ehr_status/revision_history')
-        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'},verify=True )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -691,9 +691,9 @@ def getehrstatusversioned(client,auth,url_base,eid,outtype,vat,vid):
     elif outtype=='VAT':
         myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_ehr_status/version')
         if vat=="":
-            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'},verify=True )
         else:
-            response = client.get(myurl,params={'version_at_time':vat},headers={'Authorization':auth,'Content-Type':'application/json'} )
+            response = client.get(myurl,params={'version_at_time':vat},headers={'Authorization':auth,'Content-Type':'application/json'},verify=True )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -718,7 +718,7 @@ def getehrstatusversioned(client,auth,url_base,eid,outtype,vat,vid):
             myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_ehr_status/version')
         else:
             myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_ehr_status/version/'+vid)
-        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'},verify=True )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -745,14 +745,14 @@ def getdir(client,auth,url_base,eid,outtype,vat,vid,path,filetype):
         myurl=url_normalize(url_base  + 'ehr/'+eid+'/directory')
         if vat=="":
             if filetype=='JSON':
-                response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation','accept':'application/json'} )
+                response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation','accept':'application/json'} ,verify=True)
             else:
-                response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/xml','Prefer':'return=representation',"accept":'application/xml'} )
+                response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/xml','Prefer':'return=representation',"accept":'application/xml'},verify=True )
         else:
             if filetype=='JSON':
-                response = client.get(myurl,params={'version_at_time':vat,'path':path},headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation','accept':'application/json'} )
+                response = client.get(myurl,params={'version_at_time':vat,'path':path},headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation','accept':'application/json'} ,verify=True)
             else:
-                response = client.get(myurl,params={'version_at_time':vat,'path':path},headers={'Authorization':auth,'Content-Type':'application/xml','Prefer':'return=representation',"accept":'application/xml'} )
+                response = client.get(myurl,params={'version_at_time':vat,'path':path},headers={'Authorization':auth,'Content-Type':'application/xml','Prefer':'return=representation',"accept":'application/xml'},verify=True )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -790,9 +790,9 @@ def getdir(client,auth,url_base,eid,outtype,vat,vid,path,filetype):
         else:
             myurl=url_normalize(url_base  + 'ehr/'+eid+'/directory/'+vid)
         if filetype=='JSON':
-            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation','accept':'application/json'} )
+            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation','accept':'application/json'} ,verify=True)
         else:
-            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation',"accept":'application/xml'} )
+            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation',"accept":'application/xml'} ,verify=True)
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -848,12 +848,12 @@ def postdir(client,auth,url_base,eid,uploaded_dir,filetype):
         response=client.post(myurl,headers={'Authorization':auth,\
         'Content-Type':'application/json','Prefer': 'return=representation', \
             'accept':'application/json'}, \
-        data=dirjson)
+        data=dirjson,verify=True)
     else:
         response=client.post(myurl,headers={'Authorization':auth,\
         'Content-Type':'application/xml','Prefer': 'return=representation', \
             'accept':'application/xml'}, params={'format': 'XML'},\
-        data=dirxml)
+        data=dirxml,verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -894,12 +894,12 @@ def updatedir(client,auth,url_base,eid,vid,uploaded_dir,filetype):
         response=client.put(myurl,headers={'Authorization':auth,\
         'Content-Type':'application/json','Prefer': 'return=representation',
         'If-Match':vid,'accept':'application/json'},
-        data=dirjson)    
+        data=dirjson,verify=True)    
     else:
         response=client.put(myurl,headers={'Authorization':auth,\
         'Content-Type':'application/json','Prefer': 'return=representation',
         'If-Match':vid},
-        data=dirjson)
+        data=dirjson,verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -934,7 +934,7 @@ def updatedir(client,auth,url_base,eid,vid,uploaded_dir,filetype):
 def deldiradmin(client,adauth,url_base_admin,eid,did):
     current_app.logger.debug('inside deldiradmin')
     myurl=url_normalize(url_base_admin  + 'ehr/'+eid+'/directory/'+did)
-    response = client.delete(myurl,headers={'Authorization':adauth,'Content-Type':'application/json'} )
+    response = client.delete(myurl,headers={'Authorization':adauth,'Content-Type':'application/json'},verify=True )
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -960,7 +960,7 @@ def deldir(client,auth,url_base,eid,vid):
     current_app.logger.debug('inside deldir')
     myurl=url_normalize(url_base  + 'ehr/'+eid+'/directory')
     response = client.delete(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation','accept':'application/json',\
-                                            'If-Match':vid} )
+                                            'If-Match':vid},verify=True )
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -989,7 +989,7 @@ def delcomp(client,adauth,url_base_admin,compid,ehrid):
     current_app.logger.info(f'Deleting comp: id={compid}') 
     myurl=url_normalize(url_base_admin+ 'ehr/'+ehrid+'/composition/'+compid)
 #    response=client.delete(myurl)
-    response=client.delete(myurl,headers={'Authorization':adauth })    
+    response=client.delete(myurl,headers={'Authorization':adauth },verify=True)    
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -1016,7 +1016,7 @@ def delcompuser(client,auth,url_base,compid,ehrid):
     current_app.logger.debug('inside delcompuser')
     current_app.logger.info(f'Deleting comp: versionUID={compid}') 
     myurl=url_normalize(url_base  + 'ehr/'+ehrid+'/composition/'+compid)
-    response=client.delete(myurl,headers={'Authorization':auth })    
+    response=client.delete(myurl,headers={'Authorization':auth },verify=True)    
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -1043,7 +1043,7 @@ def getcompversioned(client,auth,url_base,compid,eid,outtype,vat,vid):
     current_app.logger.debug('inside getcompversioned')
     if outtype=='INFO':
         myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_composition/'+compid)
-        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} ,verify=True)
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -1065,7 +1065,7 @@ def getcompversioned(client,auth,url_base,compid,eid,outtype,vat,vid):
         return myresp
     elif outtype=='REVHIST':
         myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_composition/'+compid+'/revision_history')
-        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'},verify=True )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -1088,9 +1088,9 @@ def getcompversioned(client,auth,url_base,compid,eid,outtype,vat,vid):
     elif outtype=='VAT':
         myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_composition/'+compid+'/version')
         if vat=="":
-            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+            response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'},verify=True )
         else:
-            response = client.get(myurl,params={'version_at_time':vat},headers={'Authorization':auth,'Content-Type':'application/json'} )
+            response = client.get(myurl,params={'version_at_time':vat},headers={'Authorization':auth,'Content-Type':'application/json'},verify=True )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -1115,7 +1115,7 @@ def getcompversioned(client,auth,url_base,compid,eid,outtype,vat,vid):
             myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_composition/'+compid+'/version')
         else:
             myurl=url_normalize(url_base  + 'ehr/'+eid+'/versioned_composition/'+compid+'/version/'+vid)
-        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'} )
+        response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json'},verify=True )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -1143,7 +1143,7 @@ def postcomp(client,auth,url_base,url_base_ecis,composition,eid,tid,filetype,che
         root=etree.fromstring(composition)
         response = client.post(myurl,
                        params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml', \
-                           'accept':'application/xml'}, data=etree.tostring(root)) 
+                           'accept':'application/xml'}, data=etree.tostring(root),verify=True) 
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -1187,7 +1187,7 @@ def postcomp(client,auth,url_base,url_base_ecis,composition,eid,tid,filetype,che
             current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
             raise 
         response = client.post(myurl,params=params,headers={'Authorization':auth,'Content-Type':'application/json', \
-             'accept':'application/json'}, data=compositionjson) 
+             'accept':'application/json'}, data=compositionjson,verify=True) 
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -1232,7 +1232,7 @@ def postcomp(client,auth,url_base,url_base_ecis,composition,eid,tid,filetype,che
         response = client.post(myurl,
                        params={'ehrId':eid,'templateId':tid,'format':'STRUCTURED'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
-                       data=compositionjson
+                       data=compositionjson,verify=True
                       )           
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -1287,7 +1287,7 @@ def postcomp(client,auth,url_base,url_base_ecis,composition,eid,tid,filetype,che
         response = client.post(myurl,
                        params={'ehrId':eid,'templateId':tid,'format':'STRUCTURED'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
-                       data=compositionjson
+                       data=compositionjson,verify=True
                       )    
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -1333,7 +1333,7 @@ def postcomp(client,auth,url_base,url_base_ecis,composition,eid,tid,filetype,che
         response = client.post(myurl,
                        params={'ehrId':eid,'templateId':tid,'format':'FLAT'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
-                       data=compositionjson
+                       data=compositionjson,verify=True
                       )           
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -1377,7 +1377,7 @@ def updatecomp(client,auth,url_base,url_base_ecis,composition,eid,tid,compid,fil
         response = client.put(myurl,
                        params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml', \
                            'accept':'application/xml','If-Match':versionid, \
-            'Prefer': 'return=representation'}, data=etree.tostring(root)) 
+            'Prefer': 'return=representation'}, data=etree.tostring(root),verify=True) 
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -1422,7 +1422,7 @@ def updatecomp(client,auth,url_base,url_base_ecis,composition,eid,tid,compid,fil
             raise 
         response = client.put(myurl,params=params,headers={'Authorization':auth,'Content-Type':'application/json', \
              'accept':'application/json','If-Match':versionid, \
-            'Prefer': 'return=representation'}, data=compositionjson) 
+            'Prefer': 'return=representation'}, data=compositionjson,verify=True) 
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -1469,7 +1469,7 @@ def updatecomp(client,auth,url_base,url_base_ecis,composition,eid,tid,compid,fil
                        headers={'Authorization':auth,'Content-Type':'application/json',\
                                 'Prefer':'return=representation',\
                                     'accept':'application/json','If-Match':versionid},
-                       data=compositionjson
+                       data=compositionjson,verify=True
                       )           
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -1523,7 +1523,7 @@ def updatecomp(client,auth,url_base,url_base_ecis,composition,eid,tid,compid,fil
                                             'format':'FLAT'},\
                               headers={'Authorization':auth,'Content-Type':'application/json', \
              'accept':'application/json','If-Match':versionid, \
-            'Prefer': 'return=representation'}, data=compositionjson)          
+            'Prefer': 'return=representation'}, data=compositionjson,verify=True)          
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -1568,7 +1568,7 @@ def getcomp(client,auth,url_base,url_base_ecis,compid,eid,filetype,ehrbase_versi
     if(filetype=="XML"):
         myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition/'+compid)
         #root=etree.fromstring(composition)
-        response=client.get(myurl,params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml','accept':'application/xml'})
+        response=client.get(myurl,params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml','accept':'application/xml'},verify=True)
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -1595,7 +1595,7 @@ def getcomp(client,auth,url_base,url_base_ecis,compid,eid,filetype,ehrbase_versi
         return myresp
     elif(filetype=="JSON"):
         myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition/'+compid)
-        response = client.get(myurl, params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/json'} )
+        response = client.get(myurl, params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/json'},verify=True )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -1630,7 +1630,7 @@ def getcomp(client,auth,url_base,url_base_ecis,compid,eid,filetype,ehrbase_versi
         response = client.get(myurl,
                        params={'ehrId':eid,'format':'STRUCTURED'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
-                      )           
+                      ,verify=True)           
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -1671,7 +1671,7 @@ def getcomp(client,auth,url_base,url_base_ecis,compid,eid,filetype,ehrbase_versi
             raise 
         response = client.get(myurl,
                        params={'ehrId':eid,'format':'FLAT'},
-                       headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
+                       headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},verify=True
                       )           
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -1716,7 +1716,7 @@ def postaql(client,auth,url_base,aqltext,qname,version,qtype):
     #     aqltext=aqltext.replace("'",'\\\'')
     #aqltext="{'q':'"+aqltext+"'}"
     myurl=url_normalize(url_base  + 'definition/query/'+qname+"/"+version)
-    response = client.put(myurl,params={'type':qtype,'format':'RAW'},headers={'Authorization':auth,'Content-Type':'text/plain'},data=aqltext)
+    response = client.put(myurl,params={'type':qtype,'format':'RAW'},headers={'Authorization':auth,'Content-Type':'text/plain'},data=aqltext,verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -1749,7 +1749,7 @@ def createPageFromBase4querylist(client,auth,url_base,basefile,targetfile):
     current_app.logger.debug('inside createPageFromBase4querylist')
     myresp={}
     myurl=url_normalize(url_base  + 'definition/query')
-    response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'})
+    response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'},verify=True)
     current_app.logger.debug('Get list queries')
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
@@ -1810,7 +1810,7 @@ def getaql(client,auth,url_base,qname,version):
         myurl=url_normalize(url_base  + 'definition/query/'+qname+"/"+version)
     else:
         myurl=url_normalize(url_base  + 'definition/query/'+qname)
-    response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'})
+    response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'},verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -1848,7 +1848,7 @@ def delaql(client,adauth,url_base_admin,qname,version):
         myurl=url_normalize(url_base_admin  + 'query/'+qname+"/"+version)
     else:
         myurl=url_normalize(url_base_admin  + 'query/'+qname)
-    response = client.delete(myurl,headers={'Authorization':adauth,'Content-Type': 'application/json'})
+    response = client.delete(myurl,headers={'Authorization':adauth,'Content-Type': 'application/json'},verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -1913,7 +1913,7 @@ def runaql(client,auth,url_base,aqltext,qmethod,limit,offset,eid,qparam,qname,ve
             current_app.logger.debug(f'q={aqltext}')
             current_app.logger.debug(f"params={params}")
             response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
-                params=params)
+                params=params,verify=True)
         else: #POST
             myurl=url_normalize(url_base  + 'query/aql')            
             data={}
@@ -1952,7 +1952,7 @@ def runaql(client,auth,url_base,aqltext,qmethod,limit,offset,eid,qparam,qname,ve
             data['q']=aqltext               
             current_app.logger.debug(f"data={data}")
             response = client.post(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
-                data=json.dumps(data) )
+                data=json.dumps(data),verify=True )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -2005,7 +2005,7 @@ def runaql(client,auth,url_base,aqltext,qmethod,limit,offset,eid,qparam,qname,ve
         #         params["query_parameters"]=myqp
         #     current_app.logger.debug(f"params={params}")
         #     response = client.get(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
-        #         params=params)
+        #         params=params,verify=True)
         # else: #POST
         #     myurl=url_normalize(EHR_SERVER_BASE_URL   + 'query/'+qname+"/"+version)       
         #     data={}
@@ -2032,7 +2032,7 @@ def runaql(client,auth,url_base,aqltext,qmethod,limit,offset,eid,qparam,qname,ve
         #         data["query_parameters"]=qv
         #     current_app.logger.debug(f"data={data}")
         #     response = client.post(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
-        #         data=json.dumps(data) )
+        #         data=json.dumps(data),verify=True )
         # current_app.logger.debug('Response Url')
         # current_app.logger.debug(response.url)
         # current_app.logger.debug('Response Status Code')
@@ -2061,7 +2061,7 @@ def compcheck(client,auth,url_base,url_base_ecis,composition,eid,filetype,compid
     current_app.logger.debug('      inside compcheck')
     if(filetype=="XML"):
         myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition/'+compid)
-        response=client.get(myurl,params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml','accept':'application/xml'})
+        response=client.get(myurl,params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml','accept':'application/xml'},verify=True)
         origcompositiontree=etree.fromstring(composition)
         if(response.status_code<210 and response.status_code>199):
             retrievedcompositiontree= etree.fromstring(response.text)
@@ -2073,7 +2073,7 @@ def compcheck(client,auth,url_base,url_base_ecis,composition,eid,filetype,compid
                 return None            
     elif(filetype=="JSON"):
         myurl=url_normalize(url_base  + 'ehr/'+eid+'/composition/'+compid)
-        response = client.get(myurl, params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/json'} )
+        response = client.get(myurl, params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/json'} ,verify=True)
         origcomposition=json.loads(composition)
         if(response.status_code<210 and response.status_code>199):       
             retrievedcomposition=json.loads(response.text)
@@ -2089,7 +2089,7 @@ def compcheck(client,auth,url_base,url_base_ecis,composition,eid,filetype,compid
         myurl=url_normalize(url_base_ecis  + 'composition/'+compid)
         response = client.get(myurl,
                        params={'ehrId':eid,'format':'STRUCTURED'},
-                       headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
+                       headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},verify=True
                       )           
         origcomposition=json.loads(composition)
         if(response.status_code<210 and response.status_code>199):
@@ -2106,7 +2106,7 @@ def compcheck(client,auth,url_base,url_base_ecis,composition,eid,filetype,compid
         myurl=url_normalize(url_base_ecis  + 'composition/'+compid)
         response = client.get(myurl,
                        params={'ehrId':eid,'format':'FLAT'},
-                       headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
+                       headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},verify=True
                       )           
         origcomposition=json.loads(composition)
         if(response.status_code<210 and response.status_code>199):
@@ -2128,7 +2128,7 @@ def get_dashboard_info(client,auth,url_base,adauth,url_base_management):
     myresp={}
     myresp['status']='failure'
     myurl=url_normalize(url_base  + 'definition/query/')
-    responseaql = client.get(myurl, headers={'Authorization':auth,'Content-Type': 'application/json'})                     
+    responseaql = client.get(myurl, headers={'Authorization':auth,'Content-Type': 'application/json'},verify=True)                     
     current_app.logger.debug('Get AQL stored')
     current_app.logger.debug('Response Url')
     current_app.logger.debug(responseaql.url)
@@ -2156,7 +2156,7 @@ def get_dashboard_info(client,auth,url_base,adauth,url_base_management):
     aqltext="select e/ehr_id/value FROM EHR e"
     data['q']=aqltext
     response = client.post(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
-                data=json.dumps(data) )
+                data=json.dumps(data) ,verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -2184,7 +2184,7 @@ def get_dashboard_info(client,auth,url_base,adauth,url_base_management):
     aqltext="select e/ehr_id/value,c/uid/value,c/archetype_details/template_id/value from EHR e contains COMPOSITION c"
     data['q']=aqltext
     response = client.post(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
-                data=json.dumps(data) )
+                data=json.dumps(data),verify=True )
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -2214,7 +2214,7 @@ def get_dashboard_info(client,auth,url_base,adauth,url_base_management):
     myresp['utemplate']=len(templates_in_use)     
     #get templates
     myurl=url_normalize(url_base  + 'definition/template/adl1.4')
-    response2=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'})
+    response2=client.get(myurl,params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/XML'},verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response2.url)
     current_app.logger.debug('Response Status Code')
@@ -2274,7 +2274,7 @@ def get_dashboard_info(client,auth,url_base,adauth,url_base_management):
 #MANAGEMENT_ENDPOINT_ENV_SHOWVALUES=ALWAYS
     if(adauth!=""):        
         myurl=url_normalize(url_base_management+'info')
-        resp = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
+        resp = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'},verify=True)
         current_app.logger.debug('Response Url')
         current_app.logger.debug(resp.url)
         current_app.logger.debug('Response Status Code')
@@ -2306,7 +2306,7 @@ def get_dashboard_info(client,auth,url_base,adauth,url_base_management):
             #return myresp 
     
         myurl=url_normalize(url_base_management+'env')
-        resp2 = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
+        resp2 = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'},verify=True)
         current_app.logger.debug('Response Url')
         current_app.logger.debug(resp2.url)
         current_app.logger.debug('Response Status Code')
@@ -2423,7 +2423,7 @@ def get_dashboard_info(client,auth,url_base,adauth,url_base_management):
             #return myresp 
     
         myurl=url_normalize(url_base_management  + 'health')
-        resp3 = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'})
+        resp3 = client.get(myurl,headers={'Authorization':adauth,'Content-Type':'application/JSON'},verify=True)
         current_app.logger.debug('Response Url')
         current_app.logger.debug(resp3.url)
         current_app.logger.debug('Response Status Code')
@@ -2466,7 +2466,7 @@ def postbatch1(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,sidpa
         aqltext="select e/ehr_id/value FROM EHR e"
         data['q']=aqltext
         response = client.post(myurl,headers={'Authorization':auth,'Content-Type': 'application/json'}, \
-                data=json.dumps(data) )
+                data=json.dumps(data),verify=True )
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -2517,7 +2517,7 @@ def postbatch1(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,sidpa
                     if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                         #get ehr summary by subject_id , subject_namespace
                         payload = {'subject_id':sid,'subject_namespace':sna}
-                        ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
+                        ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'},verify=True)
                         eid=json.loads(ehrs.text)["ehr_id"]["value"]
                         current_app.logger.debug('ehr already existent')
                         eids.append(eid)
@@ -2531,7 +2531,7 @@ def postbatch1(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,sidpa
             myurl=url_normalize(url_base + 'ehr/'+eid+'/composition')
             response = client.post(myurl,
                        params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml', \
-                           'accept':'application/xml'}, data=etree.tostring(root)) 
+                           'accept':'application/xml'}, data=etree.tostring(root),verify=True) 
             current_app.logger.debug('Response Url')
             current_app.logger.debug(response.url)
             current_app.logger.debug('Response Status Code')
@@ -2615,7 +2615,7 @@ def postbatch1(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,sidpa
                     if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                         #get ehr summary by subject_id , subject_namespace
                         payload = {'subject_id':sid,'subject_namespace':sna}
-                        ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
+                        ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'},verify=True)
                         eid=json.loads(ehrs.text)["ehr_id"]["value"]
                         current_app.logger.debug('ehr already existent')
                         eids.append(eid)
@@ -2636,7 +2636,7 @@ def postbatch1(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,sidpa
                 current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
                 raise             
             response = client.post(myurl,params=params,headers={'Authorization':auth,'Content-Type':'application/json', \
-             'accept':'application/json'}, data=compositionjson)   
+             'accept':'application/json'}, data=compositionjson,verify=True)   
             current_app.logger.debug('Response Url')
             current_app.logger.debug(response.url)
             current_app.logger.debug('Response Status Code')
@@ -2719,7 +2719,7 @@ def postbatch1(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,sidpa
                     if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                         #get ehr summary by subject_id , subject_namespace
                         payload = {'subject_id':sid,'subject_namespace':sna}
-                        ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
+                        ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'},verify=True)
                         eid=json.loads(ehrs.text)["ehr_id"]["value"]
                         current_app.logger.debug('ehr already existent')
                         eids.append(eid)
@@ -2741,7 +2741,7 @@ def postbatch1(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,sidpa
             response = client.post(myurl,
                        params={'ehrId':eid,'templateId':tid,'format':'FLAT'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=minimal'},
-                       data=compositionjson
+                       data=compositionjson,verify=True
                       )
             current_app.logger.debug('Response Url')
             current_app.logger.debug(response.url)
@@ -2927,7 +2927,7 @@ def postbatch2(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,eid,f
                 if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                     #get ehr summary by subject_id , subject_namespace
                     payload = {'subject_id':sid,'subject_namespace':sna}
-                    ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
+                    ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'},verify=True)
                     current_app.logger.debug('ehr already existent')
                     eid=json.loads(ehrs.text)["ehr_id"]["value"]
                     current_app.logger.debug(f'Patient {sid}: retrieved ehrid={eid}')
@@ -2956,7 +2956,7 @@ def postbatch2(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,eid,f
             myurl=url_normalize(url_base + 'ehr/'+eid+'/composition')
             response = client.post(myurl,
                        params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml', \
-                           'accept':'application/xml'}, data=etree.tostring(root)) 
+                           'accept':'application/xml'}, data=etree.tostring(root),verify=True) 
             current_app.logger.debug(response.text)
             current_app.logger.debug(response.status_code)
             current_app.logger.debug(response.headers)
@@ -3010,7 +3010,7 @@ def postbatch2(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,eid,f
                 if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                     #get ehr summary by subject_id , subject_namespace
                     payload = {'subject_id':sid,'subject_namespace':sna}
-                    ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
+                    ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'},verify=True)
                     current_app.logger.debug('ehr already existent')
                     eid=json.loads(ehrs.text)["ehr_id"]["value"]
                     current_app.logger.debug(f'Patient {sid}: retrieved ehrid={eid}')
@@ -3047,7 +3047,7 @@ def postbatch2(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,eid,f
                 current_app.logger.info(f"Error in ehrbase version mapping. ehrbase_version={ehrbase_version}")
                 raise 
             response = client.post(myurl,params=params,headers={'Authorization':auth,'Content-Type':'application/json', \
-             'accept':'application/json'}, data=compositionjson)   
+             'accept':'application/json'}, data=compositionjson,verify=True)   
             current_app.logger.debug('Response Url')
             current_app.logger.debug(response.url)
             current_app.logger.debug('Response Status Code')
@@ -3108,7 +3108,7 @@ def postbatch2(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,eid,f
                 if(resp10['status_code']==409 and 'Specified party has already an EHR set' in json.loads(resp10['text'])['message']):
                     #get ehr summary by subject_id , subject_namespace
                     payload = {'subject_id':sid,'subject_namespace':sna}
-                    ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'})
+                    ehrs = client.get(url_base + 'ehr',  params=payload,headers={'Authorization':auth,'Content-Type':'application/JSON','Accept': 'application/json'},verify=True)
                     current_app.logger.debug('ehr already existent')
                     eid=json.loads(ehrs.text)["ehr_id"]["value"]
                     current_app.logger.debug(f'Patient {sid}: retrieved ehrid={eid}')
@@ -3147,7 +3147,7 @@ def postbatch2(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,eid,f
             response = client.post(myurl,
                        params={'ehrId':eid,'templateId':tid,'format':'FLAT'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=minimal'},
-                       data=compositionjson
+                       data=compositionjson,verify=True
                       )
             current_app.logger.debug('Response Url')
             current_app.logger.debug(response.url)
@@ -3197,7 +3197,7 @@ def postbatch2(client,auth,url_base,url_base_ecis,uploaded_files,tid,check,eid,f
 def getcontrib(client,auth,url_base,eid,vid):
     current_app.logger.debug('inside getcontrib')
     myurl=url_normalize(url_base  + 'ehr/'+eid+'/contribution/'+vid)
-    response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'} )
+    response = client.get(myurl,headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},verify=True )
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -3229,7 +3229,7 @@ def postcontrib(client,auth,url_base,eid,uploaded_contrib):
     response=client.post(myurl,headers={'Authorization':auth,\
         'Content-Type':'application/json','Prefer': 'return=representation', \
             'accept':'application/json'}, \
-        data=contribjson)
+        data=contribjson,verify=True)
     current_app.logger.debug('Response Url')
     current_app.logger.debug(response.url)
     current_app.logger.debug('Response Status Code')
@@ -3257,7 +3257,7 @@ def examplecomp(client,auth,url_base,url_base_ecis,template_name,filetype,ehrbas
     current_app.logger.debug('inside examplecomp')
     if(filetype=="XML"):
         myurl=url_normalize(url_base  + 'definition/template/adl1.4/'+template_name+'/example')
-        response=client.get(myurl,params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml','accept':'application/xml'})
+        response=client.get(myurl,params={'format': 'XML'},headers={'Authorization':auth,'Content-Type':'application/xml','accept':'application/xml'},verify=True)
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -3282,7 +3282,7 @@ def examplecomp(client,auth,url_base,url_base_ecis,template_name,filetype,ehrbas
         return myresp
     elif(filetype=="JSON"):
         myurl=url_normalize(url_base   + 'definition/template/adl1.4/'+template_name+'/example')
-        response = client.get(myurl, params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/json'} )
+        response = client.get(myurl, params={'format': 'JSON'},headers={'Authorization':auth,'Content-Type':'application/json'} ,verify=True)
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
@@ -3314,7 +3314,7 @@ def examplecomp(client,auth,url_base,url_base_ecis,template_name,filetype,ehrbas
             raise 
         response = client.get(myurl,
                        params={'format':'STRUCTURED'},
-                       headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'}
+                       headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},verify=True
                         )           
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
@@ -3347,7 +3347,7 @@ def examplecomp(client,auth,url_base,url_base_ecis,template_name,filetype,ehrbas
             raise 
         response = client.get(myurl,
                        params={'format':'FLAT'},
-                       headers={'Authorization':auth,'Content-Type':'application/json'}
+                       headers={'Authorization':auth,'Content-Type':'application/json'},verify=True
                         )           
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
