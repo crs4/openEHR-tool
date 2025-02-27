@@ -1630,7 +1630,7 @@ def getcomp(client,auth,url_base,url_base_ecis,compid,eid,filetype,ehrbase_versi
         response = client.get(myurl,
                        params={'ehrId':eid,'format':'STRUCTURED'},
                        headers={'Authorization':auth,'Content-Type':'application/json','Prefer':'return=representation'},
-                      ,verify=True)           
+                      verify=True)           
         current_app.logger.debug('Response Url')
         current_app.logger.debug(response.url)
         current_app.logger.debug('Response Status Code')
