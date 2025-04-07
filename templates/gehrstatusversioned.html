@@ -317,7 +317,7 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                     <h2>Results</h2>
                    <div id="savejson" style="display:none;">
                     <br><br>
-                    <a class="btn btn-danger" role="button" href="data:text/plain;charset=utf-8,{{compjson}}"
+                    <a class="btn btn-danger" role="button" href="data:text/plain;charset=utf-8,{{ehrjson}}"
                        download="results.json">
                        Save to file
                      </a>
@@ -334,11 +334,11 @@ document.querySelectorAll('.dropdown-menu a').forEach(function(element){
                     {% endif %}
                     {%- endmacro %}
                     {{ linebreaks_for_string( yourresults) }}
-                    <pre id="json">{{compjson}}</pre>
+                    <pre id="json">{{ehrjson}}</pre>
                   
           <!-- <script type="text/javascript">
-            if ( {{compjson|tojson}} !== '' ) {
-              document.getElementById("json").innerHTML = '{{compjson|tojson}}';}
+            if ( {{ehrjson|tojson}} !== '' ) {
+              document.getElementById("json").innerHTML = '{{ehrjson|tojson}}';}
       
           </script>     -->
 
